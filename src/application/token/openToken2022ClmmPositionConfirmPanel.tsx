@@ -13,7 +13,6 @@ import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import { isToken } from '@/functions/judgers/dateType'
 import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
@@ -24,14 +23,17 @@ import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
 import { getTransferFeeInfos } from './getTransferFeeInfos'
-import { SplToken } from './type'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 
 type HasConfirmState = Promise<boolean>
-
-const feeItemLabel = {
+type Label = Record<
+  'harvest' | 'openPosition' | 'increase' | 'decrease',
+  Partial<Record<'token' | 'reward' | 'amount', ((token: Token) => string) | string>>
+>
+const primaryFeeItemLabel: Label = {
   harvest: {
     token: (token: Token) => `Harvest Pool ${token.symbol}`,
-    reward: (rewardToken: Token) => `Harvest Pool Reward ${rewardToken.symbol}`
+    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`
   },
   openPosition: {
     amount: (token: Token) => `Open Position Input ${token.symbol}`
@@ -41,7 +43,25 @@ const feeItemLabel = {
   },
   decrease: {
     token: (token: Token) => `Harvest Pool ${token.symbol}`,
-    reward: (rewardToken: Token) => `Harvest Pool Reward ${rewardToken.symbol}`,
+    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`,
+    amount: (token: Token) => `Decrease User input ${token.symbol}`
+  }
+}
+
+const secondaryFeeItemLabel: Label = {
+  harvest: {
+    token: (token: Token) => `Harvest Pool ${token.symbol}`,
+    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`
+  },
+  openPosition: {
+    amount: (token: Token) => `Open Position Input ${token.symbol}`
+  },
+  increase: {
+    amount: (token: Token) => `Increase User input ${token.symbol}`
+  },
+  decrease: {
+    token: (token: Token) => `Harvest Pool ${token.symbol}`,
+    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`,
     amount: (token: Token) => `Decrease User input ${token.symbol}`
   }
 }
@@ -56,7 +76,7 @@ export function openToken2022ClmmPositionConfirmPanel({
   onCancel,
   onConfirm
 }: {
-  caseName: keyof typeof feeItemLabel
+  caseName: keyof typeof primaryFeeItemLabel
   position?: MayArray<UserPositionAccount | undefined>
   positionAdditionalAmount?: TokenAmount[]
   additionalAmountCaseName?: string
@@ -169,7 +189,7 @@ export function openToken2022ClmmAmountConfirmPanel({
   caseName,
   groupInfo
 }: {
-  caseName?: keyof typeof feeItemLabel
+  caseName?: keyof typeof primaryFeeItemLabel
   groupInfo?: {
     ammPool: HydratedConcentratedInfo
     priceLower: Numberish
@@ -276,7 +296,7 @@ function FeeInfoRow({
   fee,
   type: type
 }: {
-  caseName?: keyof typeof feeItemLabel
+  caseName?: keyof typeof primaryFeeItemLabel
   className?: string
   amount: TokenAmount
   fee?: TokenAmount
@@ -286,7 +306,9 @@ function FeeInfoRow({
     <Grid className={twMerge('grid-cols-2 mobile:grid-cols-1 gap-4 items-center text-[#abc4ff]', className)}>
       <Col className="gap-3">
         <div className="text-sm">
-          {caseName && type ? feeItemLabel[caseName]?.[type]?.(amount.token) : amount.token.symbol}
+          {caseName && type
+            ? shrinkToValue(primaryFeeItemLabel[caseName]?.[type], [amount.token])
+            : amount.token.symbol}
         </div>
         <Row className="items-center gap-2">
           <CoinAvatar token={amount.token} size="sm"></CoinAvatar>
@@ -299,7 +321,11 @@ function FeeInfoRow({
 
       <Row className="gap-2 text-xs flex-wrap justify-between">
         <Col className="gap-4">
-          <div className="text-[#abc4ff80]">Initial amount</div>
+          <div className="text-[#abc4ff80]">
+            {caseName && type
+              ? shrinkToValue(secondaryFeeItemLabel[caseName]?.[type], [amount.token])
+              : 'Initial amount'}
+          </div>
           <Row className="items-center gap-2">
             <div>{toString(amount)}</div>
             <div>{amount.token.symbol}</div>
