@@ -1,3 +1,8 @@
+import { useMemo } from 'react'
+import { useRouter } from 'next/router'
+
+import { AmmV3, ApiAmmV3PoolsItem } from '@raydium-io/raydium-sdk'
+
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
@@ -6,12 +11,11 @@ import { lazyMap } from '@/functions/lazyMap'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
-import { AmmV3, ApiAmmV3PoolsItem } from '@raydium-io/raydium-sdk'
-import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
+
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 
@@ -71,7 +75,7 @@ export default function useConcentratedInfoLoader() {
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
     }
-  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), chainTimeOffset])
+  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), chainTimeOffset, tokenAccounts])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
@@ -87,7 +91,7 @@ export default function useConcentratedInfoLoader() {
     })
 
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [sdkParsedAmmPools, connection, tokens])
+  }, [sdkParsedAmmPools, connection, tokens, shouldLoadInfo])
 
   /** select pool chart data */
   useTransitionedEffect(async () => {

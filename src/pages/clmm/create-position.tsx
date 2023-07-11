@@ -8,14 +8,16 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/common/useAppSettings'
 import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentratedPosotion from '@/application/concentrated/txCreateConcentratedPosition'
-import { HydratedConcentratedInfo } from '@/application/concentrated/type'
-import useConcentrated, { PoolsConcentratedTabs, timeMap } from '@/application/concentrated/useConcentrated'
+import useConcentrated, {
+  ConcentratedStore,
+  PoolsConcentratedTabs,
+  timeMap
+} from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
 import { routeBackTo, routeTo } from '@/application/routeTools'
-import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
@@ -35,7 +37,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { div, mul, sub } from '@/functions/numberish/operations'
@@ -55,7 +57,6 @@ import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/Con
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import { useConcentratedTickAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
-import { Numberish } from '@/types/constants'
 
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
@@ -159,30 +160,26 @@ function ConcentratedCard() {
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const [poolSnapShot, setPoolSnapShot] = useState<{
-    coin1: SplToken | undefined
-    coin2: SplToken | undefined
-    coin1Amount: Numberish | undefined
-    coin2Amount: Numberish | undefined
-    coin1AmountFee?: Numberish
-    coin2AmountFee?: Numberish
-    decimals: number
-    totalDeposit: string | undefined
-    feeRate: number | undefined
-    inRange: boolean
-    currentPrice: Fraction | undefined
-    currentAmmPool: HydratedConcentratedInfo | undefined
-  }>({
-    coin1: undefined,
-    coin2: undefined,
-    coin1Amount: undefined,
-    coin2Amount: undefined,
-    decimals: 6,
-    totalDeposit: undefined,
-    feeRate: undefined,
-    inRange: false,
-    currentPrice: undefined,
-    currentAmmPool: undefined
-  })
+    coin1?: ConcentratedStore['coin1']
+    coin2?: ConcentratedStore['coin2']
+    coin1Amount?: ConcentratedStore['coin1Amount']
+    coin2Amount?: ConcentratedStore['coin2Amount']
+    coin1AmountFee?: ConcentratedStore['coin1AmountFee']
+    coin2AmountFee?: ConcentratedStore['coin2AmountFee']
+    coin1SplippageAmount?: ConcentratedStore['coin1SlippageAmount']
+    coin2SplippageAmount?: ConcentratedStore['coin2SlippageAmount']
+    decimals?: number
+    totalDeposit?: string
+    feeRate?: number
+    inRange?: boolean
+    currentPrice?: Fraction
+    currentAmmPool?: ConcentratedStore['currentAmmPool']
+    priceLower?: ConcentratedStore['priceLower']
+    priceUpper?: ConcentratedStore['priceUpper']
+    priceLowerTick?: ConcentratedStore['priceLowerTick']
+    priceUpperTick?: ConcentratedStore['priceUpperTick']
+    liquidity?: ConcentratedStore['liquidity']
+  }>({})
 
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
@@ -274,6 +271,7 @@ function ConcentratedCard() {
     coin1 &&
     (!isMeaningfulNumber(coin1Amount) ||
       checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })))
+
   const haveEnoughCoin2 =
     coin2 &&
     (!isMeaningfulNumber(coin2Amount) ||
@@ -385,8 +383,9 @@ function ConcentratedCard() {
     [coin1?.mint, coin2?.mint, currentAmmPool?.idString, tickDirection, decimals]
   )
 
-  const handleClickCreatePool = useCallback(() => {
+  const refreshSnapshot = useEvent(() => {
     setPoolSnapShot({
+      ...useConcentrated.getState(),
       coin1: coin1,
       coin2: coin2,
       coin1Amount: coin1Amount,
@@ -404,6 +403,15 @@ function ConcentratedCard() {
         : undefined,
       currentAmmPool: currentAmmPool
     })
+  })
+
+  const isSnapshotDataFresh = useMemo(
+    () => eq(poolSnapShot.coin1Amount, coin1Amount) && eq(poolSnapShot.coin2Amount, coin2Amount),
+    [coin1Amount, coin2Amount, poolSnapShot]
+  )
+
+  const handleClickCreatePool = useCallback(() => {
+    refreshSnapshot()
     onConfirmOpen()
   }, [onConfirmOpen, coin1, coin2, coin1Amount, coin2Amount, decimals, totalDeposit, currentAmmPool, inputDisable])
 
@@ -642,6 +650,10 @@ function ConcentratedCard() {
         </div>
       </div>
       <AddLiquidityConfirmDialog
+        onRefreshSnapshot={refreshSnapshot}
+        isSnapshotDataFresh={isSnapshotDataFresh}
+        haveEnoughCoin1={haveEnoughCoin1}
+        haveEnoughCoin2={haveEnoughCoin2}
         open={isConfirmOn}
         coin1={poolSnapShot.coin1}
         coin2={poolSnapShot.coin2}
@@ -658,7 +670,7 @@ function ConcentratedCard() {
         gettedNFTAddress={gettedNFTAddress}
         onConfirm={(close) =>
           txCreateConcentratedPosotion({
-            currentAmmPool: poolSnapShot.currentAmmPool,
+            ...poolSnapShot,
             onSuccess({ nftAddress }) {
               setGettedNFTAddress(nftAddress)
             }

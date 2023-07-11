@@ -1,13 +1,13 @@
 import assert from '@/functions/assert'
 import txHandler from '../txTools/handleTx'
-import { generateCreateClmmPositionTx } from './txCreateConcentratedPosition'
+import { GenerateCreateClmmPositionTxFnParams, generateCreateClmmPositionTx } from './txCreateConcentratedPosition'
 import useConcentrated from './useConcentrated'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
-export default async function txCreateNewConcentratedPool() {
+export default async function txCreateNewConcentratedPool(payload: GenerateCreateClmmPositionTxFnParams) {
   const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
 
   const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
@@ -26,13 +26,11 @@ export default async function txCreateNewConcentratedPool() {
     useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
     return
   }
-
   return txHandler(async ({ transactionCollector }) => {
     const { tempDataCache } = useConcentrated.getState()
     assert(tempDataCache, 'should create pool first')
     const createPoolInnerTransaction = tempDataCache
-
-    const { innerTransactions: openPositionInnerTransaction } = await generateCreateClmmPositionTx()
+    const { innerTransactions: openPositionInnerTransaction } = await generateCreateClmmPositionTx(payload)
 
     transactionCollector.add(createPoolInnerTransaction, {
       txHistoryInfo: { title: 'Create pool', description: `create clmm pool` }

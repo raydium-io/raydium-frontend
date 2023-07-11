@@ -3,7 +3,7 @@ import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearis
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { ConcentratedStore } from '@/application/concentrated/useConcentrated'
 import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
@@ -61,10 +61,10 @@ const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcce
 export function CreatePoolCard() {
   useAutoCreateAmmv3Pool()
 
+  const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-  const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
 
   const popConfirm = useNotification((s) => s.popConfirm)
 
@@ -132,6 +132,16 @@ export function CreatePoolCard() {
     () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
     [isCoin1Base, isFocus1]
   )
+
+  // for preview
+  const [poolSnapShot, setPoolSnapShot] = useState<Partial<ConcentratedStore>>({})
+
+  const handleClickPreview = useEvent(() => {
+    setPoolSnapShot({
+      ...useConcentrated.getState()
+    })
+    openPreviewDialog()
+  })
 
   useEffect(() => {
     if (!currentAmmPool) return
@@ -592,7 +602,7 @@ export function CreatePoolCard() {
               }
             ]}
             onClick={() => {
-              openPreviewDialog()
+              handleClickPreview()
             }}
           >
             Preview Pool
@@ -607,23 +617,26 @@ export function CreatePoolCard() {
       </Col>
       <CreatePoolPreviewDialog
         open={isPreviewDialogOn}
-        coin1={coin1}
-        coin2={coin2}
-        coin1Amount={coin1Amount}
-        coin2Amount={coin2Amount}
-        coin1AmountFee={coin1AmountFee}
-        coin2AmountFee={coin2AmountFee}
+        coin1={poolSnapShot.coin1}
+        coin2={poolSnapShot.coin2}
+        coin1Amount={poolSnapShot.coin1Amount}
+        coin2Amount={poolSnapShot.coin2Amount}
+        coin1AmountFee={poolSnapShot.coin1AmountFee}
+        coin2AmountFee={poolSnapShot.coin2AmountFee}
         focusSide={focusSide}
         decimals={decimals}
         currentPrice={toFraction(userSettedCurrentPrice!)}
         startTime={ammPoolStartTime}
-        position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}
+        position={{
+          min: toFraction(poolSnapShot.priceLower!).toFixed(decimals),
+          max: toFraction(poolSnapShot.priceUpper!).toFixed(decimals)
+        }}
         totalDeposit={toUsdVolume(totalDeposit)}
         onClose={closePreviewDialog}
         inRange={!inputDisable.find((disabled) => disabled)}
         feeRate={toPercentString(userSelectedAmmConfigFeeOption?.tradeFeeRate)}
         onConfirm={() => {
-          txCreateNewConcentratedPool().then((result) => {
+          txCreateNewConcentratedPool(poolSnapShot).then((result) => {
             closePreviewDialog()
             if (result?.allSuccess) {
               useConcentrated.getState().refreshConcentrated()

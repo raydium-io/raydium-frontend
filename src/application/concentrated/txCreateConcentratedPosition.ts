@@ -3,29 +3,50 @@ import { AmmV3 } from '@raydium-io/raydium-sdk'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 
 import useConnection from '../connection/useConnection'
-import useNotification from '../notification/useNotification'
-import { isToken2022 } from '../token/isToken2022'
-import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
-import { HydratedConcentratedInfo } from './type'
-import useConcentrated from './useConcentrated'
+import useConcentrated, { ConcentratedStore } from './useConcentrated'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import useNotification from '../notification/useNotification'
+import { isToken2022 } from '../token/isToken2022'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 
 export default async function txCreateConcentratedPosotion({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
+  coin1 = useConcentrated.getState().coin1,
+  coin2 = useConcentrated.getState().coin2,
+  coin1Amount = useConcentrated.getState().coin1Amount,
+  coin2Amount = useConcentrated.getState().coin2Amount,
+  coin1SlippageAmount = useConcentrated.getState().coin1SlippageAmount,
+  coin2SlippageAmount = useConcentrated.getState().coin2SlippageAmount,
+  priceLower = useConcentrated.getState().priceLower,
+  priceUpper = useConcentrated.getState().priceUpper,
+  priceLowerTick = useConcentrated.getState().priceLowerTick,
+  priceUpperTick = useConcentrated.getState().priceUpperTick,
+  liquidity = useConcentrated.getState().liquidity,
   onSuccess
 }: {
-  currentAmmPool?: HydratedConcentratedInfo
   onSuccess?: (utils: { nftAddress: string }) => void
-} = {}) {
-  const { coin1, coin2, coin1Amount, coin2Amount, priceLower, priceUpper } = useConcentrated.getState()
-
+} & Pick<
+  ConcentratedStore,
+  | 'coin1'
+  | 'coin2'
+  | 'coin1Amount'
+  | 'coin2Amount'
+  | 'coin1SlippageAmount'
+  | 'coin2SlippageAmount'
+  | 'liquidity'
+  | 'priceLower'
+  | 'priceUpper'
+  | 'priceLowerTick'
+  | 'priceUpperTick'
+  | 'currentAmmPool'
+> = {}) {
   const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
   const coin2TokenAmount = toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
   // check token 2022
@@ -55,7 +76,20 @@ export default async function txCreateConcentratedPosotion({
   }
 
   return txHandler(async ({ transactionCollector }) => {
-    const { innerTransactions, nftAddress } = await generateCreateClmmPositionTx(currentAmmPool)
+    const { innerTransactions, nftAddress } = await generateCreateClmmPositionTx({
+      currentAmmPool,
+      coin1,
+      coin2,
+      coin1Amount,
+      coin2Amount,
+      coin1SlippageAmount,
+      coin2SlippageAmount,
+      liquidity,
+      priceLower,
+      priceUpper,
+      priceLowerTick,
+      priceUpperTick
+    })
 
     transactionCollector.add(innerTransactions, {
       onTxAllSuccess() {
@@ -72,20 +106,38 @@ export default async function txCreateConcentratedPosotion({
   })
 }
 
-export async function generateCreateClmmPositionTx(currentAmmPool = useConcentrated.getState().currentAmmPool) {
-  const {
-    priceLower,
-    priceUpper,
-    coin1,
-    coin2,
-    coin1Amount,
-    coin2Amount,
-    coin1SlippageAmount,
-    coin2SlippageAmount,
-    liquidity,
-    priceLowerTick,
-    priceUpperTick
-  } = useConcentrated.getState()
+export type GenerateCreateClmmPositionTxFnParams = Pick<
+  ConcentratedStore,
+  | 'coin1'
+  | 'coin2'
+  | 'coin1Amount'
+  | 'coin2Amount'
+  | 'coin1SlippageAmount'
+  | 'coin2SlippageAmount'
+  | 'liquidity'
+  | 'priceLower'
+  | 'priceUpper'
+  | 'priceLowerTick'
+  | 'priceUpperTick'
+  | 'currentAmmPool'
+>
+
+export async function generateCreateClmmPositionTx(
+  {
+    priceLower = useConcentrated.getState().priceLower,
+    priceUpper = useConcentrated.getState().priceUpper,
+    coin1 = useConcentrated.getState().coin1,
+    coin2 = useConcentrated.getState().coin2,
+    coin1Amount = useConcentrated.getState().coin1Amount,
+    coin2Amount = useConcentrated.getState().coin2Amount,
+    coin1SlippageAmount = useConcentrated.getState().coin1SlippageAmount,
+    coin2SlippageAmount = useConcentrated.getState().coin2SlippageAmount,
+    liquidity = useConcentrated.getState().liquidity,
+    priceLowerTick = useConcentrated.getState().priceLowerTick,
+    priceUpperTick = useConcentrated.getState().priceUpperTick,
+    currentAmmPool = useConcentrated.getState().currentAmmPool
+  }: GenerateCreateClmmPositionTxFnParams = useConcentrated.getState()
+) {
   const { tokenAccountRawInfos } = useWallet.getState()
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()

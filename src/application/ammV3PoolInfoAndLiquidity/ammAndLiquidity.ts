@@ -89,6 +89,10 @@ const parsedAmmV3PoolInfoCache = new Map<
   }
 >()
 
+export function clearRpcCache() {
+  parsedAmmV3PoolInfoCache.clear()
+}
+
 async function getParsedAmmV3PoolInfo({
   connection,
   apiAmmPools,
@@ -99,7 +103,6 @@ async function getParsedAmmV3PoolInfo({
   chainTimeOffset?: number
 }) {
   const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
-
   if (needRefetchApiAmmPools.length) {
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: needRefetchApiAmmPools,
