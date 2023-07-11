@@ -8,16 +8,11 @@ import { toString } from '@/functions/numberish/toString'
 
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import txHandler, { createTxHandler, TransactionQueue } from '../txTools/handleTx'
+import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
-import { useSwap } from './useSwap'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
-import useNotification from '../notification/useNotification'
-import { isToken2022 } from '../token/isToken2022'
-import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
-import { openToken2022SwapConfirmPanel } from '../token/openToken2022SwapConfirmPanel'
+import { useSwap } from './useSwap'
 
 export default async function txSwap() {
   const { programIds } = useAppAdvancedSettings.getState()
@@ -57,22 +52,22 @@ export default async function txSwap() {
   assert(checkWalletHasEnoughBalance(upCoinTokenAmount), `not enough ${upCoin.symbol}`)
   assert(routeType, 'accidently routeType is undefined')
 
-  // check token 2022
-  const needConfirm = [coin1, coin2].some((i) => isToken2022(i))
-  let userHasConfirmed: boolean
-  if (needConfirm) {
-    const { hasConfirmed } = openToken2022SwapConfirmPanel({
-      routInfo: selectedCalcResult
-    })
-    // const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: currentAmmPool, onlyMints: [rewardInfo] })
-    userHasConfirmed = await hasConfirmed
-  } else {
-    userHasConfirmed = true
-  }
-  if (!userHasConfirmed) {
-    useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
-    return
-  }
+  // // check token 2022
+  // const needConfirm = [coin1, coin2].some((i) => isToken2022(i))
+  // let userHasConfirmed: boolean
+  // if (needConfirm) {
+  //   const { hasConfirmed } = openToken2022SwapConfirmPanel({
+  //     routInfo: selectedCalcResult
+  //   })
+  //   // const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: currentAmmPool, onlyMints: [rewardInfo] })
+  //   userHasConfirmed = await hasConfirmed
+  // } else {
+  //   userHasConfirmed = true
+  // }
+  // if (!userHasConfirmed) {
+  //   useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
+  //   return
+  // }
 
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { innerTransactions } = await TradeV2.makeSwapInstructionSimple({
