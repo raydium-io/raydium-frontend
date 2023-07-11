@@ -804,7 +804,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             {currentPrice && (
               <ReferenceLine
                 isFront={true}
-                x={currentPrice?.toSignificant(decimals)}
+                x={currentPrice?.toFixed(Math.max(decimals, maxLength))}
                 stroke="#FFF"
                 strokeDasharray="4"
                 strokeWidth={2}
