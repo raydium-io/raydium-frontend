@@ -1,4 +1,4 @@
-import { Price } from '@raydium-io/raydium-sdk'
+import { Price, ZERO } from '@raydium-io/raydium-sdk'
 import { useEffect, useRef, useState } from 'react'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -56,6 +56,7 @@ export function AddConcentratedLiquidityDialog() {
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const originalCoin1 = useConcentrated((s) => s.coin1)
   const originalCoin2 = useConcentrated((s) => s.coin2)
+  const liquidity = useConcentrated((s) => s.liquidity)
   const decimals =
     originalCoin1 || originalCoin2 ? Math.max(originalCoin1?.decimals ?? 0, originalCoin2?.decimals ?? 0) : 6
   const tokenPrices = useToken((s) => s.tokenPrices)
@@ -268,6 +269,10 @@ export function AddConcentratedLiquidityDialog() {
                 { not: isWarningChipOpen },
                 {
                   should: isMeaningfulNumber(coinBaseAmount) || isMeaningfulNumber(coinQuoteAmount)
+                },
+                {
+                  not: liquidity?.eq(ZERO), // this is Rudy's logic, don't know why
+                  fallbackProps: { children: 'Token Amount Fail to Create Position' }
                 },
                 {
                   should: !amountBaseIsOutOfMax,

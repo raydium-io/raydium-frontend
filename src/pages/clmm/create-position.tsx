@@ -569,7 +569,6 @@ function ConcentratedCard() {
           ) : (
             ''
           )}
-
           {/* supply button */}
           <Button
             className="frosted-glass-teal w-full mt-auto"
@@ -606,7 +605,7 @@ function ConcentratedCard() {
                 fallbackProps: { children: 'Enter an amount' }
               },
               {
-                not: isMeaningfulNumber(inputAmount) && liquidity && liquidity.eq(ZERO), // this is Rudy's logic, don't know why
+                not: liquidity?.eq(ZERO), // this is Rudy's logic, don't know why
                 fallbackProps: { children: 'Token Amount Fail to Create Position' }
               },
               {

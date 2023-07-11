@@ -127,10 +127,10 @@ export default function useConcentratedAmountCalculator() {
         coin2Amount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
         coin2SlippageAmount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
         coin2AmountFee,
-        coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined
-      })
+        coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined,
 
-      useConcentrated.setState({ liquidity })
+        liquidity
+      })
     } catch (err) {
       console.error('err: ', err)
     }
