@@ -75,7 +75,6 @@ export default function useConcentratedAmountCalculator() {
       getMultiMintInfos({ mints: [coin1.mint, coin2.mint] }),
       getEpochInfo()
     ])
-
     try {
       const { liquidity, amountSlippageA, amountSlippageB } =
         isRemoveDialogOpen &&
@@ -118,7 +117,7 @@ export default function useConcentratedAmountCalculator() {
       const coin2AmountFee = coin2SlippageResult.fee && toTokenAmount(coin2, coin2SlippageResult.fee)
       const coin2ExpirationTime = coin2SlippageResult.expirationTime
 
-      useConcentrated.setState({
+      const params = {
         coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
         coin1SlippageAmount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
         coin1AmountFee,
@@ -130,7 +129,8 @@ export default function useConcentratedAmountCalculator() {
         coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined,
 
         liquidity
-      })
+      }
+      useConcentrated.setState(params)
     } catch (err) {
       console.error('err: ', err)
     }

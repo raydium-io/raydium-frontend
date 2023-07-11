@@ -7,8 +7,10 @@ import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
-export default async function txCreateNewConcentratedPool(payload: GenerateCreateClmmPositionTxFnParams) {
-  const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
+export default async function txCreateNewConcentratedPool(
+  payload: GenerateCreateClmmPositionTxFnParams = useConcentrated.getState()
+) {
+  const { coin1, coin2, coin1Amount, coin2Amount } = payload
 
   const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
   const coin2TokenAmount = toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })

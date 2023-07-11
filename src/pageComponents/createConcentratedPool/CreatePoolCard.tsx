@@ -76,8 +76,8 @@ export function CreatePoolCard() {
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
   const coin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
   const coin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
-  const liquidity = useConcentrated((s) => s.liquidity)
 
+  const liquidity = useConcentrated((s) => s.liquidity)
   const focusSide = useConcentrated((s) => s.focusSide)
   const isFocus1 = focusSide === 'coin1'
   const inputAmount = isFocus1 ? coin1Amount : coin2Amount
