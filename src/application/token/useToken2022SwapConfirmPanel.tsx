@@ -27,6 +27,7 @@ import { AsyncAwait } from '../../components/AsyncAwait'
 import useConnection from '../connection/useConnection'
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 import { parseMintInfo } from './parseMintInfo'
+import Tooltip from '@/components/Tooltip'
 
 /**
  * not just data, also ui
@@ -198,7 +199,21 @@ function ConfirmDialog({
                               </Row>
 
                               <Row className="table-row">
-                                <div className="table-cell px-2 font-medium">Max Transfer Fee:</div>
+                                <div className="table-cell px-2 font-medium">
+                                  <Row className="font-medium items-center">
+                                    <div>Max Transfer Fee</div>
+                                    <Tooltip>
+                                      <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+                                      <Tooltip.Panel>
+                                        <div className="max-w-[300px] space-y-1.5">
+                                          The maximum transfer fee collected regardless of the amount of tokens
+                                          transferred
+                                        </div>
+                                      </Tooltip.Panel>
+                                    </Tooltip>
+                                    <div className="ml-1">:</div>
+                                  </Row>
+                                </div>
                                 <div className="table-cell px-2">
                                   {toString(tokenMintInfo.maximumFee, {
                                     decimalLength: `auto ${tokenMintInfo.decimals}`
@@ -207,11 +222,37 @@ function ConfirmDialog({
                                 </div>
                               </Row>
 
+                              {!isMeaningfulNumber(tokenMintInfo.nextTransferFeePercent) &&
+                                !isMeaningfulNumber(tokenMintInfo.nextMaximumFee) && (
+                                  <Row className="table-row">
+                                    <div className="table-cell px-2 font-medium">Pending fee change:</div>
+                                    <div className="table-cell px-2">No</div>
+                                  </Row>
+                                )}
+
                               {isMeaningfulNumber(tokenMintInfo.nextTransferFeePercent) && (
                                 <Row className="table-row">
                                   <div className="table-cell px-2 font-medium">Fee change:</div>
                                   <div className="table-cell px-2">
                                     {toPercentString(tokenMintInfo.nextTransferFeePercent)}
+                                    {tokenMintInfo.expirationTimeOffset != null && (
+                                      <span>
+                                        {' '}
+                                        in <FeeChangeTime remainSeconds={tokenMintInfo.expirationTimeOffset} />
+                                      </span>
+                                    )}
+                                  </div>
+                                </Row>
+                              )}
+
+                              {isMeaningfulNumber(tokenMintInfo.nextMaximumFee) && (
+                                <Row className="table-row">
+                                  <div className="table-cell px-2 font-medium">Max fee change:</div>
+                                  <div className="table-cell px-2">
+                                    {toString(tokenMintInfo.nextMaximumFee, {
+                                      decimalLength: `auto ${tokenMintInfo.decimals}`
+                                    })}{' '}
+                                    {token.symbol}
                                     {tokenMintInfo.expirationTimeOffset != null && (
                                       <span>
                                         {' '}
