@@ -133,6 +133,7 @@ function ConcentratedEffects() {
 
 function ConcentratedCard() {
   const getBalance = useWallet((s) => s.getBalance)
+  const balances = useWallet((s) => s.balances)
   const [chartPoints, loadChartPointsAct, lazyLoadChart] = useConcentrated((s) => [
     s.chartPoints,
     s.loadChartPointsAct,
@@ -429,6 +430,21 @@ function ConcentratedCard() {
   const [gettedNFTAddress, setGettedNFTAddress] = useState<string>()
 
   const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([coin1, coin2])
+  const coin1MaxValue = useMemo(
+    () =>
+      coin1 && getBalance(coin1)
+        ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true })
+        : undefined,
+    [coin1, getBalance, balances]
+  )
+
+  const coin2MaxValue = useMemo(
+    () =>
+      coin2 && getBalance(coin2)
+        ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true })
+        : undefined,
+    [coin2, getBalance, balances]
+  )
 
   return (
     <CyberpunkStyleCard
@@ -477,11 +493,7 @@ function ConcentratedCard() {
                   coin1 ? `${toPubString(coin1.mint).slice(0, 5)}...${toPubString(coin1.mint).slice(-5)}` : undefined
                 }
                 haveCoinIcon
-                maxValue={
-                  coin1 && getBalance(coin1)
-                    ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true })
-                    : undefined
-                }
+                maxValue={coin1MaxValue}
                 onPriceChange={updatePrice1}
                 disableTokenSelect
                 onUserInput={(amount) => {
@@ -510,11 +522,7 @@ function ConcentratedCard() {
                 }
                 haveHalfButton
                 haveCoinIcon
-                maxValue={
-                  coin2 && getBalance(coin2)
-                    ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true })
-                    : undefined
-                }
+                maxValue={coin2MaxValue}
                 onPriceChange={updatePrice2}
                 disableTokenSelect
                 onEnter={(input) => {

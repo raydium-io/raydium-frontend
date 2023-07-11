@@ -21,7 +21,7 @@ export function isFunction(value: unknown): value is AnyFn {
 }
 
 export function isObject(val: unknown): val is Record<string | number, any> | Array<any> {
-  return !(val === null) && typeof val === 'object'
+  return val !== null && typeof val === 'object'
 }
 
 export function isUndefined(val: unknown): val is undefined {

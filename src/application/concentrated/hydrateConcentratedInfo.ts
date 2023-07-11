@@ -31,7 +31,7 @@ export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConce
   const hydrate1 = hydratePoolInfo(concentratedInfo)
   const hydrate2 = hydrateFeeRate(concentratedInfo)
   const hydrate3 = hydrateBaseInfo(concentratedInfo)
-  const rawAmmPoolInfo = mergeObject(concentratedInfo, hydrate1, hydrate2, hydrate3) as Omit<
+  const rawAmmPoolInfo = coverlyMergeObject(concentratedInfo, hydrate1, hydrate2, hydrate3) as Omit<
     HydratedConcentratedInfo,
     'userPositionAccount'
   >
@@ -53,7 +53,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
 
   const newRewardInfos = sdkConcentratedInfo.state.rewardInfos.map((r) => {
     const rewardToken = getToken(r.tokenMint)
-    return mergeObject(r, {
+    return coverlyMergeObject(r, {
       get perSecond() {
         return toFraction(r.perSecond.toString())
       },
@@ -180,7 +180,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     }
   }
 
-  return mergeObject(part1, part2, part3)
+  return coverlyMergeObject(part1, part2, part3)
 }
 /**
  * part of {@link hydrateConcentratedInfo}
