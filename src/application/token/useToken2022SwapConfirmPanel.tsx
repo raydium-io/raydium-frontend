@@ -33,10 +33,12 @@ import Tooltip from '@/components/Tooltip'
  * not just data, also ui
  */
 export function useToken2022SwapConfirmPanel({
+  debugLable,
   token,
   onCancel,
   onConfirm
 }: {
+  debugLable?: string | number
   token: SplToken | undefined
   onCancel?(): void
   onConfirm?(): void
@@ -108,8 +110,6 @@ function ConfirmDialog({
   onConfirm?(): void
 }) {
   if (!token) return null
-  const info = getOnlineTokenInfo(token.mint).catch(() => {})
-  if (!info) return null
 
   const isClosedByConfirm = useRef(false)
   useEffect(() => {
@@ -117,6 +117,11 @@ function ConfirmDialog({
   }, [toPubString(token.mint)])
 
   const [canConfirm, setCanConfirm] = useState<boolean>(false)
+
+  if (!open) return null
+
+  const info = isToken2022(token) ? getOnlineTokenInfo(token.mint).catch(() => {}) : undefined
+  if (!info) return null
   return (
     <ResponsiveDialogDrawer
       placement="from-bottom"
@@ -129,7 +134,8 @@ function ConfirmDialog({
     >
       <Card
         className={twMerge(
-          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]`
+          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]`,
+          className
         )}
         size="lg"
         style={{
