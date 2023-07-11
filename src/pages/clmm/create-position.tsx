@@ -429,7 +429,10 @@ function ConcentratedCard() {
 
   const [gettedNFTAddress, setGettedNFTAddress] = useState<string>()
 
-  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([coin1, coin2])
+  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
+    { token: coin1, amount: coin1Amount },
+    { token: coin2, amount: coin2Amount }
+  ])
   const coin1MaxValue = useMemo(
     () =>
       coin1 && getBalance(coin1)

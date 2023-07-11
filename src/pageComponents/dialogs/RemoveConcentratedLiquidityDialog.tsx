@@ -56,6 +56,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const coinQuote = currentAmmPool?.quote
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const originalCoin1 = useConcentrated((s) => s.coin1)
+  const originalCoin2 = useConcentrated((s) => s.coin2)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
   const originalCoin1AmountMin = useConcentrated((s) => s.coin1AmountMin)
@@ -165,8 +166,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   }, [maxInfo, position])
 
   const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
-    coinBase,
-    coinQuote
+    { token: originalCoin1, amount: originalCoin1Amount },
+    { token: originalCoin2, amount: originalCoin2Amount }
   ])
 
   return (

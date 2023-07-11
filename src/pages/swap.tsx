@@ -370,8 +370,8 @@ function SwapCard() {
   const [isCurrentExpirationTimeRunOver, setIsCurrentExpirationTimeRunOver] = useState(expirationTime === 0)
 
   const { isWarningChipOpen, badToken, Token2022FeeTooHighWarningChip } = useToken2022FeeTooHighWarningChecker([
-    coin1,
-    coin2
+    { token: coin1, amount: coin1Amount },
+    { token: coin2, amount: coin2Amount }
   ])
   return (
     <CyberpunkStyleCard

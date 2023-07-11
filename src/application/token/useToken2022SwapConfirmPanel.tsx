@@ -179,14 +179,12 @@ function ConfirmDialog({
                       promise={info}
                       onFullfilled={(tokenMintInfo) => {
                         if (!tokenMintInfo) return
-                        const { isTransferable } = parseMintInfo(tokenMintInfo)
-                        setCanConfirm(isTransferable)
+                        setCanConfirm(true)
                       }}
                       fallback={<LoadingCircle className="mx-auto" />}
                     >
                       {(tokenMintInfo) => {
                         if (!tokenMintInfo) return
-                        const { isTransferable } = parseMintInfo(tokenMintInfo)
                         return (
                           <div>
                             <Col className="table text-sm">
@@ -269,14 +267,6 @@ function ConfirmDialog({
                                 </Row>
                               )}
                             </Col>
-
-                            {!isTransferable && (
-                              <div className="mt-4">
-                                <span className="text-sm italic text-[#da3eef]">
-                                  This token can't make any transaction
-                                </span>
-                              </div>
-                            )}
                           </div>
                         )
                       }}

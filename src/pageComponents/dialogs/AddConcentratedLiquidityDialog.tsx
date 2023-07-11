@@ -91,8 +91,8 @@ export function AddConcentratedLiquidityDialog() {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
-    coinBase,
-    coinQuote
+    { token: coinBase, amount: coinBaseAmount },
+    { token: coinQuote, amount: coinQuoteAmount }
   ])
 
   return (

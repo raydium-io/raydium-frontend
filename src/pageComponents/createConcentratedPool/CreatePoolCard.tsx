@@ -369,7 +369,10 @@ export function CreatePoolCard() {
     })
   }
 
-  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([coin1, coin2])
+  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
+    { token: coin1, amount: coin1Amount },
+    { token: coin2, amount: coin2Amount }
+  ])
 
   return (
     <Card

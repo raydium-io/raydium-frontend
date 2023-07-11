@@ -4,25 +4,33 @@ import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
+import { toString } from '@/functions/numberish/toString'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
+import { Numberish } from '@/types/constants'
 import { useMemo } from 'react'
 
 /**
  *  token 2022 transfer fee is 100%
  */
-export function useToken2022FeeTooHighWarningChecker<T extends Token | undefined>(coins: T[]) {
-  const cointMints = useMemo(() => coins.map((coin) => toPubString(coin?.mint)), [coins])
-
+export function useToken2022FeeTooHighWarningChecker(
+  checkTargets: {
+    token?: Token
+    amount?: Numberish
+  }[]
+) {
+  const mints = useMemo(() => checkTargets.map((target) => toPubString(target.token?.mint)), [checkTargets])
+  const amounts = useMemo(() => checkTargets.map((target) => toString(target.amount)), [checkTargets])
   const notTransactableToken = useAsyncMemo(
     async () => {
-      for (const coin of coins) {
-        if (coin) {
-          const isTransactable = await isTransactableToken(coin?.mint)
-          if (!isTransactable) return coin
+      for (const { token, amount: userInputAmount } of checkTargets) {
+        if (token) {
+          console.log('userInputAmount: ', userInputAmount)
+          const isTransactable = await isTransactableToken(token.mint, userInputAmount)
+          if (!isTransactable) return token
         }
       }
     },
-    cointMints,
+    mints.concat(amounts),
     undefined
   )
 
