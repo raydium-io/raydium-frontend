@@ -227,7 +227,11 @@ export function openToken2022ClmmAmountConfirmPanel({
     additionalContent: ({ updateConfig }) => (
       <AsyncAwait
         promise={feeInfo}
-        fallback={<LoadingCircle className="mx-auto" />}
+        fallback={
+          <Row className="justify-center">
+            <LoadingCircle className="mx-auto" />
+          </Row>
+        }
         onFullfilled={() => updateConfig({ disableConfirmButton: false })}
       >
         {(feeInfo) =>
@@ -312,7 +316,7 @@ function FeeInfoRow({
         <div className="text-sm">
           {caseName && type ? shrinkToValue(primaryFeeItemLabel[caseName]?.[type], [amount.token]) : 'Deposit amount'}
         </div>
-        <Row className="items-center gap-2">
+        <Row className="items-center gap-1">
           <CoinAvatar token={amount.token} size="sm"></CoinAvatar>
           <div className="text-white">
             {toString(minus(amount, fee), { decimalLength: `auto ${amount.token.decimals}` })}
@@ -328,7 +332,7 @@ function FeeInfoRow({
               ? shrinkToValue(secondaryFeeItemLabel[caseName]?.[type], [amount.token])
               : 'Initial amount'}
           </div>
-          <Row className="items-center gap-2">
+          <Row className="items-center gap-1">
             <div>{toString(amount)}</div>
             <div>{amount.token.symbol}</div>
           </Row>
@@ -336,7 +340,7 @@ function FeeInfoRow({
 
         <Col className="gap-4">
           <div className="text-[#abc4ff80]">Token 2022 fee</div>
-          <Row className="items-center gap-2">
+          <Row className="items-center gap-1">
             <div>{toString(fee ?? 0)}</div>
             <div>{fee?.token.symbol}</div>
           </Row>
