@@ -35,6 +35,7 @@ import Col from './Col'
 import DecimalInput from './DecimalInput'
 import Icon from './Icon'
 import Row from './Row'
+import Tooltip from './Tooltip'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -433,7 +434,22 @@ export default function CoinInputBox({
 
       <Row className="items-center gap-2 justify-end text-xs mobile:text-2xs text-[rgba(171,196,255,.5)] ">
         {/* token 2022 fee */}
-        {transferFeeInfo && <div>Transfer fee: {toString(transferFeeInfo.fee)}</div>}
+        {transferFeeInfo && (
+          <Row className="items-center gap-0.5">
+            <div>Transfer fee</div>
+            <Tooltip>
+              <Icon size="xs" heroIconName="information-circle" />
+              <Tooltip.Panel>
+                <div className="max-w-[300px] space-y-1.5">
+                  This token uses the Token 2022 program and includes transfer fee. These the final deposit amounts for
+                  the position and the transfer fee
+                </div>
+              </Tooltip.Panel>
+            </Tooltip>
+            <div>:</div>
+            <div>{toString(transferFeeInfo.fee)}</div>
+          </Row>
+        )}
 
         {/* divider */}
         {transferFeeInfo && !hidePricePredictor && <div>|</div>}

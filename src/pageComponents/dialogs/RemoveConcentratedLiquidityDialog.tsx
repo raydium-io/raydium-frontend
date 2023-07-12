@@ -63,6 +63,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const originalCoin2 = useConcentrated((s) => s.coin2)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
+  const originalCoin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
+  const originalCoin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
+
   const originalCoin1AmountMin = useConcentrated((s) => s.coin1AmountMin)
   const originalCoin2AmountMin = useConcentrated((s) => s.coin2AmountMin)
   const focusSide = isMintEqual(coinBase?.mint, originalCoin1?.mint) ? 'coin1' : 'coin2'
@@ -168,11 +171,6 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       liquidity: position.liquidity
     })
   })
-
-  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
-    { token: originalCoin1, amount: originalCoin1Amount },
-    { token: originalCoin2, amount: originalCoin2Amount }
-  ])
 
   return (
     <ResponsiveDialogDrawer
@@ -280,7 +278,6 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 removeMaxLiquidity()
               }}
             />
-            {Token2022FeeTooHighWarningChip({})}
 
             <ConcentratedLiquiditySlider />
             <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl ">
@@ -302,8 +299,16 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     </Tooltip>
                   </Row>
                   <Col className="pt-2 gap-2">
-                    <MinWithdrawAmount token={coinBase} amount={originalCoin1AmountMin} className="px-1" />
-                    <MinWithdrawAmount token={coinQuote} amount={originalCoin2AmountMin} className="px-1" />
+                    <MinWithdrawAmount
+                      token={coinBase}
+                      amount={minus(originalCoin1AmountMin, originalCoin1AmountFee)}
+                      className="px-1"
+                    />
+                    <MinWithdrawAmount
+                      token={coinQuote}
+                      amount={minus(originalCoin2AmountMin, originalCoin2AmountFee)}
+                      className="px-1"
+                    />
                   </Col>
                 </FadeInStable>
               </Col>
@@ -325,7 +330,6 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     children: 'Connect Wallet'
                   }
                 },
-                { not: isWarningChipOpen },
                 {
                   should: !amountBaseIsOutOfMax,
                   fallbackProps: { children: `${coinBase?.symbol ?? ''} Amount Too Large` }
