@@ -1,5 +1,7 @@
-import { AmmV3, Token } from '@raydium-io/raydium-sdk'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { AmmV3, Token } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
@@ -19,20 +21,22 @@ import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { minus, mul } from '@/functions/numberish/operations'
+import { getMax, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import tryCatch from '@/functions/tryCatch'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
-import { Numberish } from '@/types/constants'
-import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
-import tryCatch from '@/functions/tryCatch'
+import { Numberish } from '@/types/constants'
+
+import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -301,12 +305,12 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   <Col className="pt-2 gap-2">
                     <MinWithdrawAmount
                       token={coinBase}
-                      amount={minus(originalCoin1AmountMin, originalCoin1AmountFee)}
+                      amount={getMax(minus(originalCoin1AmountMin, originalCoin1AmountFee) ?? 0, 0)} // TODO fix
                       className="px-1"
                     />
                     <MinWithdrawAmount
                       token={coinQuote}
-                      amount={minus(originalCoin2AmountMin, originalCoin2AmountFee)}
+                      amount={getMax(minus(originalCoin2AmountMin, originalCoin2AmountFee) ?? 0, 0)} // TODO fix
                       className="px-1"
                     />
                   </Col>

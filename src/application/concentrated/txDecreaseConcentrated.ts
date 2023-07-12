@@ -1,21 +1,24 @@
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 
+import { BN } from 'bn.js'
+
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { eq } from '@/functions/numberish/compare'
+import { minus, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 
-import txHandler from '../txTools/handleTx'
-import useWallet from '../wallet/useWallet'
-
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { minus } from '@/functions/numberish/operations'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmPositionConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import txHandler from '../txTools/handleTx'
+import useWallet from '../wallet/useWallet'
+
 import useConcentrated from './useConcentrated'
 
 export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
@@ -83,8 +86,8 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
         ownerPosition: targetUserPositionAccount.sdkParsed,
         computeBudgetConfig: await getComputeBudgetConfig(),
         checkCreateATAOwner: true,
-        amountMinA: toBN(minus(coin1AmountMin, coin1AmountFee ?? 0), coin1.decimals),
-        amountMinB: toBN(minus(coin2AmountMin, coin2AmountFee ?? 0), coin2.decimals)
+        amountMinA: toBN(minus(coin1AmountMin, mul(coin1AmountFee ?? 0, MANUAL_ADJUST)), coin1.decimals), // TODO fix
+        amountMinB: toBN(minus(coin2AmountMin, mul(coin2AmountFee ?? 0, MANUAL_ADJUST)), coin2.decimals) // TODO fix
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
@@ -106,8 +109,8 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
           useSOLBalance: true,
           closePosition: eq(targetUserPositionAccount.sdkParsed.liquidity, liquidity)
         },
-        amountMinA: toBN(minus(coin1AmountMin, coin1AmountFee ?? 0), coin1.decimals),
-        amountMinB: toBN(minus(coin2AmountMin, coin2AmountFee ?? 0), coin2.decimals),
+        amountMinA: toBN(minus(coin1AmountMin, mul(coin1AmountFee ?? 0, MANUAL_ADJUST)), coin1.decimals), // TODO fix
+        amountMinB: toBN(minus(coin2AmountMin, mul(coin2AmountFee ?? 0, MANUAL_ADJUST)), coin2.decimals), // TODO fix
         // slippage: Number(toString(slippageTolerance)),
         ownerPosition: targetUserPositionAccount.sdkParsed,
         computeBudgetConfig: await getComputeBudgetConfig(),
@@ -116,9 +119,8 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Liquidity Removed',
-          description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${
-            coin2.symbol
-          } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+          description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${coin2.symbol
+            } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
         }
       })
     }
