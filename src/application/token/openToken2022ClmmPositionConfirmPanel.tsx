@@ -15,15 +15,17 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { Numberish } from '@/types/constants'
+import { HexAddress, Numberish } from '@/types/constants'
 import { MayArray } from '@/types/generics'
-import { Token, TokenAmount } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
 import { getTransferFeeInfos } from './getTransferFeeInfos'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import { isToken2022 } from './isToken2022'
+import { getLocalItem } from '@/functions/dom/jStorage'
 
 type HasConfirmState = Promise<boolean>
 type Label = Record<
@@ -66,6 +68,14 @@ const secondaryFeeItemLabel: Label = {
   }
 }
 
+function checkAreAlreadyConfirmedTokens(mints: MayArray<PublicKeyish | undefined>) {
+  if (!mints) return true
+  if (!isToken2022(mints)) return true
+  const confirmedTokens = getLocalItem<HexAddress /* mints */[]>('USER_CONFIRMED_TOKEN_2022')
+  if (!confirmedTokens) return false
+  return shakeUndifindedItem([mints].flat()).every((m) => confirmedTokens.includes(toPubString(m)))
+}
+
 /**
  * not just data, also ui
  */
@@ -97,6 +107,17 @@ export function openToken2022ClmmPositionConfirmPanel({
   const amount = inputPosition ? shakeUndifindedItem([additionalAmount].flat()) : undefined
   const amountInfo = amount?.length ? getTransferFeeInfos({ amount }) : undefined
   const combinedPromise = Promise.all([infos, amountInfo])
+
+  /* whether need pop confirm panel */
+  const positionRelatedTokenMint = [inputPosition].flat().flatMap((p) => {
+    const mintA = p?.tokenA?.mint
+    const mintB = p?.tokenB?.mint
+    const rewardMints = p?.rewardInfos.map((r) => r.token?.mint)
+    return [mintA, mintB, ...(rewardMints ?? [])]
+  })
+  const tokenAmontRelatedTokenMint = additionalAmount?.map((m) => m.token.mint)
+  const relatedTokenMint = shakeUndifindedItem([...positionRelatedTokenMint, ...(tokenAmontRelatedTokenMint ?? [])])
+  if (checkAreAlreadyConfirmedTokens(relatedTokenMint)) return { hasConfirmed: Promise.resolve(true) }
 
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
@@ -211,6 +232,11 @@ export function openToken2022ClmmAmountConfirmPanel({
   const feeInfo = getTransferFeeInfos({
     amount: shakeUndifindedItem([amount].flat())
   })
+
+  /* whether need pop confirm panel */
+  const tokenAmontRelatedTokenMint = [amount].flat()?.map((m) => m?.token.mint)
+  const relatedTokenMint = shakeUndifindedItem(tokenAmontRelatedTokenMint)
+  if (checkAreAlreadyConfirmedTokens(relatedTokenMint)) return { hasConfirmed: Promise.resolve(true) }
 
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
