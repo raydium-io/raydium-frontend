@@ -89,12 +89,14 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
                     })}
                   </div>
                   {isMeaningfulNumber(amount?.fee) && (
-                    <div className="text-2xs text-[#abc4ff80]">
-                      include fee:
-                      {formatNumber(amount?.fee, {
-                        fractionLength: token?.decimals ?? 6
-                      })}
-                    </div>
+                    <Row className="text-2xs text-[#abc4ff80] gap-1 items-center">
+                      <span>Includes Fee:</span>
+                      <span>
+                        {formatNumber(amount?.fee, {
+                          fractionLength: token?.decimals ?? 6
+                        })}
+                      </span>
+                    </Row>
                   )}
                 </Col>
               ) : undefined}

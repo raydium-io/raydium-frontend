@@ -433,7 +433,7 @@ export default function CoinInputBox({
 
       <Row className="items-center gap-2 justify-end text-xs mobile:text-2xs text-[rgba(171,196,255,.5)] ">
         {/* token 2022 fee */}
-        {transferFeeInfo && <div>include fee: {toString(transferFeeInfo.fee)}</div>}
+        {transferFeeInfo && <div>Transfer fee: {toString(transferFeeInfo.fee)}</div>}
 
         {/* divider */}
         {transferFeeInfo && !hidePricePredictor && <div>|</div>}

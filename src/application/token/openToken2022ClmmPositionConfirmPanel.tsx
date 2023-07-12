@@ -32,37 +32,37 @@ type Label = Record<
 >
 const primaryFeeItemLabel: Label = {
   harvest: {
-    token: (token: Token) => `Harvest Pool ${token.symbol}`,
-    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`
+    token: `Final Token Fee`,
+    reward: `Harvest Reward`
   },
   openPosition: {
-    amount: (token: Token) => `Open Position Input ${token.symbol}`
+    amount: 'Deposit Amount'
   },
   increase: {
-    amount: (token: Token) => `Increase User input ${token.symbol}`
+    amount: `Final Deposit`
   },
   decrease: {
-    token: (token: Token) => `Harvest Pool ${token.symbol}`,
-    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`,
-    amount: (token: Token) => `Decrease User input ${token.symbol}`
+    token: 'Final Token Fee',
+    reward: 'Harvest Reward',
+    amount: 'Minimum Received'
   }
 }
 
 const secondaryFeeItemLabel: Label = {
   harvest: {
-    token: (token: Token) => `Harvest Pool ${token.symbol}`,
-    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`
+    token: `Initial Token Fee`,
+    reward: `Total Reward`
   },
   openPosition: {
-    amount: (token: Token) => `Open Position Input ${token.symbol}`
+    amount: 'Selected Amount'
   },
   increase: {
-    amount: (token: Token) => `Increase User input ${token.symbol}`
+    amount: 'Initial Amount'
   },
   decrease: {
-    token: (token: Token) => `Harvest Pool ${token.symbol}`,
-    reward: (token: Token) => `Harvest Pool Reward ${token.symbol}`,
-    amount: (token: Token) => `Decrease User input ${token.symbol}`
+    token: 'Initial Token Fee',
+    reward: 'Total Reward',
+    amount: 'Initial Amount'
   }
 }
 
@@ -339,7 +339,7 @@ function FeeInfoRow({
         </Col>
 
         <Col className="gap-4">
-          <div className="text-[#abc4ff80]">Token 2022 fee</div>
+          <div className="text-[#abc4ff80]">Transfer Fee</div>
           <Row className="items-center gap-1">
             <div>{toString(fee ?? 0)}</div>
             <div>{fee?.token.symbol}</div>

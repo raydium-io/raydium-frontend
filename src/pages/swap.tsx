@@ -978,19 +978,19 @@ function SwapCardInfo({
       />
       {gte(transferFeeUpCoin, 0) && (
         <SwapCardItem
-          fieldName={`Transaction Fee (${upCoin?.symbol ?? '--'})`}
+          fieldName={`Transfer Fee (${upCoin?.symbol ?? '--'})`}
           fieldValue={`${toString(transferFeeUpCoin)} ${upCoin?.symbol ?? '--'}`}
         />
       )}
       {gte(transferFeeRouteToken, 0) && (
         <SwapCardItem
-          fieldName={`Transaction Fee (${routeToken?.symbol ?? '--'})`}
+          fieldName={`Transfer Fee (${routeToken?.symbol ?? '--'})`}
           fieldValue={`${toString(transferFeeRouteToken)} ${routeToken?.symbol ?? '--'}`}
         />
       )}
       {gte(transferFeeDownCoin, 0) && (
         <SwapCardItem
-          fieldName={`Transaction Fee (${downCoin?.symbol ?? '--'})`}
+          fieldName={`Transfer Fee (${downCoin?.symbol ?? '--'})`}
           fieldValue={`${toString(transferFeeDownCoin)} ${downCoin?.symbol ?? '--'}`}
         />
       )}

@@ -347,7 +347,7 @@ export default function EditFarm() {
     return (
       <div className="max-w-[720px]">
         <div className="text-xl mb-10 text-secondary-title">
-          You must connect your wallet before {isEditFarm ? 'Edit' : 'Create'} Farm
+          You must connect your wallet before you can {isEditFarm ? 'Edit' : 'Create'} Farm
         </div>
         <Button
           className="w-full frosted-glass-teal mt-5"
@@ -361,7 +361,7 @@ export default function EditFarm() {
     return (
       <div className="max-w-[720px]">
         <div className="text-xl mb-10 text-secondary-title">
-          Opps! Only pool's owner can {isEditFarm ? 'Edit' : 'Create'} farm reward
+          Opps! Only pool's creator can {isEditFarm ? 'Edit' : 'Create'} rewards
         </div>
       </div>
     )
