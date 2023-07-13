@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { AmmV3, Token } from '@raydium-io/raydium-sdk'
 
@@ -21,21 +21,21 @@ import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { getMax, minus, mul } from '@/functions/numberish/operations'
+import { minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import tryCatch from '@/functions/tryCatch'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
-import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
 import { Numberish } from '@/types/constants'
 
+import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
+import { isToken2022 } from '@/application/token/isToken2022'
+import { AsyncAwait } from '@/components/AsyncAwait'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
@@ -67,8 +67,6 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const originalCoin2 = useConcentrated((s) => s.coin2)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
-  const originalCoin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
-  const originalCoin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
 
   const originalCoin1AmountMin = useConcentrated((s) => s.coin1AmountMin)
   const originalCoin2AmountMin = useConcentrated((s) => s.coin2AmountMin)
@@ -303,16 +301,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     </Tooltip>
                   </Row>
                   <Col className="pt-2 gap-2">
-                    <MinWithdrawAmount
-                      token={coinBase}
-                      amount={getMax(minus(originalCoin1AmountMin, originalCoin1AmountFee) ?? 0, 0)} // TODO fix
-                      className="px-1"
-                    />
-                    <MinWithdrawAmount
-                      token={coinQuote}
-                      amount={getMax(minus(originalCoin2AmountMin, originalCoin2AmountFee) ?? 0, 0)} // TODO fix
-                      className="px-1"
-                    />
+                    <MinWithdrawAmount token={coinBase} amountWithoutFee={originalCoin1AmountMin} className="px-1" />
+                    <MinWithdrawAmount token={coinQuote} amountWithoutFee={originalCoin2AmountMin} className="px-1" />
                   </Col>
                 </FadeInStable>
               </Col>
@@ -391,15 +381,16 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
 function MinWithdrawAmount({
   token,
-  amount,
+  amountWithoutFee: amount,
   className
 }: {
   token: Token | SplToken | undefined
-  amount: Numberish | undefined
+  amountWithoutFee: Numberish | undefined
   className?: string
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-
+  const tokenAmount = token && amount ? toTokenAmount(token, amount, { alreadyDecimaled: true }) : undefined
+  const feeInfo = tokenAmount && isToken2022(token) && getTransferFeeInfos({ amount: tokenAmount })
   return (
     <Row className={twMerge('w-full justify-between', className)}>
       <Row className="gap-2 items-center">
@@ -407,9 +398,13 @@ function MinWithdrawAmount({
         {token?.symbol ?? token?.mint.toString().slice(0, 6)}
       </Row>
       <Row className="text-lg text-white items-center">
-        {toString(amount ?? 0, {
-          decimalLength: `auto ${token?.decimals ?? 10}`
-        })}
+        {isToken2022(token) ? (
+          <AsyncAwait promise={feeInfo} fallback="calculating">
+            {(feeInfo) => (feeInfo ? toString(feeInfo.pure) : '--')}
+          </AsyncAwait>
+        ) : (
+          toString(tokenAmount)
+        )}
       </Row>
     </Row>
   )

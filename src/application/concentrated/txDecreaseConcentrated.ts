@@ -5,24 +5,46 @@ import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { eq } from '@/functions/numberish/compare'
-import { minus, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
-
 import useNotification from '../notification/useNotification'
+import { getTransferFeeInfos } from '../token/getTransferFeeInfos'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmPositionConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
-
 import useConcentrated from './useConcentrated'
 
 export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
 
 export default async function txDecreaseConcentrated(options?: { closePosition?: boolean }) {
-  const { coin1, coin2, liquidity, targetUserPositionAccount, currentAmmPool, coin1Amount, coin2Amount } =
-    useConcentrated.getState()
+  const {
+    coin1,
+    coin2,
+    liquidity,
+    targetUserPositionAccount,
+    currentAmmPool,
+    coin1Amount,
+    coin2Amount,
+    coin1AmountMin,
+    coin2AmountMin
+  } = useConcentrated.getState()
+  const { tokenAccountRawInfos } = useWallet.getState()
+  assert(currentAmmPool, 'not seleted amm pool')
+  assert(coin1, 'not set coin1')
+  assert(coin2, 'not set coin2')
+  assert(coin1AmountMin, 'not set coin1AmountMin')
+  assert(coin2AmountMin, 'not set coin2AmountMin')
+  assert(liquidity != null, 'not set liquidity')
+  assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
+
+  const tokenAmount1 = toTokenAmount(coin1, coin1AmountMin, { alreadyDecimaled: true })
+  const feeInfo1 = isToken2022(coin1) ? getTransferFeeInfos({ amount: tokenAmount1 }) : undefined
+
+  const tokenAmount2 = toTokenAmount(coin2, coin2AmountMin, { alreadyDecimaled: true })
+  const feeInfo2 = isToken2022(coin2) ? getTransferFeeInfos({ amount: tokenAmount2 }) : undefined
+
   // check token 2022
   const needConfirm = [
     targetUserPositionAccount?.tokenA,
@@ -49,25 +71,7 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   }
 
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const {
-      coin1,
-      coin2,
-      liquidity,
-      targetUserPositionAccount,
-      currentAmmPool,
-      coin1AmountMin,
-      coin2AmountMin,
-      coin1AmountFee,
-      coin2AmountFee
-    } = useConcentrated.getState()
-    const { tokenAccountRawInfos } = useWallet.getState()
-    assert(currentAmmPool, 'not seleted amm pool')
-    assert(coin1, 'not set coin1')
-    assert(coin2, 'not set coin2')
-    assert(coin1AmountMin, 'not set coin1AmountMin')
-    assert(coin2AmountMin, 'not set coin2AmountMin')
-    assert(liquidity != null, 'not set liquidity')
-    assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
+    const [feeInfoA, feeInfoB] = await Promise.all([feeInfo1, feeInfo2])
     if (options?.closePosition) {
       const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
         connection: connection,
@@ -83,8 +87,8 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
         ownerPosition: targetUserPositionAccount.sdkParsed,
         computeBudgetConfig: await getComputeBudgetConfig(),
         checkCreateATAOwner: true,
-        amountMinA: toBN(minus(coin1AmountMin, mul(coin1AmountFee ?? 0, MANUAL_ADJUST)), coin1.decimals), // TODO fix
-        amountMinB: toBN(minus(coin2AmountMin, mul(coin2AmountFee ?? 0, MANUAL_ADJUST)), coin2.decimals) // TODO fix
+        amountMinA: toBN(feeInfoA?.pure ?? coin1AmountMin, coin1.decimals),
+        amountMinB: toBN(feeInfoB?.pure ?? coin2AmountMin, coin2.decimals)
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
@@ -106,8 +110,8 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
           useSOLBalance: true,
           closePosition: eq(targetUserPositionAccount.sdkParsed.liquidity, liquidity)
         },
-        amountMinA: toBN(minus(coin1AmountMin, mul(coin1AmountFee ?? 0, MANUAL_ADJUST)), coin1.decimals), // TODO fix
-        amountMinB: toBN(minus(coin2AmountMin, mul(coin2AmountFee ?? 0, MANUAL_ADJUST)), coin2.decimals), // TODO fix
+        amountMinA: toBN(feeInfoA?.pure ?? coin1AmountMin, coin1.decimals),
+        amountMinB: toBN(feeInfoB?.pure ?? coin2AmountMin, coin2.decimals),
         // slippage: Number(toString(slippageTolerance)),
         ownerPosition: targetUserPositionAccount.sdkParsed,
         computeBudgetConfig: await getComputeBudgetConfig(),
