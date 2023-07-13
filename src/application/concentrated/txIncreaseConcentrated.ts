@@ -53,7 +53,7 @@ export default async function txIncreaseConcentrated({
     userHasConfirmed = true
   }
   if (!userHasConfirmed) {
-    useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
+    useNotification.getState().logError('Canceled by User', 'The operation is canceled by user')
     return
   }
 

@@ -1,10 +1,7 @@
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 
-import { BN } from 'bn.js'
-
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { eq } from '@/functions/numberish/compare'
@@ -47,7 +44,7 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
     userHasConfirmed = true
   }
   if (!userHasConfirmed) {
-    useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
+    useNotification.getState().logError('Canceled by User', 'The operation is canceled by user')
     return
   }
 
@@ -119,8 +116,9 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Liquidity Removed',
-          description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${coin2.symbol
-            } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+          description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${
+            coin2.symbol
+          } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
         }
       })
     }

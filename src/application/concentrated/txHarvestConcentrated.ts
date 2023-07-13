@@ -68,7 +68,7 @@ export default async function txHarvestConcentrated({
       })
     })
   } else {
-    logError('User Cancel', 'User has canceled token 2022 confirm')
+    logError('Canceled by User', 'The operation is canceled by user')
   }
 }
 
@@ -114,7 +114,7 @@ export async function txHarvestAllConcentrated() {
   }
 
   if (!userHasConfirmed) {
-    logError('User Cancel', 'User has canceled token 2022 confirm')
+    logError('Canceled by User', 'The operation is canceled by user')
     return undefined
   }
 
