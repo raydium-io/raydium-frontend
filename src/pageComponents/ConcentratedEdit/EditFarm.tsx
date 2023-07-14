@@ -254,7 +254,7 @@ export default function EditFarm() {
         )}
 
         {txSuccess ? (
-          <div className="mb-4 text-[#DA2EEF] text-center text-sm">Farming rewards successfully updated</div>
+          <div className="mb-4 text-[#39d0d8] text-center text-sm">Farming rewards successfully updated</div>
         ) : null}
 
         {!showPreview && (

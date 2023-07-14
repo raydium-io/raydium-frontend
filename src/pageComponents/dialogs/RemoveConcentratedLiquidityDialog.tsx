@@ -395,7 +395,7 @@ function MinWithdrawAmount({
     <Row className={twMerge('w-full justify-between', className)}>
       <Row className="gap-2 items-center">
         <CoinAvatar size={isMobile ? 'xs' : 'md'} token={token} />
-        {token?.symbol ?? token?.mint.toString().slice(0, 6)}
+        {token?.symbol ?? '--'}
       </Row>
       <Row className="text-lg text-white items-center">
         {isToken2022(token) ? (

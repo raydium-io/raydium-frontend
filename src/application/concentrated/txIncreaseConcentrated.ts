@@ -85,9 +85,9 @@ export default async function txIncreaseConcentrated({
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
         title: 'Liquidity Added',
-        description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
-          coin2.symbol
-        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Added ${toString(coin1SlippageAmount ?? coin1Amount)} ${coin1.symbol} and ${toString(
+          coin2SlippageAmount ?? coin2Amount
+        )} ${coin2.symbol} to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })
