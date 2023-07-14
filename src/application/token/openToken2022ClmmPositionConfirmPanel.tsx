@@ -38,7 +38,7 @@ const primaryFeeItemLabel: Label = {
     reward: `Harvest Reward`
   },
   openPosition: {
-    amount: 'Deposit Amount'
+    amount: 'Token Amount'
   },
   increase: {
     amount: `Final Deposit`
@@ -46,7 +46,7 @@ const primaryFeeItemLabel: Label = {
   decrease: {
     token: 'Final Token Fee',
     reward: 'Harvest Reward',
-    amount: 'Minimum Received'
+    amount: 'Minimum Received Amount'
   }
 }
 
