@@ -7,8 +7,6 @@ import { EpochInfo } from '@solana/web3.js'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import { isToken2022 } from './isToken2022'
-import { toString } from '@/functions/numberish/toString'
-import { VALID_LOADERS } from 'next/dist/shared/lib/image-config'
 
 export type ITransferAmountFee = {
   amount: TokenAmount
@@ -77,7 +75,7 @@ function getSignleTransferFeeInfosSync({
   const rawInfo = getTransferAmountFee(amount.raw, feeConfig, epochInfo, Boolean(addFee))
   const allTokenAmount = toTokenAmount(amount.token, rawInfo.amount)
   const fee = rawInfo.fee != null ? toTokenAmount(amount.token, rawInfo.fee) : undefined
-  const pure = toTokenAmount(amount.token, minus(allTokenAmount, fee ?? 0))
+  const pure = toTokenAmount(amount.token, minus(allTokenAmount, fee ?? 0), { alreadyDecimaled: true })
   const info = { amount: allTokenAmount, fee, pure, expirationTime: rawInfo.expirationTime } as ITransferAmountFee
   return info
 }
