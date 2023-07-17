@@ -26,7 +26,7 @@ import { toString } from '@/functions/numberish/toString'
 import { useSignalState } from '@/hooks/useSignalState'
 import { Numberish } from '@/types/constants'
 
-import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import { isToken2022 } from '@/application/token/isToken2022'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import Button from './Button'
@@ -280,7 +280,7 @@ export default function CoinInputBox({
   const transferFeeInfo = useAsyncMemo(
     () =>
       needCheckFee
-        ? getTransferFeeInfos({
+        ? getTransferFeeInfo({
             amount: toTokenAmount(token, inputedAmount ?? '0', { alreadyDecimaled: true }),
             addFee: transferFeeOption?.addMode
           })

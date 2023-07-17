@@ -8,7 +8,7 @@ import { eq } from '@/functions/numberish/compare'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import useNotification from '../notification/useNotification'
-import { getTransferFeeInfos } from '../token/getTransferFeeInfos'
+import { getTransferFeeInfo } from '../token/getTransferFeeInfos'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmPositionConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
@@ -40,10 +40,10 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
 
   const tokenAmount1 = toTokenAmount(coin1, coin1AmountMin, { alreadyDecimaled: true })
-  const feeInfo1 = isToken2022(coin1) ? getTransferFeeInfos({ amount: tokenAmount1 }) : undefined
+  const feeInfo1 = isToken2022(coin1) ? getTransferFeeInfo({ amount: tokenAmount1 }) : undefined
 
   const tokenAmount2 = toTokenAmount(coin2, coin2AmountMin, { alreadyDecimaled: true })
-  const feeInfo2 = isToken2022(coin2) ? getTransferFeeInfos({ amount: tokenAmount2 }) : undefined
+  const feeInfo2 = isToken2022(coin2) ? getTransferFeeInfo({ amount: tokenAmount2 }) : undefined
 
   // check token 2022
   const needConfirm = [

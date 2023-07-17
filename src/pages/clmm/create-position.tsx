@@ -62,6 +62,12 @@ import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiqu
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
 import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
+import CoinAvatar from '@/components/CoinAvatar'
+import { Token2022Badge } from '@/components/Badge'
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
+import { isToken2022 } from '@/application/token/isToken2022'
+import { AsyncAwait } from '@/components/AsyncAwait'
+import Tooltip from '@/components/Tooltip'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -308,13 +314,25 @@ function ConcentratedCard() {
   const updatePrice2 = useCallback((tokenP) => setPrices((p) => [p[0], tokenP?.toExact()]), [])
   const totalDeposit = prices.filter((p) => !!p).reduce((acc, cur) => acc.add(toFraction(cur!)), toFraction(0))
 
-  const { ratio1, ratio2 } = calculateRatio({
-    currentPrice: currentPriceReal,
-    coin1InputDisabled,
-    coin2InputDisabled,
-    coin1Amount,
-    coin2Amount
-  })
+  // const { ratio1, ratio2 } = calculateRatio({
+  //   currentPrice: currentPriceReal,
+  //   coin1InputDisabled,
+  //   coin2InputDisabled,
+  //   coin1Amount,
+  //   coin2Amount
+  // })
+
+  const coin1FeeInfo =
+    coin1 && coin1Amount && isToken2022(coin1)
+      ? getTransferFeeInfo({ amount: toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }) })
+      : undefined
+
+  const coin2FeeInfo =
+    coin2 && coin2Amount && isToken2022(coin2)
+      ? getTransferFeeInfo({ amount: toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }) })
+      : undefined
+
+  const haveAnyToken2022 = isToken2022(coin1) || isToken2022(coin2)
 
   const handleAdjustMin = useEvent((pos: { min: number; max: number }): { price: number; tick: number } => {
     const originRes = { price: pos.min, tick: tickRef.current.lower! }
@@ -542,16 +560,98 @@ function ConcentratedCard() {
             {Token2022FeeTooHighWarningChip({ className: 'pt-2' })}
           </div>
 
-          <div className="border-1.5 border-[#abc4ff40]  rounded-xl px-3 py-4">
-            <div className="flex justify-between mb-4">
-              <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
-              <span className="text-lg leading-[18px]">
-                {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
-                  ? toUsdVolume(totalDeposit)
-                  : '--'}
-              </span>
-            </div>
-            <div className="flex justify-between">
+          <Col className="gap-4 border-1.5 border-[#abc4ff40]  rounded-xl p-3">
+            <Col className="justify-between">
+              {haveAnyToken2022 ? (
+                <Grid className="mb-1 grid-cols-[2.5fr,2fr,2fr] items-center text-xs text-[#abc4ff]">
+                  <div></div>
+                  <Row className="justify-self-end items-center">
+                    <div>Token2022 Fee</div>
+                    <Tooltip>
+                      <Icon iconClassName="ml-1" size="xs" heroIconName="question-mark-circle" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[200px] space-y-1.5 text-[#abc4ff]">
+                          Tokens with a transfer fee below use the Token2022 program and have programmed a fee on all
+                          token interactions.
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  </Row>
+                  <div className="justify-self-end">Final Deposit</div>
+                </Grid>
+              ) : undefined}
+
+              <Col className="gap-1">
+                {[
+                  {
+                    isToken2022: isToken2022(coin1),
+                    token: coin1,
+                    disabled: coin1InputDisabled,
+                    info: coin1FeeInfo,
+                    rawAmount: coin1Amount
+                  },
+                  {
+                    isToken2022: isToken2022(coin2),
+                    token: coin2,
+                    disabled: coin2InputDisabled,
+                    info: coin2FeeInfo,
+                    rawAmount: coin2Amount
+                  }
+                ].map(({ isToken2022, token, disabled, info, rawAmount }) =>
+                  disabled ? undefined : (
+                    <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
+                      <Row className="items-center gap-1 overflow-hidden">
+                        <div className="font-medium text-white">{token?.symbol}</div>
+                        <CoinAvatar size="sm" token={token} />
+                        {isToken2022 && <Token2022Badge />}
+                      </Row>
+
+                      <div className="justify-self-end">
+                        {haveAnyToken2022 ? (
+                          isToken2022 ? (
+                            <AsyncAwait promise={info}>
+                              {(info) =>
+                                info?.fee ? (
+                                  <div className="font-medium text-xs text-[#abc4ff] overflow-hidden">
+                                    {toString(info.fee)}
+                                  </div>
+                                ) : (
+                                  '-'
+                                )
+                              }
+                            </AsyncAwait>
+                          ) : (
+                            '-'
+                          )
+                        ) : (
+                          ''
+                        )}
+                      </div>
+
+                      <div className="justify-self-end">
+                        {isToken2022 ? (
+                          <AsyncAwait promise={info}>
+                            {(info) =>
+                              info?.pure ? (
+                                <div className="font-medium text-white overflow-hidden">
+                                  {toString(info.pure, { decimalLength: 'auto 5' })}
+                                </div>
+                              ) : undefined
+                            }
+                          </AsyncAwait>
+                        ) : (
+                          <div className="font-medium text-white overflow-hidden">
+                            {toString(rawAmount, { decimalLength: 'auto 5' })}
+                          </div>
+                        )}
+                      </div>
+                    </Grid>
+                  )
+                )}
+              </Col>
+            </Col>
+
+            {/* <Row className="justify-between">
               <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
               <span className="text-lg flex leading-[18px]">
                 {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
@@ -559,8 +659,17 @@ function ConcentratedCard() {
                   ? `${ratio1 ?? '--'}% / ${ratio2 ?? '--'}%`
                   : '--'}
               </span>
-            </div>
-          </div>
+            </Row> */}
+
+            <Row className="justify-between">
+              <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
+              <span className="text-lg leading-[18px]">
+                {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
+                  ? toUsdVolume(totalDeposit)
+                  : '--'}
+              </span>
+            </Row>
+          </Col>
 
           {coin1InputDisabled || coin2InputDisabled ? (
             <FadeIn>

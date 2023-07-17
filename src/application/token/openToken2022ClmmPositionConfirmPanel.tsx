@@ -22,7 +22,7 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
-import { getTransferFeeInfos } from './getTransferFeeInfos'
+import { getTransferFeeInfo } from './getTransferFeeInfos'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { isToken2022 } from './isToken2022'
 import { getLocalItem } from '@/functions/dom/jStorage'
@@ -105,7 +105,7 @@ export function openToken2022ClmmPositionConfirmPanel({
 
   const infos = getConcentratedPositionFee({ positions: inputPosition })
   const amount = inputPosition ? shakeUndifindedItem([additionalAmount].flat()) : undefined
-  const amountInfo = amount?.length ? getTransferFeeInfos({ amount }) : undefined
+  const amountInfo = amount?.length ? getTransferFeeInfo({ amount }) : undefined
   const combinedPromise = Promise.all([infos, amountInfo])
 
   /* whether need pop confirm panel */
@@ -229,7 +229,7 @@ export function openToken2022ClmmAmountConfirmPanel({
     resolve = res
     reject = rej
   })
-  const feeInfo = getTransferFeeInfos({
+  const feeInfo = getTransferFeeInfo({
     amount: shakeUndifindedItem([amount].flat())
   })
 

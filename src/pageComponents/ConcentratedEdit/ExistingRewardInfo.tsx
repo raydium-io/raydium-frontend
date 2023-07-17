@@ -30,7 +30,7 @@ import AdjustRewardDialog from './AdjustRewardDialog'
 import { DAY_SECONDS } from './utils'
 import CoinSymbol from '@/components/CoinSymbol'
 import { toString } from '@/functions/numberish/toString'
-import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { AsyncAwait } from '@/components/AsyncAwait'
 
@@ -158,7 +158,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
               updateReward &&
               rewardToken &&
               toTokenAmount(rewardToken, mul(updateReward.perSecond, Math.floor(updateDuration / 1000)))
-            const updateFeeInfo = updateRewardAmount && getTransferFeeInfos({ amount: updateRewardAmount })
+            const updateFeeInfo = updateRewardAmount && getTransferFeeInfo({ amount: updateRewardAmount })
             return (
               <Grid className="gap-4 h-full">
                 {!showUpdateOnly && perSecond ? (
@@ -279,7 +279,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           const feeInfo =
             reward.remainingRewards &&
             reward.rewardToken &&
-            getTransferFeeInfos({ amount: toTokenAmount(reward.rewardToken, reward.remainingRewards) })
+            getTransferFeeInfo({ amount: toTokenAmount(reward.rewardToken, reward.remainingRewards) })
 
           if (!isRewardEnded && !previewMode) {
             return (

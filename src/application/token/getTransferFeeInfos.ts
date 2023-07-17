@@ -17,7 +17,7 @@ export type ITransferAmountFee = {
   expirationTime?: number
 }
 
-export async function getTransferFeeInfos<T extends TokenAmount | TokenAmount[]>({
+export async function getTransferFeeInfo<T extends TokenAmount | TokenAmount[]>({
   amount,
   addFee,
   fetchedEpochInfo = getEpochInfo(),
@@ -33,14 +33,14 @@ export async function getTransferFeeInfos<T extends TokenAmount | TokenAmount[]>
   const [epochInfo, mintInfos] = await Promise.all([fetchedEpochInfo, fetchedMints])
   if (isArray(amount)) {
     const innerAmount = amount.filter((i) => isToken2022(i.token))
-    return getTransferFeeInfosSync({ amount: innerAmount, addFee, mintInfos, epochInfo }) as any
+    return getTransferFeeInfoSync({ amount: innerAmount, addFee, mintInfos, epochInfo }) as any
   } else {
     if (!isToken2022(amount.token)) return undefined
-    return getTransferFeeInfosSync({ amount, addFee, mintInfos, epochInfo })
+    return getTransferFeeInfoSync({ amount, addFee, mintInfos, epochInfo })
   }
 }
 
-export function getTransferFeeInfosSync<T extends TokenAmount | TokenAmount[]>({
+export function getTransferFeeInfoSync<T extends TokenAmount | TokenAmount[]>({
   amount,
   addFee,
   mintInfos,
@@ -54,11 +54,11 @@ export function getTransferFeeInfosSync<T extends TokenAmount | TokenAmount[]>({
 }): T extends any[] ? ITransferAmountFee[] : ITransferAmountFee {
   //@ts-expect-error no need to check
   return isArray(amount)
-    ? amount.map((i) => getSignleTransferFeeInfosSync({ amount: i, addFee, mintInfos, epochInfo }))
-    : getSignleTransferFeeInfosSync({ amount, addFee, mintInfos, epochInfo })
+    ? amount.map((i) => getSignleTransferFeeInfoSync({ amount: i, addFee, mintInfos, epochInfo }))
+    : getSignleTransferFeeInfoSync({ amount, addFee, mintInfos, epochInfo })
 }
 
-function getSignleTransferFeeInfosSync({
+function getSignleTransferFeeInfoSync({
   amount,
   addFee,
   mintInfos,

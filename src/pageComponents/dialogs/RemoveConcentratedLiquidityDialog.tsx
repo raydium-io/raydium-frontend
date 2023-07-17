@@ -33,7 +33,7 @@ import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 
-import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import { isToken2022 } from '@/application/token/isToken2022'
 import { AsyncAwait } from '@/components/AsyncAwait'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
@@ -390,7 +390,7 @@ function MinWithdrawAmount({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const tokenAmount = token && amount ? toTokenAmount(token, amount, { alreadyDecimaled: true }) : undefined
-  const feeInfo = tokenAmount && isToken2022(token) && getTransferFeeInfos({ amount: tokenAmount })
+  const feeInfo = tokenAmount && isToken2022(token) && getTransferFeeInfo({ amount: tokenAmount })
   return (
     <Row className={twMerge('w-full justify-between', className)}>
       <Row className="gap-2 items-center">

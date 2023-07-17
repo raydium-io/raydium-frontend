@@ -48,3 +48,11 @@ export function Badge(props: {
     </Row>
   )
 }
+
+export function Token2022Badge() {
+  return (
+    <Badge cssColor="#abc4ff" className="bg-[#4f53f3] rounded" size="sm" type="solid">
+      T22
+    </Badge>
+  )
+}

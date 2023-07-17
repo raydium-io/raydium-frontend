@@ -8,7 +8,7 @@ import { MayArray } from '@/types/constants'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import { UserPositionAccount } from '../concentrated/type'
-import { ITransferAmountFee, getTransferFeeInfosSync } from './getTransferFeeInfos'
+import { ITransferAmountFee, getTransferFeeInfoSync } from './getTransferFeeInfos'
 
 type FeeInfo = {
   type: 'token' | 'reward'
@@ -54,13 +54,13 @@ export async function getConcentratedPositionFee({
             type: 'token',
             feeInfo:
               position.tokenFeeAmountA &&
-              getTransferFeeInfosSync({ amount: position.tokenFeeAmountA, mintInfos, epochInfo })
+              getTransferFeeInfoSync({ amount: position.tokenFeeAmountA, mintInfos, epochInfo })
           },
           {
             type: 'token',
             feeInfo:
               position.tokenFeeAmountB &&
-              getTransferFeeInfosSync({ amount: position.tokenFeeAmountB, mintInfos, epochInfo })
+              getTransferFeeInfoSync({ amount: position.tokenFeeAmountB, mintInfos, epochInfo })
           },
           ...position.rewardInfos.map(({ penddingReward: rawAmount }, index) => {
             const rewardInfo = position.ammPool.state.rewardInfos[index]
@@ -68,7 +68,7 @@ export async function getConcentratedPositionFee({
               type: `reward`,
               feeInfo:
                 rawAmount &&
-                getTransferFeeInfosSync({
+                getTransferFeeInfoSync({
                   amount: rawAmount,
                   mintInfos,
                   epochInfo
