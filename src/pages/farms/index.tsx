@@ -941,7 +941,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
                 '--'
               ) : (
                 <>
-                  {info.rewards
+                  {[...info.rewards]
                     .sort((a, b) => rewardType(a) - rewardType(b))
                     .map((reward) => (
                       <Fragment key={toPubString(reward.rewardVault)}>
