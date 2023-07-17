@@ -1,16 +1,19 @@
 import { Price, ZERO } from '@raydium-io/raydium-sdk'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
+import { isToken2022 } from '@/application/token/isToken2022'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { AsyncAwait } from '@/components/AsyncAwait'
+import { Token2022Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
-import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import FadeInStable from '@/components/FadeIn'
@@ -18,13 +21,13 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
-import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import { add, div, mul } from '@/functions/numberish/operations'
+import { add, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useInit from '@/hooks/useInit'
 import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
@@ -65,6 +68,25 @@ export function AddConcentratedLiquidityDialog() {
   const focusSide = isMintEqual(coinBase?.mint, originalCoin1?.mint) ? 'coin1' : 'coin2'
   const coinBaseAmount = focusSide === 'coin1' ? originalCoin1Amount : originalCoin2Amount
   const coinQuoteAmount = focusSide === 'coin1' ? originalCoin2Amount : originalCoin1Amount
+
+  const coinBaseFeeInfo = useMemo(
+    () =>
+      coinBase && coinBaseAmount && isToken2022(coinBase)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coinBase, coinBaseAmount, { alreadyDecimaled: true }) })
+        : undefined,
+    [coinBase, coinBaseAmount]
+  )
+
+  const coinQuoteFeeInfo = useMemo(
+    () =>
+      coinQuote && coinQuoteAmount && isToken2022(coinQuote)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coinQuote, coinQuoteAmount, { alreadyDecimaled: true }) })
+        : undefined,
+    [coinQuote, coinQuoteAmount]
+  )
+
+  const haveAnyToken2022 = isToken2022(coinBase) || isToken2022(coinQuote)
+
   const [amountBaseIsOutOfMax, setAmountBaseIsOutOfMax] = useState(false)
   const [amountBaseIsNegative, setAmountBaseIsNegative] = useState(false)
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
@@ -234,19 +256,81 @@ export function AddConcentratedLiquidityDialog() {
           </Col>
 
           <FadeInStable show={isMeaningfulNumber(coinBaseAmount)}>
-            <Col className="gap-2 mobile:gap-1 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-2.5 mb-4">
+            <Col className="gap-2 mobile:gap-1 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-3 mb-4">
+              <Col className="justify-between">
+                {haveAnyToken2022 ? (
+                  <Grid className="mb-1 grid-cols-[2.5fr,2fr,2fr] items-center text-xs text-[#abc4ff]">
+                    <div></div>
+                    <Row className="justify-self-end items-center">
+                      <div>Token2022 Fee</div>
+                      <Tooltip>
+                        <Icon iconClassName="ml-1" size="xs" heroIconName="question-mark-circle" />
+                        <Tooltip.Panel>
+                          <div className="max-w-[200px] space-y-1.5 text-[#abc4ff]">
+                            Tokens with a transfer fee below use the Token2022 program and have programmed a fee on all
+                            token interactions.
+                          </div>
+                        </Tooltip.Panel>
+                      </Tooltip>
+                    </Row>
+                    <div className="justify-self-end">Final Deposit</div>
+                  </Grid>
+                ) : undefined}
+
+                <Col className="gap-1">
+                  {[
+                    {
+                      isToken2022: isToken2022(coinBase),
+                      token: coinBase,
+                      info: coinBaseFeeInfo,
+                      rawAmount: coinBaseAmount
+                    },
+                    {
+                      isToken2022: isToken2022(coinQuote),
+                      token: coinQuote,
+                      info: coinQuoteFeeInfo,
+                      rawAmount: coinQuoteAmount
+                    }
+                  ].map(({ isToken2022, token, info, rawAmount }) => (
+                    <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
+                      <Row className="items-center gap-1 overflow-hidden">
+                        <div className="font-medium text-white">{token?.symbol}</div>
+                        <CoinAvatar size="sm" token={token} />
+                        {isToken2022 && <Token2022Badge />}
+                      </Row>
+
+                      <div className="justify-self-end font-medium text-xs text-[#abc4ff]">
+                        {haveAnyToken2022 ? (
+                          isToken2022 ? (
+                            <AsyncAwait promise={info}>
+                              {(info) => (info?.fee ? <div>{toString(info.fee)}</div> : '-')}
+                            </AsyncAwait>
+                          ) : (
+                            '-'
+                          )
+                        ) : (
+                          ''
+                        )}
+                      </div>
+
+                      <div className="justify-self-end font-medium text-white overflow-hidden">
+                        {isToken2022 ? (
+                          <AsyncAwait promise={info}>
+                            {(info) =>
+                              info?.pure ? <div>{toString(info.pure, { decimalLength: 'auto 5' })}</div> : undefined
+                            }
+                          </AsyncAwait>
+                        ) : (
+                          <div>{toString(rawAmount, { decimalLength: 'auto 5' })}</div>
+                        )}
+                      </div>
+                    </Grid>
+                  ))}
+                </Col>
+              </Col>
               <Row className="items-center">
-                <div className="ml-2 mr-auto text-sm mobile:text-xs text-[#abc4ff]">Total Deposit</div>
+                <div className="mr-auto text-sm mobile:text-xs text-[#abc4ff]">Total Deposit</div>
                 <div className="text-white font-medium text-sm">{toUsdVolume(totalVolume)}</div>
-              </Row>
-              <Row className="items-center">
-                <div className="ml-2 mr-auto text-sm mobile:text-xs text-[#abc4ff]">Deposit Ratio</div>
-                <Row className="items-center">
-                  <CoinAvatarPair token1={coinBase} token2={coinQuote} size="sm" className="mr-1" />
-                  <div className="text-white font-medium text-xs">
-                    {toPercentString(div(baseVolume, totalVolume))} / {toPercentString(div(quoteVolume, totalVolume))}
-                  </div>
-                </Row>
               </Row>
             </Col>
           </FadeInStable>

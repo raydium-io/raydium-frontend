@@ -322,15 +322,21 @@ function ConcentratedCard() {
   //   coin2Amount
   // })
 
-  const coin1FeeInfo =
-    coin1 && coin1Amount && isToken2022(coin1)
-      ? getTransferFeeInfo({ amount: toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }) })
-      : undefined
+  const coin1FeeInfo = useMemo(
+    () =>
+      coin1 && coin1Amount && isToken2022(coin1)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }) })
+        : undefined,
+    [coin1, coin1Amount]
+  )
 
-  const coin2FeeInfo =
-    coin2 && coin2Amount && isToken2022(coin2)
-      ? getTransferFeeInfo({ amount: toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }) })
-      : undefined
+  const coin2FeeInfo = useMemo(
+    () =>
+      coin2 && coin2Amount && isToken2022(coin2)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }) })
+        : undefined,
+    [coin2, coin2Amount]
+  )
 
   const haveAnyToken2022 = isToken2022(coin1) || isToken2022(coin2)
 
@@ -606,19 +612,11 @@ function ConcentratedCard() {
                         {isToken2022 && <Token2022Badge />}
                       </Row>
 
-                      <div className="justify-self-end">
+                      <div className="justify-self-end font-medium text-xs text-[#abc4ff] ">
                         {haveAnyToken2022 ? (
                           isToken2022 ? (
                             <AsyncAwait promise={info}>
-                              {(info) =>
-                                info?.fee ? (
-                                  <div className="font-medium text-xs text-[#abc4ff] overflow-hidden">
-                                    {toString(info.fee)}
-                                  </div>
-                                ) : (
-                                  '-'
-                                )
-                              }
+                              {(info) => (info?.fee ? <div>{toString(info.fee)}</div> : '-')}
                             </AsyncAwait>
                           ) : (
                             '-'
@@ -628,21 +626,15 @@ function ConcentratedCard() {
                         )}
                       </div>
 
-                      <div className="justify-self-end">
+                      <div className="justify-self-end font-medium text-white overflow-hidden">
                         {isToken2022 ? (
                           <AsyncAwait promise={info}>
                             {(info) =>
-                              info?.pure ? (
-                                <div className="font-medium text-white overflow-hidden">
-                                  {toString(info.pure, { decimalLength: 'auto 5' })}
-                                </div>
-                              ) : undefined
+                              info?.pure ? <div>{toString(info.pure, { decimalLength: 'auto 5' })}</div> : undefined
                             }
                           </AsyncAwait>
                         ) : (
-                          <div className="font-medium text-white overflow-hidden">
-                            {toString(rawAmount, { decimalLength: 'auto 5' })}
-                          </div>
+                          <div>{toString(rawAmount, { decimalLength: 'auto 5' })}</div>
                         )}
                       </div>
                     </Grid>
