@@ -9,8 +9,11 @@ import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos
 import useAppSettings from '@/application/common/useAppSettings'
 import txDecreaseConcentrated, { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
+import { isToken2022 } from '@/application/token/isToken2022'
 import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
+import { AsyncAwait } from '@/components/AsyncAwait'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -33,9 +36,6 @@ import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 
-import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
-import { isToken2022 } from '@/application/token/isToken2022'
-import { AsyncAwait } from '@/components/AsyncAwait'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
@@ -296,7 +296,10 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     <Tooltip>
                       <Icon size="xs" heroIconName="question-mark-circle" className="cursor-help" />
                       <Tooltip.Panel>
-                        <div className="max-w-[30em]">The least amount of tokens you will recieve in this withdraw</div>
+                        <div className="max-w-[30em]">
+                          The least amount of tokens you will receive. Tokens using the Token 2022 program may have
+                          transfer fees programmed for token interactions.
+                        </div>
                       </Tooltip.Panel>
                     </Tooltip>
                   </Row>

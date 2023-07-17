@@ -1,5 +1,6 @@
-import { Price, ZERO } from '@raydium-io/raydium-sdk'
 import { useEffect, useMemo, useRef, useState } from 'react'
+
+import { Price, ZERO } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
@@ -267,8 +268,8 @@ export function AddConcentratedLiquidityDialog() {
                         <Icon iconClassName="ml-1" size="xs" heroIconName="question-mark-circle" />
                         <Tooltip.Panel>
                           <div className="max-w-[200px] space-y-1.5 text-[#abc4ff]">
-                            Tokens with a transfer fee below use the Token2022 program and have programmed a fee on all
-                            token interactions.
+                            Tokens with a transfer fee use the Token2022 program and have a fee programed for all token
+                            interactions.
                           </div>
                         </Tooltip.Panel>
                       </Tooltip>

@@ -1,3 +1,10 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
+
+import Decimal from 'decimal.js'
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
@@ -35,13 +42,12 @@ import { useEvent } from '@/hooks/useEvent'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
+import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
 import { Numberish } from '@/types/constants'
-import { TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
-import Decimal from 'decimal.js'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
+
 import { calculateRatio, RemainSOLAlert } from '../Concentrated'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
+
 import { CreateFeeSwitcher } from './CreateFeeSwitcher'
 import CreatePoolPreviewDialog from './CreatePoolPreviewDialog'
 import EmptyCoinInput from './EmptyCoinInput'
@@ -49,7 +55,6 @@ import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
-import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -547,7 +552,7 @@ export function CreatePoolCard() {
             <span className="text-lg flex leading-[18px]">
               {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
               {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
-                ? `${ratio1 ?? '--'}% / ${ratio2 ?? '--'}%`
+                ? `${toPercentString(ratio1) ?? '--'} / ${toPercentString(ratio2) ?? '--'}`
                 : '--'}
             </span>
           </div>
