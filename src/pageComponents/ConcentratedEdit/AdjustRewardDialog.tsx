@@ -230,10 +230,10 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                   className="flex-[1] max-h-[88px]"
                   inputHTMLProps={{
                     min: 1,
-                    maxLength: 4,
+                    maxLength: 3,
                     step: 1
                   }}
-                  pattern={/^[\d.]{0,5}$/}
+                  pattern={/^\d{0,5}$/}
                   placeholder="7-90"
                   suffix={<span className="text-[#abc4ff80] text-xs">Days</span>}
                   value={values.daysExtend}

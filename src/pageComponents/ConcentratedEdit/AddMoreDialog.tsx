@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Fraction } from '@raydium-io/raydium-sdk'
 
@@ -22,7 +22,6 @@ import toFraction from '@/functions/numberish/toFraction'
 import { Unpacked } from '@/types/generics'
 
 import { DAY_SECONDS, getDurationFromString, MAX_DURATION, MIN_DURATION } from './utils'
-import { SplToken } from '@/application/token/type'
 
 export interface UpdateData {
   openTime: number
@@ -187,10 +186,10 @@ export default function AddMoreDialog({
                 className="flex-[2]"
                 inputHTMLProps={{
                   min: 1,
-                  maxLength: 4,
+                  maxLength: 3,
                   step: 1
                 }}
-                pattern={/^[\d.]{0,5}$/}
+                pattern={/^\d{0,5}$/}
                 placeholder="7-90"
                 suffix={<span className="text-[#abc4ff80] text-xs">days</span>}
                 value={values.duration}
