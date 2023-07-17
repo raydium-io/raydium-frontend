@@ -21,18 +21,17 @@ import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
-import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt } from '@/functions/numberish/compare'
 import { div, getMax, mul } from '@/functions/numberish/operations'
 import { Unpacked } from '@/types/generics'
 
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
+import { AsyncAwait } from '@/components/AsyncAwait'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { toString } from '@/functions/numberish/toString'
 import AddMoreDialog, { UpdateData } from './AddMoreDialog'
 import AdjustRewardDialog from './AdjustRewardDialog'
 import { DAY_SECONDS } from './utils'
-import CoinSymbol from '@/components/CoinSymbol'
-import { toString } from '@/functions/numberish/toString'
-import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { AsyncAwait } from '@/components/AsyncAwait'
 
 interface Props {
   pool: HydratedConcentratedInfo

@@ -36,6 +36,7 @@ import DecimalInput from './DecimalInput'
 import Icon from './Icon'
 import Row from './Row'
 import Tooltip from './Tooltip'
+import { Token2022Badge } from './Badge'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -367,9 +368,7 @@ export default function CoinInputBox({
                 >
                   {token?.symbol ?? '--'}
                 </div>
-                {isToken2022(token) && (
-                  <div className="text-2xs text-[#141041] bg-[#abc4ff80] px-1 rounded-sm">2022</div>
-                )}
+                {isToken2022(token) && <Token2022Badge pale />}
               </Col>
               {showTokenSelectIcon && !disabledTokenSelect && (
                 <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />

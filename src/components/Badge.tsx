@@ -11,6 +11,7 @@ export function Badge(props: {
   className?: string
   children: React.ReactNode
   cssColor?: string
+  cssBgColor?: string
   noOutline?: boolean
   /** default: outline */
   type?: 'solid' | 'outline'
@@ -33,7 +34,8 @@ export function Badge(props: {
         props.className
       )}
       style={{
-        color: props.cssColor ?? '#5ac4be'
+        color: props.cssColor ?? '#5ac4be',
+        backgroundColor: props.cssBgColor
       }}
       onClick={props.onClick}
     >
@@ -49,9 +51,13 @@ export function Badge(props: {
   )
 }
 
-export function Token2022Badge() {
+export function Token2022Badge({ pale }: { pale?: boolean }) {
+  const color = {
+    text: pale ? '#141041' : '#abc4ff',
+    bg: pale ? '#abc4ff80' : '#4f53f3'
+  }
   return (
-    <Badge cssColor="#abc4ff" className="bg-[#4f53f3] rounded" size="sm" type="solid">
+    <Badge cssColor={color.text} cssBgColor={color.bg} className="rounded" size="sm" type="solid">
       T22
     </Badge>
   )

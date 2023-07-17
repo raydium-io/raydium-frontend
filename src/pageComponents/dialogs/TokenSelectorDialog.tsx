@@ -42,6 +42,7 @@ import useAsyncValue from '@/hooks/useAsyncValue'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
 import { isToken2022 } from '@/application/token/isToken2022'
+import { Token2022Badge } from '@/components/Badge'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -402,9 +403,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
                   {token.symbol}
                 </div>
-                {isToken2022(token) && (
-                  <div className="text-2xs text-[#141041] bg-[#abc4ff80] px-1 rounded-sm">2022</div>
-                )}
+                {isToken2022(token) && <Token2022Badge pale />}
               </Row>
               {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
                 <Row

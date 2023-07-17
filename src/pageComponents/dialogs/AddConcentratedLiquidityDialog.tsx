@@ -302,7 +302,7 @@ export function AddConcentratedLiquidityDialog() {
                       <div className="justify-self-end font-medium text-xs text-[#abc4ff]">
                         {haveAnyToken2022 ? (
                           isToken2022 ? (
-                            <AsyncAwait promise={info}>
+                            <AsyncAwait promise={info} fallback="--">
                               {(info) => (info?.fee ? <div>{toString(info.fee)}</div> : '-')}
                             </AsyncAwait>
                           ) : (
@@ -315,7 +315,7 @@ export function AddConcentratedLiquidityDialog() {
 
                       <div className="justify-self-end font-medium text-white overflow-hidden">
                         {isToken2022 ? (
-                          <AsyncAwait promise={info}>
+                          <AsyncAwait promise={info} fallback="--">
                             {(info) =>
                               info?.pure ? <div>{toString(info.pure, { decimalLength: 'auto 5' })}</div> : undefined
                             }
