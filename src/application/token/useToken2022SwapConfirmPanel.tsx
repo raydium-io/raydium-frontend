@@ -15,13 +15,13 @@ import { capitalize } from '@/functions/changeCase'
 import parseDuration from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { isMeaningfulNumber, isMeaninglessNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { HexAddress } from '@/types/constants'
-import { useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { AsyncAwait } from '../../components/AsyncAwait'
 import useConnection from '../connection/useConnection'
@@ -185,59 +185,46 @@ function ConfirmDialog({
                     >
                       {(tokenMintInfo) => {
                         if (!tokenMintInfo) return
+                        const frozen = Boolean(tokenMintInfo.freezeAuthority)
                         return (
                           <div>
                             <Col className="table text-sm">
-                              <Row className="table-row">
-                                <div className="table-cell px-2 font-medium">Frozen:</div>
-                                <div className="table-cell px-2">
-                                  {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
-                                </div>
-                              </Row>
+                              <Item
+                                hidden={!frozen}
+                                name="Freeze Authority"
+                                value={capitalize(String(frozen))}
+                                nameTooltip="The creator of this token has freeze authority and can freeze transfers or token interactions from your account at any time. Trade with caution"
+                              />
 
-                              <Row className="table-row">
-                                <div className="table-cell px-2 font-medium">Transfer Fee:</div>
-                                <div className="table-cell px-2">
-                                  {toPercentString(tokenMintInfo.transferFeePercent)}
-                                </div>
-                              </Row>
+                              <Item
+                                name="Transfer Fee"
+                                value={toPercentString(tokenMintInfo.transferFeePercent)}
+                                nameTooltip="This token uses the Token-2022 program. The token creator has programmed a Transfer Fee that will be subtracted from all token interactions, including swaps or adding/removing liquidity."
+                              />
 
-                              <Row className="table-row">
-                                <div className="table-cell px-2 font-medium">
-                                  <Row className="font-medium items-center">
-                                    <div>Max Transfer Fee</div>
-                                    <Tooltip>
-                                      <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
-                                      <Tooltip.Panel>
-                                        <div className="max-w-[300px] space-y-1.5">
-                                          The maximum transfer fee collected regardless of the amount of tokens
-                                          transferred
-                                        </div>
-                                      </Tooltip.Panel>
-                                    </Tooltip>
-                                    <div className="ml-1">:</div>
-                                  </Row>
-                                </div>
-                                <div className="table-cell px-2">
-                                  {toString(tokenMintInfo.maximumFee, {
-                                    decimalLength: `auto ${tokenMintInfo.decimals}`
-                                  })}{' '}
-                                  {token.symbol}
-                                </div>
-                              </Row>
+                              <Item
+                                name="Max Transfer Fee"
+                                value={`${toString(tokenMintInfo.maximumFee, {
+                                  decimalLength: `auto ${tokenMintInfo.decimals}`
+                                })} ${token.symbol}`}
+                                nameTooltip="The maximum transfer fee collected regardless of the amount of tokens transferred"
+                              />
 
-                              {!isMeaningfulNumber(tokenMintInfo.nextTransferFeePercent) &&
-                                !isMeaningfulNumber(tokenMintInfo.nextMaximumFee) && (
-                                  <Row className="table-row">
-                                    <div className="table-cell px-2 font-medium">Pending fee change:</div>
-                                    <div className="table-cell px-2">No</div>
-                                  </Row>
-                                )}
+                              <Item
+                                hidden={
+                                  isMeaninglessNumber(tokenMintInfo.nextTransferFeePercent) &&
+                                  isMeaninglessNumber(tokenMintInfo.nextMaximumFee)
+                                }
+                                name="Pending Fee Change"
+                                value="Yes"
+                                valueTooltip="This token uses the Token-2022 program. The token creator has programmed an updated Transfer Fee that will be live in the near future. The fee will be subtracted from all future token interactions and may be higher than the current fee."
+                              />
 
-                              {isMeaningfulNumber(tokenMintInfo.nextTransferFeePercent) && (
-                                <Row className="table-row">
-                                  <div className="table-cell px-2 font-medium">Fee change:</div>
-                                  <div className="table-cell px-2">
+                              <Item
+                                hidden={isMeaninglessNumber(tokenMintInfo.nextTransferFeePercent)}
+                                name="Pending Fee Change"
+                                value={
+                                  <>
                                     {toPercentString(tokenMintInfo.nextTransferFeePercent)}
                                     {tokenMintInfo.expirationTimeOffset != null && (
                                       <span>
@@ -245,14 +232,15 @@ function ConfirmDialog({
                                         in <FeeChangeTime remainSeconds={tokenMintInfo.expirationTimeOffset} />
                                       </span>
                                     )}
-                                  </div>
-                                </Row>
-                              )}
+                                  </>
+                                }
+                              />
 
-                              {isMeaningfulNumber(tokenMintInfo.nextMaximumFee) && (
-                                <Row className="table-row">
-                                  <div className="table-cell px-2 font-medium">Max fee change:</div>
-                                  <div className="table-cell px-2">
+                              <Item
+                                hidden={isMeaninglessNumber(tokenMintInfo.nextMaximumFee)}
+                                name="Pending Max Fee Change"
+                                value={
+                                  <>
                                     {toString(tokenMintInfo.nextMaximumFee, {
                                       decimalLength: `auto ${tokenMintInfo.decimals}`
                                     })}{' '}
@@ -263,9 +251,9 @@ function ConfirmDialog({
                                         in <FeeChangeTime remainSeconds={tokenMintInfo.expirationTimeOffset} />
                                       </span>
                                     )}
-                                  </div>
-                                </Row>
-                              )}
+                                  </>
+                                }
+                              />
                             </Col>
                           </div>
                         )
@@ -319,6 +307,54 @@ function ConfirmDialog({
         </Col>
       </Card>
     </ResponsiveDialogDrawer>
+  )
+}
+
+function Item({
+  hidden,
+  name,
+  value,
+  nameTooltip,
+  valueTooltip
+}: {
+  hidden?: boolean
+  name: string
+  value?: ReactNode
+  nameTooltip?: string
+  valueTooltip?: string
+}) {
+  if (hidden) return null
+  return (
+    <Row className="table-row">
+      <div className="table-cell">
+        <Row className="items-center px-2 font-medium">
+          <div>{name}</div>
+          {nameTooltip && (
+            <Tooltip>
+              <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+              <Tooltip.Panel>
+                <div className="max-w-[300px] space-y-1.5">{nameTooltip}</div>
+              </Tooltip.Panel>
+            </Tooltip>
+          )}
+          <div className="ml-1">:</div>
+        </Row>
+      </div>
+
+      <div className="table-cell">
+        <Row className="items-center">
+          {value}
+          {valueTooltip && (
+            <Tooltip>
+              <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+              <Tooltip.Panel>
+                <div className="max-w-[300px] space-y-1.5">{valueTooltip}</div>
+              </Tooltip.Panel>
+            </Tooltip>
+          )}
+        </Row>
+      </div>
+    </Row>
   )
 }
 
