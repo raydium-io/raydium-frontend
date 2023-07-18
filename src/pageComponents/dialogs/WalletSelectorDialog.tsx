@@ -100,7 +100,8 @@ function WalletSelectorPanelItem({
             </div>
           )
         } else {
-          select(wallet.adapter.name)
+          if (wallet.readyState === WalletReadyState.Loadable) wallet.adapter.connect()
+          else select(wallet.adapter.name)
           onClick?.()
         }
       }}
