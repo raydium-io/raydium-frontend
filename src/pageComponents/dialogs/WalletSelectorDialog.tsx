@@ -21,6 +21,7 @@ import Tooltip from '@/components/Tooltip'
 import { extensionMap } from '@/functions/dom/getExtension'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { TxVersion } from '@raydium-io/raydium-sdk'
+import { isMobileDevice } from '@/functions/mobile'
 
 function WalletSelectorPanelItem({
   wallet,
@@ -100,7 +101,7 @@ function WalletSelectorPanelItem({
             </div>
           )
         } else {
-          if (wallet.readyState === WalletReadyState.Loadable) wallet.adapter.connect()
+          if (wallet.readyState === WalletReadyState.Loadable && isMobileDevice()) wallet.adapter.connect()
           else select(wallet.adapter.name)
           onClick?.()
         }
