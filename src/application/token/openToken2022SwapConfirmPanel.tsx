@@ -1,3 +1,7 @@
+import { ReturnTypeGetAllRouteComputeAmountOut, Token, TokenAmount } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
+
 import useNotification from '@/application/notification/useNotification'
 import { AddressItem } from '@/components/AddressItem'
 import { AsyncAwait } from '@/components/AsyncAwait'
@@ -13,9 +17,8 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gte } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import { ReturnTypeGetAllRouteComputeAmountOut, Token, TokenAmount } from '@raydium-io/raydium-sdk'
-import { twMerge } from 'tailwind-merge'
-import { TokenMintInfo, getOnlineTokenInfo } from './getOnlineTokenInfo'
+
+import { getOnlineTokenInfo, TokenMintInfo } from './getOnlineTokenInfo'
 import { isToken2022 } from './isToken2022'
 import { SplToken } from './type'
 import useToken from './useToken'
@@ -45,7 +48,7 @@ export function openToken2022SwapConfirmPanel({
   const upCoinMint = routInfo && 'token' in routInfo.amountIn.amount ? routInfo.amountIn.amount.token.mint : undefined
   const downCoinMint =
     routInfo && 'token' in routInfo.amountOut.amount ? routInfo.amountOut.amount.token.mint : undefined
-  const middleRouteCoinMint = routInfo?.routeType === 'route' ? routInfo.minMiddleAmountFee.token.mint : undefined
+  const middleRouteCoinMint = routInfo?.routeType === 'route' ? routInfo.middleToken.mint : undefined
 
   const upCoin = getToken(upCoinMint)
   const downCoin = getToken(downCoinMint)
