@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/Checkbox'
 import Col from '@/components/Col'
 import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
+import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
@@ -53,7 +54,8 @@ function WarningBoard({ className }: { className: string }) {
           <div className="mobile:text-sm font-medium text-base text-white mb-3">Raydium now supports Token 2022!</div>
           <div className="font-medium text-sm mobile:text-xs text-[#ABC4FF80] mb-4">
             You can now create a CLMM pool and farm for assets using the Token 22 program. To learn more about the
-            supported Token 22 extensions please read this update (hyperlink).
+            supported Token 22 extensions please read this{' '}
+            <Link href="https://docs.raydium.io/raydium/updates/token-2022-support">update</Link>.
           </div>
 
           <Row className="gap-4">
