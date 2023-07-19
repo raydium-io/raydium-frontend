@@ -40,6 +40,7 @@ import { Numberish } from '@/types/constants'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 import { BestResultStartTimeInfo } from './type'
+import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolsItem[]
@@ -265,7 +266,7 @@ export async function getAllSwapableRouteInfos({
     poolInfosCache,
     tickCache,
     mintInfos,
-    connection.getEpochInfo()
+    getEpochInfo()
   ])
   if (simulateResult.status === 'rejected') return
   const awaitedSimulateCache = simulateResult.value
