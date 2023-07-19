@@ -345,7 +345,7 @@ function FeeInfoRow({
         <Row className="items-center gap-1">
           <CoinAvatar token={amount.token} size="sm"></CoinAvatar>
           <div className="text-white">
-            {toString(minus(amount, fee), { decimalLength: `auto ${amount.token.decimals}` })}
+            {toString(minus(amount, fee ?? 0), { decimalLength: `auto ${amount.token.decimals}` })}
           </div>
           <div>{amount.token.symbol}</div>
         </Row>
