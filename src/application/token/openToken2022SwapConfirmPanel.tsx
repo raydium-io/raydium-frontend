@@ -180,22 +180,26 @@ function FeeInfoRow({
         </Row>
       ) : (
         <>
-          <Row className="table-row">
-            <div className="table-cell px-2 font-medium">Transfer Fee:</div>
-            <div className="table-cell px-2">
-              {toString(transferFee)} {token?.symbol} ({toPercentString(mintInfo.transferFeePercent)})
-            </div>
-          </Row>
+          {isMeaningfulNumber(transferFee) && (
+            <Row className="table-row">
+              <div className="table-cell px-2 font-medium">Transfer Fee:</div>
+              <div className="table-cell px-2">
+                {toString(transferFee)} {token?.symbol} ({toPercentString(mintInfo.transferFeePercent)})
+              </div>
+            </Row>
+          )}
 
-          <Row className="table-row">
-            <div className="table-cell px-2 font-medium">Max Transfer Fee:</div>
-            <div className="table-cell px-2">
-              {toString(mintInfo.maximumFee, {
-                decimalLength: `auto ${mintInfo.decimals}`
-              })}{' '}
-              {token?.symbol}
-            </div>
-          </Row>
+          {isMeaningfulNumber(mintInfo.maximumFee) && (
+            <Row className="table-row">
+              <div className="table-cell px-2 font-medium">Max Transfer Fee:</div>
+              <div className="table-cell px-2">
+                {toString(mintInfo.maximumFee, {
+                  decimalLength: `auto ${mintInfo.decimals}`
+                })}{' '}
+                {token?.symbol}
+              </div>
+            </Row>
+          )}
         </>
       )}
     </Col>
