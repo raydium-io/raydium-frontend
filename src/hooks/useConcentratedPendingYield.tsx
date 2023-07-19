@@ -1,6 +1,7 @@
 import { UserPositionAccount } from '@/application/concentrated/type'
 import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import useToken from '@/application/token/useToken'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt } from '@/functions/numberish/compare'
@@ -64,14 +65,14 @@ export default function useConcentratedPendingYield(
       .concat(feesAmountsWithFees)
       .reduce((acc, volume) => (volume ? add(acc ?? toFraction(0), volume) : acc), undefined as Fraction | undefined)
 
-    const pendingTotal = Promise.resolve(pendingTotalWithFees) // dev
-    // const pendingTotal = minusFees(shakeUndifindedItem(rewardsAmountsWithFees.concat(feesAmountsWithFees))).then(
-    //   (ps) =>
-    //     ps?.reduce(
-    //       (acc, volume) => (volume ? add(acc ?? toFraction(0), volume) : acc),
-    //       undefined as Fraction | undefined
-    //     ) ?? 0
-    // )
+    // const pendingTotal = Promise.resolve(pendingTotalWithFees) // dev
+    const pendingTotal = minusFees(shakeUndifindedItem(rewardsAmountsWithFees.concat(feesAmountsWithFees))).then(
+      (ps) =>
+        ps?.reduce(
+          (acc, volume) => (volume ? add(acc ?? toFraction(0), volume) : acc),
+          undefined as Fraction | undefined
+        ) ?? 0
+    )
 
     const isHarvestable = gt(pendingTotalWithFees, 0) || hasRewardTokenAmount || hasFeeTokenAmount ? true : false
 
