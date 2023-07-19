@@ -486,6 +486,7 @@ export function CreatePoolCard() {
               {coin1InputDisabled && <InputLocked />}
               {coin1 ? (
                 <CoinInputBox
+                  hideTransferFee
                   className="mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2"
                   disabled={isApprovePanelShown}
                   disabledInput={!currentAmmPool}
@@ -511,6 +512,7 @@ export function CreatePoolCard() {
               {coin2InputDisabled && <InputLocked />}
               {coin2 ? (
                 <CoinInputBox
+                  hideTransferFee
                   className="py-2 mobile:py-1 px-3 mobile:px-2"
                   disabled={isApprovePanelShown}
                   noDisableStyle

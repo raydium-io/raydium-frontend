@@ -192,6 +192,7 @@ export function AddConcentratedLiquidityDialog() {
           <Col className="gap-3 mobile:gap-2 mb-6 mobile:mb-2">
             {/* input-container-box */}
             <CoinInputBox
+              hideTransferFee
               className="p-4 mobile:py-2"
               componentRef={coinInputBoxComponentRef1}
               disabled={gt(currentPrice, targetUserPositionAccount?.priceUpper)}
@@ -224,6 +225,7 @@ export function AddConcentratedLiquidityDialog() {
 
             {/* input-container-box 2 */}
             <CoinInputBox
+              hideTransferFee
               className="p-4 mobile:py-2"
               componentRef={coinInputBoxComponentRef2}
               disabled={lt(currentPrice, targetUserPositionAccount?.priceLower)}

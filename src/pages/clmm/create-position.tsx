@@ -22,7 +22,6 @@ import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
-import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
@@ -56,18 +55,17 @@ import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/Con
 import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import { useConcentratedTickAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
-import { calculateRatio } from '@/pageComponents/Concentrated/util'
 
-import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
-import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
-import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
-import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
-import CoinAvatar from '@/components/CoinAvatar'
-import { Token2022Badge } from '@/components/Badge'
 import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import { isToken2022 } from '@/application/token/isToken2022'
 import { AsyncAwait } from '@/components/AsyncAwait'
+import { Token2022Badge } from '@/components/Badge'
+import CoinAvatar from '@/components/CoinAvatar'
 import Tooltip from '@/components/Tooltip'
+import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
+import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
+import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
+import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -508,6 +506,7 @@ function ConcentratedCard() {
             <div ref={swapElementBox1} className="relative">
               {coin1InputDisabled && <InputLocked />}
               <CoinInputBox
+                hideTransferFee
                 className="mb-4 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
                 disabledInput={!currentAmmPool || coin1InputDisabled}
@@ -537,6 +536,7 @@ function ConcentratedCard() {
             <div ref={swapElementBox2} className="relative">
               {coin2InputDisabled && <InputLocked />}
               <CoinInputBox
+                hideTransferFee
                 className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 componentRef={coinInputBox2ComponentRef}
                 disabled={isApprovePanelShown}

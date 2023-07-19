@@ -207,6 +207,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
             {/* input-container-box */}
 
             <CoinInputBox
+              hideTransferFee
               componentRef={coinInputBoxComponentRef1}
               haveCoinIcon
               topLeftLabel={'Base'}
@@ -245,6 +246,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
             {/* input-container-box 2 */}
             <CoinInputBox
+              hideTransferFee
               componentRef={coinInputBoxComponentRef2}
               haveCoinIcon
               topLeftLabel={'Quote'}
