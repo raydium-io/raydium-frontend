@@ -35,7 +35,6 @@ import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
-
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
@@ -58,11 +57,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const coinBase = currentAmmPool?.base
   const coinQuote = currentAmmPool?.quote
-  const originalUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
-  const targetUserPositionAccount = useMemo(
-    () => currentAmmPool?.userPositionAccount?.find((p) => p.nftMint === originalUserPositionAccount?.nftMint),
-    [currentAmmPool]
-  )
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const originalCoin1 = useConcentrated((s) => s.coin1)
   const originalCoin2 = useConcentrated((s) => s.coin2)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)

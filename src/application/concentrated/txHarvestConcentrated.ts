@@ -1,17 +1,16 @@
 import assert from '@/functions/assert'
 import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
+import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmPositionConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
-import { isToken2022 } from '../token/isToken2022'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
-
 export default async function txHarvestConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
   targetUserPositionAccount = useConcentrated.getState().targetUserPositionAccount
