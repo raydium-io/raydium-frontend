@@ -36,7 +36,8 @@ export async function getTransferFeeInfo<T extends TokenAmount | TokenAmount[]>(
     const [epochInfo, mintInfos] = await Promise.all([fetchedEpochInfo, fetchedMints])
     return getTransferFeeInfoSync({ amount, addFee, mintInfos, epochInfo }) as any
   } else {
-    if (!isToken2022(amount.token)) return undefined
+    if (!isToken2022(amount.token))
+      return { amount: amount, pure: amount } as T extends any[] ? ITransferAmountFee[] : ITransferAmountFee
     const [epochInfo, mintInfos] = await Promise.all([fetchedEpochInfo, fetchedMints])
     return getTransferFeeInfoSync({ amount, addFee, mintInfos, epochInfo })
   }

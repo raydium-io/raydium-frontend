@@ -36,6 +36,7 @@ import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -71,7 +72,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
   const liquidity = useConcentrated((s) => s.liquidity)
-  const { pendingTotalVolume, pendingTotal } = useConcentratedPendingYield(targetUserPositionAccount)
+  const { getPendingTotal } = useConcentratedPendingYield(targetUserPositionAccount)
+  const pendingTotalVolume = useAsyncMemo(() => (open ? getPendingTotal?.() : undefined), [open, getPendingTotal])
   const isMobile = useAppSettings((s) => s.isMobile)
   const [maxInfo, setMaxInfo] = useState<{
     coin1Amount?: Numberish
