@@ -316,10 +316,6 @@ async function getTokenLists(
   return tokenCollector
 }
 
-// async function fetchTokenIconInfoList() {
-//   return jFetch<Record<HexAddress, SrcAddress>>('/custom-token-icon-list.json')
-// }
-
 export function createSplToken(
   info: Partial<TokenJson> & {
     mint: HexAddress

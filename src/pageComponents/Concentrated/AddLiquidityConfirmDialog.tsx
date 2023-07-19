@@ -20,6 +20,7 @@ import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import { Numberish } from '@/types/constants'
 import { useCallback, useRef, useState } from 'react'
 import Tooltip from '@/components/Tooltip'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 
 interface Props {
   onRefreshSnapshot(): void
@@ -168,19 +169,22 @@ export default function AddLiquidityConfirmDialog({
                       <span>
                         {toString(coin1Amount)} {coin1?.symbol}
                       </span>
-                      {coin1AmountFee != null && (
+                      {isMeaningfulNumber(coin1AmountFee) && (
                         <Row className="text-xs text-[#abc4ff80] gap-0.5 items-center">
-                          <span>Position: {toString(minus(coin1Amount, coin1AmountFee))} + Fee</span>
-                          <Tooltip>
-                            <Icon size="xs" heroIconName="information-circle" />
-                            <Tooltip.Panel>
-                              <div className="max-w-[300px] space-y-1.5">
-                                This token uses the Token-2022 program and includes a transfer fee set by the token
-                                creator. These are the final deposit amounts for the position and the transfer fee.
-                              </div>
-                            </Tooltip.Panel>
-                          </Tooltip>
-                          <span>: {toString(coin1AmountFee)}</span>
+                          <span>Position: {toString(minus(coin1Amount, coin1AmountFee))} + </span>
+                          <Row className="text-[#D8CB39] font-medium gap-0.5 items-center">
+                            <span>Fee</span>
+                            <Tooltip>
+                              <Icon size="xs" heroIconName="information-circle" />
+                              <Tooltip.Panel>
+                                <div className="max-w-[300px] space-y-1.5">
+                                  This token uses the Token-2022 program and includes a transfer fee set by the token
+                                  creator. These are the final deposit amounts for the position and the transfer fee.
+                                </div>
+                              </Tooltip.Panel>
+                            </Tooltip>
+                            <span>: {toString(coin1AmountFee)}</span>
+                          </Row>
                         </Row>
                       )}
                     </Col>
@@ -194,19 +198,22 @@ export default function AddLiquidityConfirmDialog({
                       <span>
                         {toString(coin2Amount)} {coin2?.symbol}
                       </span>
-                      {coin2AmountFee != null && (
+                      {isMeaningfulNumber(coin2AmountFee) && (
                         <Row className="text-xs text-[#abc4ff80] gap-0.5 items-center">
-                          <span>Position: {toString(minus(coin2Amount, coin2AmountFee))} + Fee</span>
-                          <Tooltip>
-                            <Icon size="xs" heroIconName="information-circle" />
-                            <Tooltip.Panel>
-                              <div className="max-w-[300px] space-y-1.5">
-                                This token uses the Token-2022 program and includes a transfer fee set by the token
-                                creator. These are the final deposit amounts for the position and the transfer fee.
-                              </div>
-                            </Tooltip.Panel>
-                          </Tooltip>
-                          <span>: {toString(coin2AmountFee)}</span>
+                          <span>Position: {toString(minus(coin2Amount, coin2AmountFee))} + </span>
+                          <Row className="text-[#D8CB39] font-medium gap-0.5 items-center">
+                            <span>Fee</span>
+                            <Tooltip>
+                              <Icon size="xs" heroIconName="information-circle" />
+                              <Tooltip.Panel>
+                                <div className="max-w-[300px] space-y-1.5">
+                                  This token uses the Token-2022 program and includes a transfer fee set by the token
+                                  creator. These are the final deposit amounts for the position and the transfer fee.
+                                </div>
+                              </Tooltip.Panel>
+                            </Tooltip>
+                            <span>: {toString(coin2AmountFee)}</span>
+                          </Row>
                         </Row>
                       )}
                     </Col>

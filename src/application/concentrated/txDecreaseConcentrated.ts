@@ -45,31 +45,6 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   const tokenAmount2 = toTokenAmount(coin2, coin2AmountMin, { alreadyDecimaled: true })
   const feeInfo2 = isToken2022(coin2) ? getTransferFeeInfo({ amount: tokenAmount2 }) : undefined
 
-  // check token 2022
-  const needConfirm = [
-    targetUserPositionAccount?.tokenA,
-    targetUserPositionAccount?.tokenB,
-    ...(targetUserPositionAccount?.rewardInfos.map((i) => i.token) ?? [])
-  ].some((i) => isToken2022(i) && i)
-  let userHasConfirmed: boolean
-  if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmPositionConfirmPanel({
-      caseName: 'decrease',
-      position: targetUserPositionAccount,
-      positionAdditionalAmount: shakeUndifindedItem([
-        toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }),
-        toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
-      ])
-    })
-    userHasConfirmed = await hasConfirmed
-  } else {
-    userHasConfirmed = true
-  }
-  if (!userHasConfirmed) {
-    useNotification.getState().logError('Canceled by User', 'The operation is canceled by user')
-    return
-  }
-
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const [feeInfoA, feeInfoB] = await Promise.all([feeInfo1, feeInfo2])
     if (options?.closePosition) {

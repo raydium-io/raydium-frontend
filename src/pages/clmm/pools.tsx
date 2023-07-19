@@ -1010,7 +1010,7 @@ function PoolCardDatabaseBody({
               )}
             </Collapse.Face>
             <Collapse.Body>
-              <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />
+              {({ isOpen }) => <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} open={isOpen} />}
             </Collapse.Body>
           </Collapse>
         </List.Item>
@@ -1405,7 +1405,13 @@ function AprLine({
   )
 }
 
-function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
+function PoolCardDatabaseBodyCollapseItemContent({
+  poolInfo: info,
+  open
+}: {
+  poolInfo: HydratedConcentratedInfo
+  open: boolean
+}) {
   const owner = useWallet((s) => s.owner) // keep it, will use when we are in production for farm create/edit
   const { lpPrices } = usePools()
   const tokenPrices = useToken((s) => s.tokenPrices)
@@ -1620,6 +1626,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
               return (
                 <PoolCardDatabaseBodyCollapsePositionContent
+                  open={open}
                   key={p.nftMint.toString()}
                   poolInfo={info}
                   userPositionAccount={p}
@@ -1648,6 +1655,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 }
 
 function PoolCardDatabaseBodyCollapsePositionContent({
+  open,
   poolInfo: info,
   userPositionAccount: p,
   myPosition: myPosition,
@@ -1661,6 +1669,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   rewardBPrice,
   rewardInfoPrice
 }: {
+  open: boolean
   poolInfo: HydratedConcentratedInfo
   userPositionAccount?: UserPositionAccount
   myPosition?: string
@@ -1676,7 +1685,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const { pendingTotalVolume, isHarvestable } = useConcentratedPendingYield(p)
+  const { pendingTotalVolume, isHarvestable } = useConcentratedPendingYield(p, { shouldCalcFee: open })
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const logInfo = useNotification((s) => s.logInfo)
   const walletConnected = useWallet((s) => s.connected)

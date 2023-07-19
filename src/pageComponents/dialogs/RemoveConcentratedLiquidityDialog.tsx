@@ -71,7 +71,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
   const liquidity = useConcentrated((s) => s.liquidity)
-  const { pendingTotalVolume } = useConcentratedPendingYield(targetUserPositionAccount)
+  const { pendingTotalVolume, pendingTotal } = useConcentratedPendingYield(targetUserPositionAccount)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [maxInfo, setMaxInfo] = useState<{
     coin1Amount?: Numberish
@@ -285,6 +285,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   <div className="text-base mobile:text-sm">Pending Yield</div>
                 </Row>
                 <Row className="flex justify-end items-center text-[#ABC4FF] font-medium text-sm">
+                  {/* <AsyncAwait promise={pendingTotal} fallback="calculating">
+                    {(v) => <div className="text-lg text-white">{toUsdVolume(v)}</div>}
+                  </AsyncAwait> */}
                   <div className="text-lg text-white">{toUsdVolume(pendingTotalVolume)}</div>
                 </Row>
                 <FadeInStable show={gt(originalCoin1AmountMin, 0) && gt(originalCoin2AmountMin, 0)}>

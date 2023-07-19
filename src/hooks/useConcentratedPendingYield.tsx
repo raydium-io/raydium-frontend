@@ -1,32 +1,35 @@
-import { useMemo } from 'react'
-
-import { Fraction, Token } from '@raydium-io/raydium-sdk'
-
 import { UserPositionAccount } from '@/application/concentrated/type'
+import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import useToken from '@/application/token/useToken'
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt } from '@/functions/numberish/compare'
-import { add, mul } from '@/functions/numberish/operations'
+import { add, minus, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { Numberish } from '@/types/constants'
+import { Fraction, TokenAmount } from '@raydium-io/raydium-sdk'
+import { useMemo } from 'react'
 
-export default function useConcentratedPendingYield(targetUserPositionAccount?: UserPositionAccount) {
+export default function useConcentratedPendingYield(
+  targetUserPositionAccount: UserPositionAccount | undefined,
+  options?: {
+    shouldCalcFee?: boolean
+  }
+) {
   const tokenPrices = useToken((s) => s.tokenPrices)
 
   return useMemo(() => {
     if (!targetUserPositionAccount) return { pendingTotalVolume: toFraction(0), isHarvestable: false }
 
     let hasRewardTokenAmount = false
-    const rewardsVolume: { token?: Token; volume?: Numberish }[] =
+    const rewardsAmountsWithFees: (TokenAmount | undefined)[] =
       targetUserPositionAccount?.rewardInfos.map((info) => {
         if (gt(info.penddingReward, 0)) {
           hasRewardTokenAmount = true
         }
-
-        return {
-          token: info.penddingReward?.token,
-          volume: mul(info.penddingReward, tokenPrices[toPubString(info.penddingReward?.token.mint)])
-        }
+        return toTokenAmount(
+          info.penddingReward?.token,
+          mul(info.penddingReward, tokenPrices[toPubString(info.penddingReward?.token.mint)])
+        )
       }) ?? []
 
     let hasFeeTokenAmount = false
@@ -37,33 +40,47 @@ export default function useConcentratedPendingYield(targetUserPositionAccount?: 
     ) {
       hasFeeTokenAmount = true
     }
-    const feesVolume: { token?: Token; volume?: Numberish }[] = targetUserPositionAccount
+
+    const feesAmountsWithFees: (TokenAmount | undefined)[] = targetUserPositionAccount
       ? [
-          {
-            token: targetUserPositionAccount?.tokenFeeAmountA?.token,
-            volume: mul(
+          toTokenAmount(
+            targetUserPositionAccount?.tokenFeeAmountA?.token,
+            mul(
               targetUserPositionAccount?.tokenFeeAmountA,
               tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
             )
-          },
-          {
-            token: targetUserPositionAccount?.tokenFeeAmountB?.token,
-            volume: mul(
+          ),
+          toTokenAmount(
+            targetUserPositionAccount?.tokenFeeAmountB?.token,
+            mul(
               targetUserPositionAccount?.tokenFeeAmountB,
               tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
             )
-          }
+          )
         ]
       : []
-    const pendingTotalVolume = rewardsVolume
-      .concat(feesVolume)
-      .reduce(
-        (acc, { volume }) => (volume ? add(acc ?? toFraction(0), volume) : acc),
-        undefined as Fraction | undefined
-      )
 
-    const isHarvestable = gt(pendingTotalVolume, 0) || hasRewardTokenAmount || hasFeeTokenAmount ? true : false
+    const pendingTotalWithFees = rewardsAmountsWithFees
+      .concat(feesAmountsWithFees)
+      .reduce((acc, volume) => (volume ? add(acc ?? toFraction(0), volume) : acc), undefined as Fraction | undefined)
 
-    return { pendingTotalVolume: pendingTotalVolume, isHarvestable: isHarvestable }
+    const pendingTotal = Promise.resolve(pendingTotalWithFees) // dev
+    // const pendingTotal = minusFees(shakeUndifindedItem(rewardsAmountsWithFees.concat(feesAmountsWithFees))).then(
+    //   (ps) =>
+    //     ps?.reduce(
+    //       (acc, volume) => (volume ? add(acc ?? toFraction(0), volume) : acc),
+    //       undefined as Fraction | undefined
+    //     ) ?? 0
+    // )
+
+    const isHarvestable = gt(pendingTotalWithFees, 0) || hasRewardTokenAmount || hasFeeTokenAmount ? true : false
+
+    return { pendingTotalVolume: pendingTotalWithFees, pendingTotal: pendingTotal, isHarvestable: isHarvestable }
   }, [tokenPrices, targetUserPositionAccount])
+}
+
+async function minusFees(tokenAmounts: TokenAmount[]): Promise<TokenAmount[] | undefined> {
+  const infos = await getTransferFeeInfo({ amount: tokenAmounts })
+  if (!infos) return undefined
+  return tokenAmounts.map((amount, idx) => toTokenAmount(amount.token, minus(amount.raw, infos[idx].fee ?? 0)))
 }

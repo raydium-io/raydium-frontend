@@ -30,12 +30,14 @@ export async function getTransferFeeInfo<T extends TokenAmount | TokenAmount[]>(
   /** provied for faster fetch */
   fetchedMints?: Promise<ReturnTypeFetchMultipleMintInfos> | ReturnTypeFetchMultipleMintInfos
 }): Promise<(T extends any[] ? ITransferAmountFee[] : ITransferAmountFee) | undefined> {
-  const [epochInfo, mintInfos] = await Promise.all([fetchedEpochInfo, fetchedMints])
   if (isArray(amount)) {
-    const innerAmount = amount.filter((i) => isToken2022(i.token))
-    return getTransferFeeInfoSync({ amount: innerAmount, addFee, mintInfos, epochInfo }) as any
+    if (!isToken2022(amount.map((a) => a.token)))
+      return amount.map((a) => ({ amount: a, pure: a })) as T extends any[] ? ITransferAmountFee[] : ITransferAmountFee
+    const [epochInfo, mintInfos] = await Promise.all([fetchedEpochInfo, fetchedMints])
+    return getTransferFeeInfoSync({ amount, addFee, mintInfos, epochInfo }) as any
   } else {
     if (!isToken2022(amount.token)) return undefined
+    const [epochInfo, mintInfos] = await Promise.all([fetchedEpochInfo, fetchedMints])
     return getTransferFeeInfoSync({ amount, addFee, mintInfos, epochInfo })
   }
 }

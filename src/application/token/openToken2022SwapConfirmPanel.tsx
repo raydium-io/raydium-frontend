@@ -15,7 +15,7 @@ import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { gte } from '@/functions/numberish/compare'
+import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
 import { getOnlineTokenInfo, TokenMintInfo } from './getOnlineTokenInfo'
@@ -155,7 +155,7 @@ function FeeInfoRow({
   const reachedMax = gte(transferFee, mintInfo.maximumFee)
   return (
     <Col className={twMerge('table text-sm mx-auto py-4 gap-1 items-center text-[#abc4ff]')}>
-      {reachedMax ? (
+      {reachedMax && isMeaningfulNumber(mintInfo.maximumFee) ? (
         <Row className="table-row">
           <Row className="table-cell px-2 font-medium">
             <Row className="font-medium items-center">
