@@ -440,8 +440,8 @@ export default function CoinInputBox({
               <Icon size="xs" heroIconName="information-circle" />
               <Tooltip.Panel>
                 <div className="max-w-[300px] space-y-1.5">
-                  This token uses the Token 2022 program and includes transfer fee. These the final deposit amounts for
-                  the position and the transfer fee
+                  This token uses the Token-2022 program and includes a transfer fee set by the token creator. These are
+                  the final deposit amounts for the position and the transfer fee.
                 </div>
               </Tooltip.Panel>
             </Tooltip>
