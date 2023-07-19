@@ -29,7 +29,8 @@ export default function useConcentratedPendingYield(
         }
         return toTokenAmount(
           info.penddingReward?.token,
-          mul(info.penddingReward, tokenPrices[toPubString(info.penddingReward?.token.mint)])
+          mul(info.penddingReward, tokenPrices[toPubString(info.penddingReward?.token.mint)]),
+          { alreadyDecimaled: true }
         )
       }) ?? []
 
@@ -49,14 +50,18 @@ export default function useConcentratedPendingYield(
             mul(
               targetUserPositionAccount?.tokenFeeAmountA,
               tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
-            )
+            ),
+            {
+              alreadyDecimaled: true
+            }
           ),
           toTokenAmount(
             targetUserPositionAccount?.tokenFeeAmountB?.token,
             mul(
               targetUserPositionAccount?.tokenFeeAmountB,
               tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
-            )
+            ),
+            { alreadyDecimaled: true }
           )
         ]
       : []
