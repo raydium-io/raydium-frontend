@@ -84,6 +84,8 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
+import { AsyncAwait } from '@/components/AsyncAwait'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -1685,12 +1687,12 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const { pendingTotalVolume, isHarvestable } = useConcentratedPendingYield(p, { shouldCalcFee: open })
+  const { isHarvestable, getPendingTotal } = useConcentratedPendingYield(p)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const logInfo = useNotification((s) => s.logInfo)
   const walletConnected = useWallet((s) => s.connected)
   const isEmptyPosition = p?.amountA?.isZero() && p?.amountB?.isZero()
-
+  const pendingTotalVolume = useAsyncMemo(() => (open ? getPendingTotal?.() : undefined), [open, getPendingTotal])
   const position = useMemo(() => {
     if (info && p) {
       return info.positionAccount?.find((p) => toPubString(p.nftMint) === toPubString(p.nftMint))

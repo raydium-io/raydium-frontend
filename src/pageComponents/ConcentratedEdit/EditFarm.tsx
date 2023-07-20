@@ -21,6 +21,7 @@ import AddNewReward, { NewReward } from './AddNewReward'
 import ExistingRewardInfo from './ExistingRewardInfo'
 import NewRewardTable from './NewRewardTable'
 import PoolInfo from './PoolInfo'
+import toPubString from '@/functions/format/toMintString'
 
 export default function EditFarm() {
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -144,13 +145,15 @@ export default function EditFarm() {
 
   const handleSendRewardText = () => {
     const { newRewards, updateReward } = editedReward
-    const formatReward: [string, UpdateData][] = Array.from(updateReward || new Map()).map((rewardData) => {
-      const reward = currentAmmPool?.rewardInfos.find((r) => r.tokenMint.toBase58() === rewardData[0])
-      if (reward && rewardData[1].openTime < reward.endTime)
-        return [rewardData[0], { ...rewardData[1], openTime: reward.endTime }]
-      if (rewardData[1].openTime <= Date.now()) rewardData[1].openTime = Date.now() + 30000
-      return rewardData
-    })
+    const formatReward: [string, UpdateData][] = Array.from(updateReward || new Map()).map(
+      ([rewardKey, rewardData]: [string, UpdateData]) => {
+        const reward = currentAmmPool?.rewardInfos.find((r) => toPubString(r.tokenMint) === rewardKey)
+        if (reward && rewardData.openTime < reward.endTime)
+          return [rewardKey, { ...rewardData, openTime: reward.endTime }]
+        if (rewardData.openTime <= Date.now()) rewardData.openTime = Date.now() + 30000
+        return [rewardKey, rewardData]
+      }
+    )
 
     txSetRewards({
       onTxSuccess: () => setTxSuccess(true),
@@ -162,7 +165,8 @@ export default function EditFarm() {
               token: r.token!,
               openTime: r.openTime!,
               endTime: r.endTime!,
-              perWeek: r.perWeek!
+              perWeek: r.perWeek!,
+              amount: r.amount!.total
             }))
           : []
     })

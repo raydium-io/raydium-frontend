@@ -36,6 +36,7 @@ import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -71,7 +72,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
   const liquidity = useConcentrated((s) => s.liquidity)
-  const { pendingTotalVolume, pendingTotal } = useConcentratedPendingYield(targetUserPositionAccount)
+  const { getPendingTotal } = useConcentratedPendingYield(targetUserPositionAccount)
+  const pendingTotalVolume = useAsyncMemo(() => (open ? getPendingTotal?.() : undefined), [open, getPendingTotal])
   const isMobile = useAppSettings((s) => s.isMobile)
   const [maxInfo, setMaxInfo] = useState<{
     coin1Amount?: Numberish
@@ -288,7 +290,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   {/* <AsyncAwait promise={pendingTotal} fallback="calculating">
                     {(v) => <div className="text-lg text-white">{toUsdVolume(v)}</div>}
                   </AsyncAwait> */}
-                  <div className="text-lg text-white">{toUsdVolume(pendingTotalVolume)}</div>
+                  <div className="text-lg text-white">
+                    {Boolean(pendingTotalVolume) && toUsdVolume(pendingTotalVolume)}
+                  </div>
                 </Row>
                 <FadeInStable show={gt(originalCoin1AmountMin, 0) && gt(originalCoin2AmountMin, 0)}>
                   <Row className="flex justify-start gap-1 items-center text-[#ABC4FF] font-medium text-sm">
