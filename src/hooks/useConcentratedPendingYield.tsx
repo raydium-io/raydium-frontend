@@ -2,6 +2,7 @@ import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
+import { isToken2022 } from '@/application/token/isToken2022'
 import useToken from '@/application/token/useToken'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import asyncMap from '@/functions/asyncMap'
@@ -61,7 +62,11 @@ export default function useConcentratedPendingYield(targetUserPositionAccount: U
       const mints = shakeUndifindedItem(
         rewardsAmountsWithFees.concat(feesAmountsWithFees).map((i) => i.amount?.token.mint)
       )
-      const [epochInfo, mintInfos] = await Promise.all([getEpochInfo(), getMultiMintInfos({ mints })])
+
+      const [epochInfo, mintInfos] = !isToken2022(mints)
+        ? []
+        : await Promise.all([getEpochInfo(), getMultiMintInfos({ mints })])
+
       const ams = await asyncMap(rewardsAmountsWithFees.concat(feesAmountsWithFees), async ({ amount, ...rest }) => {
         if (!amount) return
         const feeInfo = await getTransferFeeInfo({ amount, fetchedEpochInfo: epochInfo, fetchedMints: mintInfos })
