@@ -131,9 +131,8 @@ export default function useConcentratedAmountCalculator() {
         liquidity
       }
       useConcentrated.setState(params)
-    } catch (err) {
-      console.error('err: ', err)
-    }
+      // eslint-disable-next-line no-empty
+    } catch (err) {}
   }, [
     coin1,
     toString(userCursorSide === 'coin1' ? coin1Amount : coin2Amount),

@@ -116,10 +116,15 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
   const calculateMaxLiquidity = useEvent(async () => {
     if (!position || !currentAmmPool || !coinBase || !coinQuote) return
+
+    console.time('i')
     const [token2022Infos, epochInfo] = await Promise.all([
-      getMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
+      getMultiMintInfos({
+        mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint].filter(isToken2022)
+      }),
       getEpochInfo()
     ])
+    console.timeEnd('i')
 
     try {
       const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
