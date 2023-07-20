@@ -14,6 +14,7 @@ import { toString } from '@/functions/numberish/toString'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
+import { isToken2022 } from '../token/isToken2022'
 
 /**
  * will auto fresh  concentrated's coin1Amount and coin2Amount with concentrated's jsonInfos and coin1 and coin2
@@ -72,7 +73,7 @@ export default function useConcentratedAmountCalculator() {
       : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
 
     const [token2022Infos, epochInfo] = await Promise.all([
-      getMultiMintInfos({ mints: [coin1.mint, coin2.mint] }),
+      getMultiMintInfos({ mints: [coin1.mint, coin2.mint].filter(isToken2022) }),
       getEpochInfo()
     ])
     try {
