@@ -5,12 +5,10 @@ import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import useToken from '@/application/token/useToken'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import asyncMap from '@/functions/asyncMap'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { gt } from '@/functions/numberish/compare'
 import { add, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { toString } from '@/functions/numberish/toString'
 import { Fraction, Price, TokenAmount } from '@raydium-io/raydium-sdk'
 import { useMemo } from 'react'
 
@@ -67,7 +65,7 @@ export default function useConcentratedPendingYield(targetUserPositionAccount: U
       const ams = await asyncMap(rewardsAmountsWithFees.concat(feesAmountsWithFees), async ({ amount, ...rest }) => {
         if (!amount) return
         const feeInfo = await getTransferFeeInfo({ amount, fetchedEpochInfo: epochInfo, fetchedMints: mintInfos })
-        return { amount: feeInfo?.pure, ...rest }
+        return { ...rest, amount: feeInfo?.pure }
       })
       return shakeUndifindedItem(ams).reduce((acc, { amount, price }) => {
         if (!amount || !price) return acc
