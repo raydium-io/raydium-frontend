@@ -25,6 +25,7 @@ interface Props {
       openTime: number
       endTime: number
       perSecond: Fraction
+      amount?: Numberish
     }
   >
   newRewards: {
@@ -32,6 +33,7 @@ interface Props {
     openTime: Date
     endTime: Date
     perWeek: Numberish
+    amount?: Numberish
   }[]
   onTxSuccess?: () => void
 }
@@ -44,7 +46,8 @@ export default async function txSetRewards({ currentAmmPool, updateRewards, newR
     openTime: Math.floor(reward.openTime.valueOf() / 1000),
     endTime: Math.floor(reward.endTime.valueOf() / 1000),
     perSecond: fractionToDecimal(reward.perSecond, 20),
-    amount: toTokenAmount(getToken(mint), mul(reward.perSecond, (reward.endTime - reward.openTime) / 1000))
+    amount: toTokenAmount(getToken(mint), mul(reward.perSecond, (reward.endTime - reward.openTime) / 1000)),
+    rawAmount: toTokenAmount(getToken(mint), reward.amount, { alreadyDecimaled: true })
   }))
 
   const newRewardInfos = await asyncMap(newRewards, async (reward) => ({
@@ -59,11 +62,12 @@ export default async function txSetRewards({ currentAmmPool, updateRewards, newR
         div(mul(reward.perWeek || 0, 10 ** reward.token.decimals), 7 * 60 * 60 * 24),
         (reward.endTime.getTime() - reward.openTime.getTime()) / 1000
       )
-    )
+    ),
+    rawAmount: toTokenAmount(reward.token, reward.amount, { alreadyDecimaled: true })
   }))
   assert(currentAmmPool, 'not seleted amm pool')
 
-  const newAmount = [...updatedRewardInfos.map((i) => i.amount), ...newRewardInfos.map((i) => i.amount)]
+  const newAmount = [...updatedRewardInfos.map((i) => i.rawAmount), ...newRewardInfos.map((i) => i.rawAmount)]
   // check token 2022
   const needConfirm = [...updatedRewardInfos.map((i) => i.mint), ...newRewardInfos.map((i) => i.mint)].some(
     (i) => isToken2022(i) && i
