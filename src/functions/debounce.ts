@@ -1,15 +1,15 @@
 const createCurrentTimestamp = () => new Date().getTime()
 
+export type ThrottleOptions = {
+  delay?: number
+  invokeImmediatelyInInitual?: boolean
+}
+
 /**
  *
  * @requires {@link createCurrentTimestamp `createCurrentTimestamp()`}
  */
-export function throttle<F extends (...args: any[]) => void>(
-  fn: F,
-  options?: {
-    delay?: number
-  }
-): F {
+export function throttle<F extends (...args: any[]) => void>(fn: F, options?: ThrottleOptions): F {
   const middleParams = [] as Parameters<F>[]
   let currentTimoutId: any | null = null
   let prevDurationTimestamp: number | null = null
@@ -32,7 +32,10 @@ export function throttle<F extends (...args: any[]) => void>(
       remainDelayTime -= prevDurationTimestamp ? currentTimestamp - prevDurationTimestamp : 0
     }
 
-    if (remainDelayTime <= 0) {
+    if (!prevDurationTimestamp && options?.invokeImmediatelyInInitual) {
+      // first invoke
+      invokeFn()
+    } else if (remainDelayTime <= 0) {
       invokeFn()
     } else {
       currentTimoutId = setTimeout(invokeFn, remainDelayTime)
