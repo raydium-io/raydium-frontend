@@ -7,10 +7,10 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import asyncMap from '@/functions/asyncMap'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt } from '@/functions/numberish/compare'
-import { add, minus, mul } from '@/functions/numberish/operations'
+import { add, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
+import { toString } from '@/functions/numberish/toString'
 import { Fraction, Price, TokenAmount } from '@raydium-io/raydium-sdk'
 import { useMemo } from 'react'
 
@@ -58,6 +58,7 @@ export default function useConcentratedPendingYield(targetUserPositionAccount: U
       return add(acc ?? toFraction(0), mul(amount, price))
     }, undefined as Fraction | undefined)
 
+    // async
     const getPendingTotal = async () => {
       const mints = shakeUndifindedItem(
         rewardsAmountsWithFees.concat(feesAmountsWithFees).map((i) => i.amount?.token.mint)
@@ -65,8 +66,8 @@ export default function useConcentratedPendingYield(targetUserPositionAccount: U
       const [epochInfo, mintInfos] = await Promise.all([getEpochInfo(), getMultiMintInfos({ mints })])
       const ams = await asyncMap(rewardsAmountsWithFees.concat(feesAmountsWithFees), async ({ amount, ...rest }) => {
         if (!amount) return
-        const a = await getTransferFeeInfo({ amount, fetchedEpochInfo: epochInfo, fetchedMints: mintInfos })
-        return { amount: a?.pure, ...rest }
+        const feeInfo = await getTransferFeeInfo({ amount, fetchedEpochInfo: epochInfo, fetchedMints: mintInfos })
+        return { amount: feeInfo?.pure, ...rest }
       })
       return shakeUndifindedItem(ams).reduce((acc, { amount, price }) => {
         if (!amount || !price) return acc
@@ -78,10 +79,4 @@ export default function useConcentratedPendingYield(targetUserPositionAccount: U
 
     return { pendingTotalVolume: pendingTotalWithFees, getPendingTotal: getPendingTotal, isHarvestable: isHarvestable }
   }, [tokenPrices, targetUserPositionAccount])
-}
-
-async function minusFees(tokenAmounts: TokenAmount[]): Promise<TokenAmount[] | undefined> {
-  const infos = await getTransferFeeInfo({ amount: tokenAmounts })
-  if (!infos) return undefined
-  return tokenAmounts.map((amount, idx) => toTokenAmount(amount.token, minus(amount.raw, infos[idx].fee ?? 0)))
 }
