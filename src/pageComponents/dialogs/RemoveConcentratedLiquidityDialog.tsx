@@ -117,6 +117,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const calculateMaxLiquidity = useEvent(async () => {
     if (!position || !currentAmmPool || !coinBase || !coinQuote) return
 
+    // only token 2022 need fetch mint infos
     const [token2022Infos, epochInfo] = await Promise.all([
       getMultiMintInfos({
         mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint].filter(isToken2022)
