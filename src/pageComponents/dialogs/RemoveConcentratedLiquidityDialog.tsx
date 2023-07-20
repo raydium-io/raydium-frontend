@@ -290,11 +290,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   {/* <AsyncAwait promise={pendingTotal} fallback="calculating">
                     {(v) => <div className="text-lg text-white">{toUsdVolume(v)}</div>}
                   </AsyncAwait> */}
-                  <div className="text-lg text-white">
-                    {Boolean(pendingTotalVolume) && toUsdVolume(pendingTotalVolume)}
-                  </div>
+                  <div className="text-lg text-white">{toUsdVolume(pendingTotalVolume)}</div>
                 </Row>
-                <FadeInStable show={gt(originalCoin1AmountMin, 0) && gt(originalCoin2AmountMin, 0)}>
+                <FadeInStable show={gt(originalCoin1AmountMin, 0) || gt(originalCoin2AmountMin, 0)}>
                   <Row className="flex justify-start gap-1 items-center text-[#ABC4FF] font-medium text-sm">
                     Minimum Received
                     <Tooltip>

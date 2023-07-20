@@ -18,6 +18,6 @@ export default function toUsdVolume(
     rounding?: Rounding
   } & FormatOptions
 ) {
-  if (!amount) return '0'
+  if (!amount) return '$0'
   return `$${autoSuffixNumberish(amount, { ...options, disabled: !options?.autoSuffix })}`
 }
