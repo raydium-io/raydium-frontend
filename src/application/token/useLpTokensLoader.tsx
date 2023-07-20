@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { TOKEN_PROGRAM_ID, Token } from '@raydium-io/raydium-sdk'
+import { Token, TOKEN_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -34,7 +34,7 @@ export default function useLpTokensLoader() {
           new Token(
             TOKEN_PROGRAM_ID, // ! 🚨 in future, lp mint maybe token2022 or maybe not
             ammJsonInfo.lpMint,
-            baseToken.decimals,
+            ammJsonInfo.lpMint === 'CHT8sft3h3gpLYbCcZ9o27mT5s3Z6VifBVbUiDvprHPW' ? 6 : baseToken.decimals,
             `${baseToken.symbol}-${quoteToken.symbol}`,
             `${baseToken.symbol}-${quoteToken.symbol} LP`
           ),
