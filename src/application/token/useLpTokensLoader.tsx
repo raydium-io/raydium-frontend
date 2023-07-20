@@ -34,7 +34,7 @@ export default function useLpTokensLoader() {
           new Token(
             TOKEN_PROGRAM_ID, // ! 🚨 in future, lp mint maybe token2022 or maybe not
             ammJsonInfo.lpMint,
-            ammJsonInfo.lpMint === 'CHT8sft3h3gpLYbCcZ9o27mT5s3Z6VifBVbUiDvprHPW' ? 6 : baseToken.decimals,
+            ammJsonInfo.lpDecimals,
             `${baseToken.symbol}-${quoteToken.symbol}`,
             `${baseToken.symbol}-${quoteToken.symbol} LP`
           ),
