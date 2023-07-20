@@ -75,7 +75,6 @@ export function toTokenAmount(
   }
 ): TokenAmount | QuantumSOLAmount | undefined {
   if (!token) return undefined
-  if (amount == null) return undefined
   const programId = getTokenProgramId(token)
   const parsedToken = isToken(token)
     ? token
