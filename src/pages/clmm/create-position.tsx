@@ -614,7 +614,7 @@ function ConcentratedCard() {
                     rawAmount: coin2Amount
                   }
                 ].map(({ isToken2022, token, disabled, info, rawAmount, side }) =>
-                  disabled ? undefined : (
+                  disabled || !token ? undefined : (
                     <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
                       <Row className="items-center gap-1 overflow-hidden">
                         <div className="font-medium text-white">{token?.symbol}</div>
