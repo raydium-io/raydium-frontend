@@ -76,18 +76,18 @@ export function AddConcentratedLiquidityDialog() {
 
   const coinBaseFeeInfo = useMemo(
     () =>
-      coinBase && coinBaseSlippageAmount && isToken2022(coinBase)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coinBase, coinBaseSlippageAmount, { alreadyDecimaled: true }) })
+      coinBase && coinBaseAmount && isToken2022(coinBase)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coinBase, coinBaseAmount, { alreadyDecimaled: true }) })
         : undefined,
-    [coinBase, coinBaseSlippageAmount]
+    [coinBase, coinBaseAmount]
   )
 
   const coinQuoteFeeInfo = useMemo(
     () =>
-      coinQuote && coinQuoteSlippageAmount && isToken2022(coinQuote)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coinQuote, coinQuoteSlippageAmount, { alreadyDecimaled: true }) })
+      coinQuote && coinQuoteAmount && isToken2022(coinQuote)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coinQuote, coinQuoteAmount, { alreadyDecimaled: true }) })
         : undefined,
-    [coinQuote, coinQuoteSlippageAmount]
+    [coinQuote, coinQuoteAmount]
   )
 
   const haveAnyToken2022 = isToken2022(coinBase) || isToken2022(coinQuote)
@@ -290,13 +290,13 @@ export function AddConcentratedLiquidityDialog() {
                       isToken2022: isToken2022(coinBase),
                       token: coinBase,
                       info: coinBaseFeeInfo,
-                      rawAmount: coinBaseSlippageAmount
+                      rawAmount: coinBaseAmount
                     },
                     {
                       isToken2022: isToken2022(coinQuote),
                       token: coinQuote,
                       info: coinQuoteFeeInfo,
-                      rawAmount: coinQuoteSlippageAmount
+                      rawAmount: coinQuoteAmount
                     }
                   ].map(({ isToken2022, token, info, rawAmount }) => (
                     <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>

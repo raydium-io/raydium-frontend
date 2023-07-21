@@ -324,18 +324,18 @@ function ConcentratedCard() {
 
   const coin1FeeInfo = useMemo(
     () =>
-      coin1 && coin1SlippageAmount && isToken2022(coin1)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coin1, coin1SlippageAmount, { alreadyDecimaled: true }) })
+      coin1 && coin1Amount && isToken2022(coin1)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }) })
         : undefined,
-    [coin1, coin1SlippageAmount]
+    [coin1, coin1Amount]
   )
 
   const coin2FeeInfo = useMemo(
     () =>
-      coin2 && coin2SlippageAmount && isToken2022(coin2)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coin2, coin2SlippageAmount, { alreadyDecimaled: true }) })
+      coin2 && coin2Amount && isToken2022(coin2)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }) })
         : undefined,
-    [coin2, coin2SlippageAmount]
+    [coin2, coin2Amount]
   )
 
   const haveAnyToken2022 = isToken2022(coin1) || isToken2022(coin2)
@@ -596,14 +596,14 @@ function ConcentratedCard() {
                     token: coin1,
                     disabled: coin1InputDisabled,
                     info: coin1FeeInfo,
-                    rawAmount: coin1SlippageAmount
+                    rawAmount: coin2Amount
                   },
                   {
                     isToken2022: isToken2022(coin2),
                     token: coin2,
                     disabled: coin2InputDisabled,
                     info: coin2FeeInfo,
-                    rawAmount: coin2SlippageAmount
+                    rawAmount: coin2Amount
                   }
                 ].map(({ isToken2022, token, disabled, info, rawAmount }) =>
                   disabled ? undefined : (
