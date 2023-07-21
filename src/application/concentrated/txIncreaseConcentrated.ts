@@ -61,9 +61,9 @@ export default async function txIncreaseConcentrated({
     const { tokenAccountRawInfos } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(coin1, 'not set coin1')
-    assert(coin1Amount, 'not set coin1Amount')
+    assert(coin1SlippageAmount, 'not set coin1Amount')
     assert(coin2, 'not set coin2')
-    assert(coin2Amount, 'not set coin2Amount')
+    assert(coin2SlippageAmount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
     const { innerTransactions } = await AmmV3.makeIncreasePositionFromLiquidityInstructionSimple({
@@ -79,15 +79,15 @@ export default async function txIncreaseConcentrated({
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true,
-      amountMaxA: toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals),
-      amountMaxB: toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals)
+      amountMaxA: toBN(coin1SlippageAmount, coin1.decimals),
+      amountMaxB: toBN(coin2SlippageAmount, coin2.decimals)
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
         title: 'Liquidity Added',
-        description: `Added ${toString(coin1SlippageAmount ?? coin1Amount)} ${coin1.symbol} and ${toString(
-          coin2SlippageAmount ?? coin2Amount
-        )} ${coin2.symbol} to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Added ${toString(coin1SlippageAmount)} ${coin1.symbol} and ${toString(coin2SlippageAmount)} ${
+          coin2.symbol
+        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })

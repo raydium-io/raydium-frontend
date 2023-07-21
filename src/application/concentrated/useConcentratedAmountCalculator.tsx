@@ -14,6 +14,7 @@ import { toString } from '@/functions/numberish/toString'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
+import { MANUAL_ADJUST } from './txDecreaseConcentrated'
 
 /**
  * will auto fresh  concentrated's coin1Amount and coin2Amount with concentrated's jsonInfos and coin1 and coin2
@@ -66,7 +67,7 @@ export default function useConcentratedAmountCalculator() {
     const inputAmount = isFocus1 ? coin1Amount : coin2Amount
     const inputMint = toPubString(isFocus1 ? coin1.mint : coin2.mint)
     const outputMint = toPubString(isFocus1 ? coin2.mint : coin1.mint)
-    const hasInput = inputAmount !== undefined && inputAmount !== ''
+    const hasInput = inputAmount !== undefined && inputAmount !== '' // for not zero
     const inputAmountBN = isFocus1
       ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
       : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
@@ -76,55 +77,68 @@ export default function useConcentratedAmountCalculator() {
       getEpochInfo()
     ])
     try {
-      const { liquidity, amountSlippageA, amountSlippageB } =
-        isRemoveDialogOpen &&
-        currentAmmPool &&
-        position &&
-        targetUserPositionAccount &&
-        targetUserPositionAccount.amountA &&
-        targetUserPositionAccount.amountB &&
-        isMeaningfulNumber(position.liquidity)
-          ? await getRemoveLiquidityAmountOutFromAmountIn({
-              inputAmountBN,
-              maxLiquidity: position.liquidity,
-              inputMint,
-              outputMint,
-              amountA: toBN(position.amountA),
-              amountB: toBN(position.amountB),
-              isFocus1,
-              epochInfo
-            })
-          : AmmV3.getLiquidityAmountOutFromAmountIn({
-              poolInfo: currentAmmPool.state,
-              slippage: 0,
-              inputA: isPairPoolDirectionEq,
-              tickUpper: Math.max(priceUpperTick, priceLowerTick),
-              tickLower: Math.min(priceLowerTick, priceUpperTick),
-              amount: inputAmountBN,
-              add: !isRemoveDialogOpen,
-              epochInfo,
-              token2022Infos,
-              amountHasFee: true
-            })
+      const {
+        liquidity,
+        amountSlippageA: calcedAmountA,
+        amountSlippageB: calcedAmountB
+      } = isRemoveDialogOpen &&
+      currentAmmPool &&
+      position &&
+      targetUserPositionAccount &&
+      targetUserPositionAccount.amountA &&
+      targetUserPositionAccount.amountB &&
+      isMeaningfulNumber(position.liquidity)
+        ? await getRemoveLiquidityAmountOutFromAmountIn({
+            inputAmountBN,
+            maxLiquidity: position.liquidity,
+            inputMint,
+            outputMint,
+            amountA: toBN(position.amountA),
+            amountB: toBN(position.amountB),
+            isFocus1,
+            epochInfo
+          })
+        : AmmV3.getLiquidityAmountOutFromAmountIn({
+            poolInfo: currentAmmPool.state,
+            slippage: 0,
+            inputA: isPairPoolDirectionEq,
+            tickUpper: Math.max(priceUpperTick, priceLowerTick),
+            tickLower: Math.min(priceLowerTick, priceUpperTick),
+            amount: inputAmountBN,
+            add: !isRemoveDialogOpen,
+            epochInfo,
+            token2022Infos,
+            amountHasFee: true
+          })
 
-      const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB
-      const coin2SlippageResult = isCoin1Base ? amountSlippageB : amountSlippageA
-      const coin1SlippageAmount = toTokenAmount(coin1, coin1SlippageResult.amount)
+      const coin1CalcedResult = isCoin1Base ? calcedAmountA : calcedAmountB
+      const coin2CalcedResult = isCoin1Base ? calcedAmountB : calcedAmountA
+      const coin1CalcedAmount = toTokenAmount(coin1, coin1CalcedResult.amount)
+      const coin2CalcedAmount = toTokenAmount(coin2, coin2CalcedResult.amount)
 
-      const coin1AmountFee = coin1SlippageResult.fee && toTokenAmount(coin1, coin1SlippageResult.fee)
-      const coin1ExpirationTime = coin1SlippageResult.expirationTime
-      const coin2SlippageAmount = toTokenAmount(coin2, coin2SlippageResult.amount)
-      const coin2AmountFee = coin2SlippageResult.fee && toTokenAmount(coin2, coin2SlippageResult.fee)
-      const coin2ExpirationTime = coin2SlippageResult.expirationTime
+      const coin1ExpirationTime = coin1CalcedResult.expirationTime
+      const coin2ExpirationTime = coin2CalcedResult.expirationTime
+
+      const coin2AmountFee = coin2CalcedResult.fee && toTokenAmount(coin2, coin2CalcedResult.fee)
+      const coin1AmountFee = coin1CalcedResult.fee && toTokenAmount(coin1, coin1CalcedResult.fee)
 
       const params = {
-        coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
-        coin1SlippageAmount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
+        coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1CalcedAmount : undefined,
+        coin1SlippageAmount: isFocus1
+          ? div(coin1CalcedAmount, MANUAL_ADJUST)
+          : hasInput
+          ? div(coin1CalcedAmount, MANUAL_ADJUST)
+          : undefined,
+        coin2Amount: isFocus1 ? (hasInput ? coin2CalcedAmount : undefined) : coin2Amount,
+        coin2SlippageAmount: isFocus1
+          ? hasInput
+            ? div(coin2CalcedAmount, MANUAL_ADJUST)
+            : undefined
+          : div(coin1CalcedAmount, MANUAL_ADJUST),
+
         coin1AmountFee,
         coin1ExpirationTime: hasInput ? coin1ExpirationTime : undefined,
 
-        coin2Amount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
-        coin2SlippageAmount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
         coin2AmountFee,
         coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined,
 

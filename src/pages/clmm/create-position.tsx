@@ -171,8 +171,8 @@ function ConcentratedCard() {
     coin2Amount?: ConcentratedStore['coin2Amount']
     coin1AmountFee?: ConcentratedStore['coin1AmountFee']
     coin2AmountFee?: ConcentratedStore['coin2AmountFee']
-    coin1SplippageAmount?: ConcentratedStore['coin1SlippageAmount']
-    coin2SplippageAmount?: ConcentratedStore['coin2SlippageAmount']
+    coin1SlippageAmount?: ConcentratedStore['coin1SlippageAmount']
+    coin2SlippageAmount?: ConcentratedStore['coin2SlippageAmount']
     decimals?: number
     totalDeposit?: string
     feeRate?: number
