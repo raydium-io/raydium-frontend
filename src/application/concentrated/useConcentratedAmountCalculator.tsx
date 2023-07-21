@@ -135,7 +135,7 @@ export default function useConcentratedAmountCalculator() {
           ? hasInput
             ? div(coin2CalcedAmount, MANUAL_ADJUST)
             : undefined
-          : div(coin1CalcedAmount, MANUAL_ADJUST),
+          : div(coin2CalcedAmount, MANUAL_ADJUST),
 
         coin1AmountFee,
         coin1ExpirationTime: hasInput ? coin1ExpirationTime : undefined,
