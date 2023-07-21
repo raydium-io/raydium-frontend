@@ -175,6 +175,12 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     })
   })
 
+  const [token2022HasLoadDataBase, setToken2022HasLoadDataBase] = useState(false)
+  useEffect(() => () => setToken2022HasLoadDataBase(false), [toPubString(coinBase?.mint)])
+
+  const [token2022HasLoadDataQuote, setToken2022HasLoadDataQuote] = useState(false)
+  useEffect(() => () => setToken2022HasLoadDataQuote(false), [toPubString(coinQuote?.mint)])
+
   return (
     <ResponsiveDialogDrawer
       placement="from-bottom"
@@ -310,8 +316,18 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     </Tooltip>
                   </Row>
                   <Col className="pt-2 gap-2">
-                    <MinWithdrawAmount token={coinBase} amountWithoutFee={originalCoin1AmountMin} className="px-1" />
-                    <MinWithdrawAmount token={coinQuote} amountWithoutFee={originalCoin2AmountMin} className="px-1" />
+                    <MinWithdrawAmount
+                      token={coinBase}
+                      amountWithoutFee={originalCoin1AmountMin}
+                      className="px-1"
+                      onFullfill={() => setToken2022HasLoadDataBase(true)}
+                    />
+                    <MinWithdrawAmount
+                      token={coinQuote}
+                      amountWithoutFee={originalCoin2AmountMin}
+                      className="px-1"
+                      onFullfill={() => setToken2022HasLoadDataQuote(true)}
+                    />
                   </Col>
                 </FadeInStable>
               </Col>
@@ -352,6 +368,12 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 {
                   should: gt(liquidity, 0),
                   fallbackProps: { children: `Enter Amount` }
+                },
+                {
+                  should:
+                    (isToken2022(coinBase) ? token2022HasLoadDataBase : true) &&
+                    (isToken2022(coinQuote) ? token2022HasLoadDataQuote : true),
+                  fallbackProps: { children: 'Loading Token 2022 Info...' }
                 }
               ]}
               onClick={() => {
@@ -391,11 +413,13 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 function MinWithdrawAmount({
   token,
   amountWithoutFee: amount,
-  className
+  className,
+  onFullfill
 }: {
   token: Token | SplToken | undefined
   amountWithoutFee: Numberish | undefined
   className?: string
+  onFullfill?: () => void
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const tokenAmount = token && amount ? toTokenAmount(token, amount, { alreadyDecimaled: true }) : undefined
@@ -408,7 +432,7 @@ function MinWithdrawAmount({
       </Row>
       <Row className="text-lg text-white items-center">
         {isToken2022(token) ? (
-          <AsyncAwait promise={feeInfo} fallback="calculating">
+          <AsyncAwait promise={feeInfo} fallback="calculating" onFullfilled={onFullfill}>
             {(feeInfo) => (feeInfo ? toString(feeInfo.pure) : '--')}
           </AsyncAwait>
         ) : (

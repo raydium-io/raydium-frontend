@@ -118,6 +118,12 @@ export function AddConcentratedLiquidityDialog() {
     { token: coinQuote, amount: coinQuoteAmount }
   ])
 
+  const [token2022HasLoadDataBase, setToken2022HasLoadDataBase] = useState(false)
+  useEffect(() => () => setToken2022HasLoadDataBase(false), [toPubString(coinBase?.mint)])
+
+  const [token2022HasLoadDataQuote, setToken2022HasLoadDataQuote] = useState(false)
+  useEffect(() => () => setToken2022HasLoadDataQuote(false), [toPubString(coinQuote?.mint)])
+
   return (
     <ResponsiveDialogDrawer
       placement="from-bottom"
@@ -283,18 +289,20 @@ export function AddConcentratedLiquidityDialog() {
                 <Col className="gap-1">
                   {[
                     {
+                      side: 'base',
                       isToken2022: isToken2022(coinBase),
                       token: coinBase,
                       info: coinBaseFeeInfo,
                       rawAmount: coinBaseAmount
                     },
                     {
+                      side: 'quote',
                       isToken2022: isToken2022(coinQuote),
                       token: coinQuote,
                       info: coinQuoteFeeInfo,
                       rawAmount: coinQuoteAmount
                     }
-                  ].map(({ isToken2022, token, info, rawAmount }) => (
+                  ].map(({ isToken2022, token, info, rawAmount, side }) => (
                     <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
                       <Row className="items-center gap-1 overflow-hidden">
                         <div className="font-medium text-white">{token?.symbol}</div>
@@ -318,13 +326,29 @@ export function AddConcentratedLiquidityDialog() {
 
                       <div className="justify-self-end font-medium text-white overflow-hidden">
                         {isToken2022 ? (
-                          <AsyncAwait promise={info} fallback="--">
+                          <AsyncAwait
+                            promise={info}
+                            fallback="--"
+                            onFullfilled={() => {
+                              if (side === 'base') {
+                                setToken2022HasLoadDataBase(true)
+                              } else {
+                                setToken2022HasLoadDataQuote(true)
+                              }
+                            }}
+                          >
                             {(info) =>
-                              info?.pure ? <div>{toString(info.pure, { decimalLength: 'auto 5' })}</div> : undefined
+                              info?.pure ? (
+                                <div>
+                                  {toString(info.pure, { decimalLength: token ? `auto ${token.decimals}` : undefined })}
+                                </div>
+                              ) : undefined
                             }
                           </AsyncAwait>
                         ) : (
-                          <div>{toString(rawAmount, { decimalLength: 'auto 5' })}</div>
+                          <div>
+                            {toString(rawAmount, { decimalLength: token ? `auto ${token.decimals}` : undefined })}
+                          </div>
                         )}
                       </div>
                     </Grid>
@@ -356,6 +380,12 @@ export function AddConcentratedLiquidityDialog() {
                 { not: isWarningChipOpen },
                 {
                   should: isMeaningfulNumber(coinBaseAmount) || isMeaningfulNumber(coinQuoteAmount)
+                },
+                {
+                  should:
+                    (isToken2022(coinBase) ? token2022HasLoadDataBase : true) &&
+                    (isToken2022(coinQuote) ? token2022HasLoadDataQuote : true),
+                  fallbackProps: { children: 'Loading Token 2022 Info...' }
                 },
                 {
                   not: liquidity?.eq(ZERO), // this is Rudy's logic, don't know why
