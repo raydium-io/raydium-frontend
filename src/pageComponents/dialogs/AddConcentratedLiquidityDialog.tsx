@@ -76,18 +76,18 @@ export function AddConcentratedLiquidityDialog() {
 
   const coinBaseFeeInfo = useMemo(
     () =>
-      coinBase && coinBaseAmount && isToken2022(coinBase)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coinBase, coinBaseAmount, { alreadyDecimaled: true }) })
+      coinBase && coinBaseSlippageAmount && isToken2022(coinBase)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coinBase, coinBaseSlippageAmount, { alreadyDecimaled: true }) })
         : undefined,
-    [coinBase, coinBaseAmount]
+    [coinBase, coinBaseSlippageAmount]
   )
 
   const coinQuoteFeeInfo = useMemo(
     () =>
-      coinQuote && coinQuoteAmount && isToken2022(coinQuote)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coinQuote, coinQuoteAmount, { alreadyDecimaled: true }) })
+      coinQuote && coinQuoteSlippageAmount && isToken2022(coinQuote)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coinQuote, coinQuoteSlippageAmount, { alreadyDecimaled: true }) })
         : undefined,
-    [coinQuote, coinQuoteAmount]
+    [coinQuote, coinQuoteSlippageAmount]
   )
 
   const haveAnyToken2022 = isToken2022(coinBase) || isToken2022(coinQuote)

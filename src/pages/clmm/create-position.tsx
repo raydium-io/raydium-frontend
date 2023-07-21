@@ -324,18 +324,18 @@ function ConcentratedCard() {
 
   const coin1FeeInfo = useMemo(
     () =>
-      coin1 && coin1Amount && isToken2022(coin1)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }) })
+      coin1 && coin1SlippageAmount && isToken2022(coin1)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coin1, coin1SlippageAmount, { alreadyDecimaled: true }) })
         : undefined,
-    [coin1, coin1Amount]
+    [coin1, coin1SlippageAmount]
   )
 
   const coin2FeeInfo = useMemo(
     () =>
-      coin2 && coin2Amount && isToken2022(coin2)
-        ? getTransferFeeInfo({ amount: toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }) })
+      coin2 && coin2SlippageAmount && isToken2022(coin2)
+        ? getTransferFeeInfo({ amount: toTokenAmount(coin2, coin2SlippageAmount, { alreadyDecimaled: true }) })
         : undefined,
-    [coin2, coin2Amount]
+    [coin2, coin2SlippageAmount]
   )
 
   const haveAnyToken2022 = isToken2022(coin1) || isToken2022(coin2)
