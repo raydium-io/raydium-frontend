@@ -329,7 +329,7 @@ export function AddConcentratedLiquidityDialog() {
                       </div>
 
                       <div className="justify-self-end font-medium text-white overflow-hidden">
-                        {isToken2022 ? (
+                        {isToken2022 && isMeaningfulNumber(rawAmount) ? (
                           <AsyncAwait
                             promise={info}
                             fallback="--"
