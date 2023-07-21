@@ -7,7 +7,6 @@ import { EpochInfo } from '@solana/web3.js'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import { isToken2022 } from './isToken2022'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export type ITransferAmountFee = {
   amount: TokenAmount

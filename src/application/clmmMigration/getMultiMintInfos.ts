@@ -1,28 +1,56 @@
+import { createTimeoutMap } from '@/functions/createTimeoutMap'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { MayArray, PublicKeyish } from '@/types/constants'
-import { ReturnTypeFetchMultipleMintInfos, fetchMultipleMintInfos } from '@raydium-io/raydium-sdk'
+import { ReturnTypeFetchMultipleMintInfo, fetchMultipleMintInfos } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
-import { createTimeoutMap } from '@/functions/createTimeoutMap'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
-const mintInfoCache = createTimeoutMap<PublicKeyish, Promise<ReturnTypeFetchMultipleMintInfos>>({
+// cache for 10 mins
+const mintInfoCache = createTimeoutMap<string, Promise<ReturnTypeFetchMultipleMintInfo>>({
   maxAgeMs: 10 * 60 * 1000
 })
 
-/**
- *
- * @todo cache for 10min
- */
 export async function getMultiMintInfos({ mints }: { mints: MayArray<PublicKeyish> }) {
   const { connection } = useConnection.getState()
   if (!connection) return Promise.reject('connection is not ready')
   const allMints = [mints].flat()
-  const key = allMints.map((i) => toPubString(i)).join(',')
-  const v = mintInfoCache.get(key)
-  if (!v) {
-    const i = fetchMultipleMintInfos({ connection, mints: allMints.map((i) => toPub(i)) })
-    mintInfoCache.set(key, i)
-    return i
+
+  const alreadyCachedInfos = Object.fromEntries(
+    shakeUndifindedItem(
+      allMints.map((m) =>
+        mintInfoCache.has(toPubString(m)) ? [toPubString(m), mintInfoCache.get(toPubString(m))!] : undefined
+      )
+    )
+  )
+  const needCheckMints = allMints.filter((m) => !mintInfoCache.has(toPubString(m)))
+
+  if (needCheckMints.length !== 0) {
+    const infos = fetchMultipleMintInfos({ connection, mints: allMints.map((i) => toPub(i)) })
+    needCheckMints.forEach((needCheckMint) => {
+      mintInfoCache.set(
+        toPubString(needCheckMint),
+        infos.then((i) => i[toPubString(needCheckMint)])
+      )
+    })
+    return Promise.all([infos, awaitAllObjectValue(alreadyCachedInfos)]).then(([infos, alreadyCachedInfos]) => ({
+      ...alreadyCachedInfos,
+      ...infos
+    }))
   } else {
-    return v
+    return awaitAllObjectValue(alreadyCachedInfos)
   }
+}
+
+/**
+ * { a: Promise<'hello'>, b: Promise<'world'>} => Promise<{a: 'hello', b: 'world'}>
+ */
+function awaitAllObjectValue<T extends Record<string, any>>(o: T): Record<keyof T, Awaited<T[keyof T]>> {
+  return Promise.all(Object.values(o)).then((values) => {
+    const result = {}
+    for (const [idx, key] of Object.keys(o).entries()) {
+      const v = values[idx]
+      result[key] = v
+    }
+    return result
+  }) as any
 }

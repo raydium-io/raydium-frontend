@@ -473,6 +473,12 @@ function ConcentratedCard() {
     [coin2, getBalance, balances]
   )
 
+  const [token2022HasLoadData1, setToken2022HasLoadData1] = useState(false)
+  useEffect(() => () => setToken2022HasLoadData1(false), [toPubString(coin1?.mint)])
+
+  const [token2022HasLoadData2, setToken2022HasLoadData2] = useState(false)
+  useEffect(() => () => setToken2022HasLoadData2(false), [toPubString(coin2?.mint)])
+
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -592,6 +598,7 @@ function ConcentratedCard() {
               <Col className="gap-1">
                 {[
                   {
+                    side: '1',
                     isToken2022: isToken2022(coin1),
                     token: coin1,
                     disabled: coin1InputDisabled,
@@ -599,13 +606,14 @@ function ConcentratedCard() {
                     rawAmount: coin1Amount
                   },
                   {
+                    side: '2',
                     isToken2022: isToken2022(coin2),
                     token: coin2,
                     disabled: coin2InputDisabled,
                     info: coin2FeeInfo,
                     rawAmount: coin2Amount
                   }
-                ].map(({ isToken2022, token, disabled, info, rawAmount }) =>
+                ].map(({ isToken2022, token, disabled, info, rawAmount, side }) =>
                   disabled ? undefined : (
                     <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
                       <Row className="items-center gap-1 overflow-hidden">
@@ -629,18 +637,30 @@ function ConcentratedCard() {
                       </div>
 
                       <div className="justify-self-end font-medium text-white overflow-hidden">
-                        {isToken2022 ? (
-                          <AsyncAwait promise={info} fallback="--">
+                        {isToken2022 && isMeaningfulNumber(rawAmount) ? (
+                          <AsyncAwait
+                            promise={info}
+                            fallback="--"
+                            onFullfilled={() => {
+                              if (side === '1') {
+                                setToken2022HasLoadData1(true)
+                              } else {
+                                setToken2022HasLoadData2(true)
+                              }
+                            }}
+                          >
                             {(info) =>
                               info?.pure ? (
                                 <div>
-                                  {toString(info.pure, { decimalLength: `auto ${token ? token.decimals : ''}` })}
+                                  {toString(info.pure, { decimalLength: token ? `auto ${token.decimals}` : undefined })}
                                 </div>
                               ) : undefined
                             }
                           </AsyncAwait>
                         ) : (
-                          <div>{toString(rawAmount, { decimalLength: `auto ${token ? token.decimals : ''}` })}</div>
+                          <div>
+                            {toString(rawAmount, { decimalLength: token ? `auto ${token.decimals}` : undefined })}
+                          </div>
                         )}
                       </div>
                     </Grid>
@@ -713,6 +733,12 @@ function ConcentratedCard() {
               {
                 should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
                 fallbackProps: { children: 'Enter an amount' }
+              },
+              {
+                should:
+                  (isToken2022(coin1) ? token2022HasLoadData1 : true) &&
+                  (isToken2022(coin2) ? token2022HasLoadData2 : true),
+                fallbackProps: { children: 'Loading Token 2022 Info...' }
               },
               {
                 not: liquidity?.eq(ZERO), // this is Rudy's logic, don't know why

@@ -14,6 +14,7 @@ import { toString } from '@/functions/numberish/toString'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
+import { isToken2022 } from '../token/isToken2022'
 import { MANUAL_ADJUST } from './txDecreaseConcentrated'
 
 /**
@@ -73,7 +74,7 @@ export default function useConcentratedAmountCalculator() {
       : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
 
     const [token2022Infos, epochInfo] = await Promise.all([
-      getMultiMintInfos({ mints: [coin1.mint, coin2.mint] }),
+      getMultiMintInfos({ mints: [coin1.mint, coin2.mint].filter(isToken2022) }),
       getEpochInfo()
     ])
     try {
@@ -145,9 +146,8 @@ export default function useConcentratedAmountCalculator() {
         liquidity
       }
       useConcentrated.setState(params)
-    } catch (err) {
-      console.error('err: ', err)
-    }
+      // eslint-disable-next-line no-empty
+    } catch (err) {}
   }, [
     coin1,
     toString(userCursorSide === 'coin1' ? coin1Amount : coin2Amount),

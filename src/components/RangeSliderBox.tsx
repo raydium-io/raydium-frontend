@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
-
 import { Fraction } from '@raydium-io/raydium-sdk'
-
 import BN from 'bn.js'
 import Slider, { SliderProps } from 'rc-slider'
+import { useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import toPercentString from '@/functions/format/toPercentString'
@@ -11,7 +9,7 @@ import { isArray } from '@/functions/judgers/dateType'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import mergeProps from '@/functions/react/mergeProps'
-
+import { useEvent } from '@/hooks/useEvent'
 import Row from './Row'
 
 import 'rc-slider/assets/index.css'
@@ -43,25 +41,19 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
     fallbackProps
   )
 
-  const onSliderChange = useCallback(
-    (value: number | number[]) => {
-      if (isArray(value)) return
-      const newPercentage = value / max
-      onChange && onChange(value)
-      setCurrentValue(value)
-      setCurrentPercentage(newPercentage)
-    },
-    [onChange]
-  )
+  const onSliderChange = useEvent((value: number | number[]) => {
+    if (isArray(value)) return
+    const newPercentage = value / max
+    onChange?.(value)
+    setCurrentValue(value)
+    setCurrentPercentage(newPercentage)
+  })
 
-  const setPercentageValue = useCallback(
-    (value) => {
-      setCurrentPercentage(value)
-      setCurrentValue(max * value)
-      onChange && onChange(max * value)
-    },
-    [max]
-  )
+  const setPercentageValue = useEvent((value) => {
+    setCurrentPercentage(value)
+    setCurrentValue(max * value)
+    onChange?.(max * value)
+  })
 
   useEffect(() => {
     let newCurrentPercentage = Number(toString(div(liquidity ?? 0, mul(max, tick)), { decimalLength: 'auto 4' }))
@@ -129,6 +121,7 @@ function SliderWrap({
   handleStyle,
   railStyle,
   onChange,
+  onSettled,
   value,
   defaultValue,
   ...restProps
@@ -139,6 +132,7 @@ function SliderWrap({
   handleStyle?: SliderProps['handleStyle']
   railStyle?: SliderProps['railStyle']
   onChange?: (value: number | number[]) => void
+  onSettled?: () => void
   value?: number
   defaultValue?: number
 }) {
@@ -167,7 +161,7 @@ function SliderWrap({
           ...railStyle
         }}
         onChange={(value) => {
-          onChange && onChange(value)
+          onChange?.(value)
         }}
       />
     </Row>
