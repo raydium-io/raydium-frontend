@@ -596,7 +596,7 @@ function ConcentratedCard() {
                     token: coin1,
                     disabled: coin1InputDisabled,
                     info: coin1FeeInfo,
-                    rawAmount: coin2Amount
+                    rawAmount: coin1Amount
                   },
                   {
                     isToken2022: isToken2022(coin2),
