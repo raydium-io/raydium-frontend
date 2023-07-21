@@ -150,10 +150,12 @@ function ConcentratedCard() {
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin1SlippageAmount = useConcentrated((s) => s.coin1SlippageAmount)
   const coin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
   const coin2 = useConcentrated((s) => s.coin2)
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
   const coin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
+  const coin2SlippageAmount = useConcentrated((s) => s.coin2SlippageAmount)
   const focusSide = useConcentrated((s) => s.focusSide)
   const isFocus1 = focusSide === 'coin1'
   const inputAmount = isFocus1 ? coin1Amount : coin2Amount
@@ -594,14 +596,14 @@ function ConcentratedCard() {
                     token: coin1,
                     disabled: coin1InputDisabled,
                     info: coin1FeeInfo,
-                    rawAmount: coin1Amount
+                    rawAmount: coin1SlippageAmount
                   },
                   {
                     isToken2022: isToken2022(coin2),
                     token: coin2,
                     disabled: coin2InputDisabled,
                     info: coin2FeeInfo,
-                    rawAmount: coin2Amount
+                    rawAmount: coin2SlippageAmount
                   }
                 ].map(({ isToken2022, token, disabled, info, rawAmount }) =>
                   disabled ? undefined : (
@@ -630,11 +632,15 @@ function ConcentratedCard() {
                         {isToken2022 ? (
                           <AsyncAwait promise={info} fallback="--">
                             {(info) =>
-                              info?.pure ? <div>{toString(info.pure, { decimalLength: 'auto 5' })}</div> : undefined
+                              info?.pure ? (
+                                <div>
+                                  {toString(info.pure, { decimalLength: `auto ${token ? token.decimals : ''}` })}
+                                </div>
+                              ) : undefined
                             }
                           </AsyncAwait>
                         ) : (
-                          <div>{toString(rawAmount, { decimalLength: 'auto 5' })}</div>
+                          <div>{toString(rawAmount, { decimalLength: `auto ${token ? token.decimals : ''}` })}</div>
                         )}
                       </div>
                     </Grid>

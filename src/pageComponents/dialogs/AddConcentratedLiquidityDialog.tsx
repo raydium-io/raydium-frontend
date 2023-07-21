@@ -66,9 +66,13 @@ export function AddConcentratedLiquidityDialog() {
   const tokenPrices = useToken((s) => s.tokenPrices)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
+  const originalCoin1SlippageAmount = useConcentrated((s) => s.coin1SlippageAmount)
+  const originalCoin2SlippageAmount = useConcentrated((s) => s.coin2SlippageAmount)
   const focusSide = isMintEqual(coinBase?.mint, originalCoin1?.mint) ? 'coin1' : 'coin2'
   const coinBaseAmount = focusSide === 'coin1' ? originalCoin1Amount : originalCoin2Amount
   const coinQuoteAmount = focusSide === 'coin1' ? originalCoin2Amount : originalCoin1Amount
+  const coinBaseSlippageAmount = focusSide === 'coin1' ? originalCoin1SlippageAmount : originalCoin2SlippageAmount
+  const coinQuoteSlippageAmount = focusSide === 'coin1' ? originalCoin2SlippageAmount : originalCoin1SlippageAmount
 
   const coinBaseFeeInfo = useMemo(
     () =>
@@ -286,13 +290,13 @@ export function AddConcentratedLiquidityDialog() {
                       isToken2022: isToken2022(coinBase),
                       token: coinBase,
                       info: coinBaseFeeInfo,
-                      rawAmount: coinBaseAmount
+                      rawAmount: coinBaseSlippageAmount
                     },
                     {
                       isToken2022: isToken2022(coinQuote),
                       token: coinQuote,
                       info: coinQuoteFeeInfo,
-                      rawAmount: coinQuoteAmount
+                      rawAmount: coinQuoteSlippageAmount
                     }
                   ].map(({ isToken2022, token, info, rawAmount }) => (
                     <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
@@ -320,11 +324,15 @@ export function AddConcentratedLiquidityDialog() {
                         {isToken2022 ? (
                           <AsyncAwait promise={info} fallback="--">
                             {(info) =>
-                              info?.pure ? <div>{toString(info.pure, { decimalLength: 'auto 5' })}</div> : undefined
+                              info?.pure ? (
+                                <div>
+                                  {toString(info.pure, { decimalLength: `auto ${token ? token.decimals : ''}` })}
+                                </div>
+                              ) : undefined
                             }
                           </AsyncAwait>
                         ) : (
-                          <div>{toString(rawAmount, { decimalLength: 'auto 5' })}</div>
+                          <div>{toString(rawAmount, { decimalLength: `auto ${token ? token.decimals : ''}` })}</div>
                         )}
                       </div>
                     </Grid>
