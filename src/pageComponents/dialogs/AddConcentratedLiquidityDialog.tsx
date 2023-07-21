@@ -66,9 +66,13 @@ export function AddConcentratedLiquidityDialog() {
   const tokenPrices = useToken((s) => s.tokenPrices)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
+  const originalCoin1SlippageAmount = useConcentrated((s) => s.coin1SlippageAmount)
+  const originalCoin2SlippageAmount = useConcentrated((s) => s.coin2SlippageAmount)
   const focusSide = isMintEqual(coinBase?.mint, originalCoin1?.mint) ? 'coin1' : 'coin2'
   const coinBaseAmount = focusSide === 'coin1' ? originalCoin1Amount : originalCoin2Amount
   const coinQuoteAmount = focusSide === 'coin1' ? originalCoin2Amount : originalCoin1Amount
+  const coinBaseSlippageAmount = focusSide === 'coin1' ? originalCoin1SlippageAmount : originalCoin2SlippageAmount
+  const coinQuoteSlippageAmount = focusSide === 'coin1' ? originalCoin2SlippageAmount : originalCoin1SlippageAmount
 
   const coinBaseFeeInfo = useMemo(
     () =>

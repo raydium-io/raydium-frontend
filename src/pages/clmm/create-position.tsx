@@ -150,10 +150,12 @@ function ConcentratedCard() {
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin1SlippageAmount = useConcentrated((s) => s.coin1SlippageAmount)
   const coin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
   const coin2 = useConcentrated((s) => s.coin2)
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
   const coin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
+  const coin2SlippageAmount = useConcentrated((s) => s.coin2SlippageAmount)
   const focusSide = useConcentrated((s) => s.focusSide)
   const isFocus1 = focusSide === 'coin1'
   const inputAmount = isFocus1 ? coin1Amount : coin2Amount
@@ -171,8 +173,8 @@ function ConcentratedCard() {
     coin2Amount?: ConcentratedStore['coin2Amount']
     coin1AmountFee?: ConcentratedStore['coin1AmountFee']
     coin2AmountFee?: ConcentratedStore['coin2AmountFee']
-    coin1SplippageAmount?: ConcentratedStore['coin1SlippageAmount']
-    coin2SplippageAmount?: ConcentratedStore['coin2SlippageAmount']
+    coin1SlippageAmount?: ConcentratedStore['coin1SlippageAmount']
+    coin2SlippageAmount?: ConcentratedStore['coin2SlippageAmount']
     decimals?: number
     totalDeposit?: string
     feeRate?: number

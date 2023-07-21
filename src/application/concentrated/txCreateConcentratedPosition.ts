@@ -15,6 +15,7 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default async function txCreateConcentratedPosotion({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -76,7 +77,7 @@ export default async function txCreateConcentratedPosotion({
   }
 
   return txHandler(async ({ transactionCollector }) => {
-    const { innerTransactions, nftAddress } = await generateCreateClmmPositionTx({
+    const params = {
       currentAmmPool,
       coin1,
       coin2,
@@ -89,7 +90,8 @@ export default async function txCreateConcentratedPosotion({
       priceUpper,
       priceLowerTick,
       priceUpperTick
-    })
+    }
+    const { innerTransactions, nftAddress } = await generateCreateClmmPositionTx(params)
 
     transactionCollector.add(innerTransactions, {
       onTxAllSuccess() {
@@ -149,17 +151,17 @@ export async function generateCreateClmmPositionTx(
   assert(priceUpper, 'not set priceUpper')
   assert(priceLower, 'not set priceLower')
   assert(coin1, 'not set coin1')
-  assert(coin1Amount, 'not set coin1Amount')
+  assert(coin1SlippageAmount, 'not set coin1Amount')
   assert(coin2, 'not set coin2')
-  assert(coin2Amount, 'not set coin2Amount')
+  assert(coin2SlippageAmount, 'not set coin2Amount')
 
   assert(liquidity, 'not set liquidity')
   const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
 
   const coin1IsMintA = currentAmmPool.state.mintA.mint.equals(coin1.mint)
 
-  const _coin1Amount = toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals)
-  const _coin2Amount = toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals)
+  const _coin1Amount = toBN(coin1SlippageAmount, coin1.decimals, 'up')
+  const _coin2Amount = toBN(coin2SlippageAmount, coin2.decimals, 'up')
 
   const { innerTransactions, address } = await AmmV3.makeOpenPositionFromLiquidityInstructionSimple({
     connection: connection,
