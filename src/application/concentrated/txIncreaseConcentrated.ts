@@ -79,8 +79,8 @@ export default async function txIncreaseConcentrated({
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true,
-      amountMaxA: toBN(coin1SlippageAmount, coin1.decimals),
-      amountMaxB: toBN(coin2SlippageAmount, coin2.decimals)
+      amountMaxA: toBN(coin1SlippageAmount, coin1.decimals, 'up'),
+      amountMaxB: toBN(coin2SlippageAmount, coin2.decimals, 'up')
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

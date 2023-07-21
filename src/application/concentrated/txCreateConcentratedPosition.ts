@@ -160,8 +160,8 @@ export async function generateCreateClmmPositionTx(
 
   const coin1IsMintA = currentAmmPool.state.mintA.mint.equals(coin1.mint)
 
-  const _coin1Amount = toBN(coin1SlippageAmount, coin1.decimals)
-  const _coin2Amount = toBN(coin2SlippageAmount, coin2.decimals)
+  const _coin1Amount = toBN(coin1SlippageAmount, coin1.decimals, 'up')
+  const _coin2Amount = toBN(coin2SlippageAmount, coin2.decimals, 'up')
 
   const { innerTransactions, address } = await AmmV3.makeOpenPositionFromLiquidityInstructionSimple({
     connection: connection,
