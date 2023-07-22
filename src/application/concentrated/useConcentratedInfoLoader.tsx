@@ -51,6 +51,7 @@ export default function useConcentratedInfoLoader() {
   useRecordedEffect(
     async ([prevRefreshCount]) => {
       const shouldForceRefresh = prevRefreshCount != null && refreshCount !== prevRefreshCount
+      if (!apiAmmPools) return // only bug in localhost HMR, it's not a real problem
       if (!shouldForceRefresh && !shouldLoadInfo) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
       const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl) // note: previously Rudy has Test API for dev

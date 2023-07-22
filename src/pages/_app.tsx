@@ -49,6 +49,9 @@ import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 import '../styles/index.css'
 import { useCLMMMigrationLoadInfo } from '@/application/clmmMigration/useCLMMMigrationLoadInfo'
 
+import { setAutoFreeze } from 'immer'
+setAutoFreeze(false)
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
 
