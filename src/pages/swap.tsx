@@ -17,8 +17,13 @@ import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOL_BASE_BALANCE,
-  SOLDecimals, toUITokenAmount
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLVersionSOL,
+  QuantumSOLVersionWSOL,
+  SOL_BASE_BALANCE,
+  SOLDecimals,
+  toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -910,13 +915,20 @@ function SwapCardInfo({
     [selectedCalcResult]
   )
 
-  const transferFeeUpCoin = upCoin && toTokenAmount(upCoin, currentCalcResult?.amountIn.fee, { alreadyDecimaled: true })
+  const transferFeeUpCoin =
+    upCoin &&
+    currentCalcResult?.amountIn.fee &&
+    toTokenAmount(upCoin, currentCalcResult.amountIn.fee, { alreadyDecimaled: true })
 
   const transferFeeDownCoin =
-    downCoin && toTokenAmount(downCoin, currentCalcResult?.amountOut.fee, { alreadyDecimaled: true })
+    downCoin &&
+    currentCalcResult?.amountOut.fee &&
+    toTokenAmount(downCoin, currentCalcResult.amountOut.fee, { alreadyDecimaled: true })
 
   const transferFeeRouteToken =
-    routeToken && currentCalcResult?.routeType === 'route' ? currentCalcResult?.minMiddleAmountFee : undefined
+    routeToken && currentCalcResult?.routeType === 'route' && currentCalcResult?.minMiddleAmountFee
+      ? currentCalcResult.minMiddleAmountFee
+      : undefined
 
   const expirationTime = currentCalcResult?.expirationTime // (s)
 
