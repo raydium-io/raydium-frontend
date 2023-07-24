@@ -25,7 +25,7 @@ import Row from '@/components/Row'
 import SetpIndicator from '@/components/SetpIndicator'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
@@ -120,6 +120,9 @@ function PanelContent({ close }: { close(): void }) {
     [quoteToken]
   )
 
+  const haveEnoughCoinBase = baseAmount && baseTokenBalance && lte(baseAmount, baseTokenBalance)
+  const haveEnoughCoinQuote = quoteAmount && quoteTokenBalance && lte(quoteAmount, quoteTokenBalance)
+
   const [priceReverse, { toggle }] = useToggle()
 
   const step2Content = (
@@ -180,7 +183,25 @@ function PanelContent({ close }: { close(): void }) {
       <Button
         className="frosted-glass-teal w-full"
         isLoading={isApprovePanelShown}
-        validators={[{ should: Boolean(baseAmount && quoteAmount) }]}
+        validators={[
+          {
+            should: walletConnected,
+            forceActive: true,
+            fallbackProps: {
+              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+              children: 'Connect Wallet'
+            }
+          },
+          { should: Boolean(baseAmount && quoteAmount) },
+          {
+            should: haveEnoughCoinBase,
+            fallbackProps: { children: `Insufficient ${baseToken?.symbol ?? ''} balance` }
+          },
+          {
+            should: haveEnoughCoinQuote,
+            fallbackProps: { children: `Insufficient ${quoteToken?.symbol ?? ''} balance` }
+          }
+        ]}
         onClick={() => {
           txCreateAndInitNewPool({
             onAllSuccess: () => {
