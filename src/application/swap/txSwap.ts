@@ -1,4 +1,7 @@
-import { InnerTransaction, InstructionType, TradeV2 } from '@raydium-io/raydium-sdk'
+import {
+  forecastTransactionSize, InnerTransaction, InstructionType, MEMO_PROGRAM_ID, TradeV2
+} from '@raydium-io/raydium-sdk'
+import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js'
 
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -6,12 +9,12 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { useSwap } from './useSwap'
 
 export default async function txSwap() {
@@ -70,6 +73,7 @@ export default async function txSwap() {
   // }
 
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+    const addComputeUnitLimitIns = ComputeBudgetProgram.setComputeUnitLimit({ units: 400001 })
     const { innerTransactions } = await TradeV2.makeSwapInstructionSimple({
       connection,
       swapInfo: selectedCalcResult,
@@ -84,14 +88,24 @@ export default async function txSwap() {
       computeBudgetConfig: await getComputeBudgetConfig()
     })
 
+    // temp fix
+    for (let i = 0; i < innerTransactions.length; i++) {
+      if (innerTransactions[i].instructions[0].programId.toString() !== addComputeUnitLimitIns.programId.toString() && forecastTransactionSize([addComputeUnitLimitIns, ...innerTransactions[i].instructions], [owner])) {
+        innerTransactions[i].instructions = [addComputeUnitLimitIns, ...innerTransactions[i].instructions].map(i => new TransactionInstruction({
+          programId: i.programId,
+          data: i.data,
+          keys: i.keys.map(ii => ii.pubkey.toString() === 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr' ? { ...ii, pubkey: owner } : ii),
+        }))
+      }
+    }
+
     const queue = innerTransactions.map((tx, idx, allTxs) => [
       tx,
       {
         txHistoryInfo: {
           title: 'Swap',
-          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
-            downCoin.symbol
-          }`,
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
+            }`,
           subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
         } as TxHistoryInfo
       }
