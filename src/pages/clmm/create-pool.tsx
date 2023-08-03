@@ -97,7 +97,7 @@ export default function CreatePoolPage() {
           <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Pool</div>
         )}
 
-        <WarningBoard className="pb-6 w-full" />
+        {/* <WarningBoard className="pb-6 w-full" /> */}
 
         <CreatePoolCard />
 
