@@ -46,6 +46,7 @@ import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
 import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
+import { TxVersionWidget } from './navWidgets/TxVersionWidget'
 
 /**
  * for easier to code and read
@@ -381,14 +382,15 @@ function Navbar({
         />
       </Link>
 
-      <Row className="gap-8 items-center mobile:hidden">
+      <Row className="gap-6 items-center mobile:hidden">
         <MessageBoardWidget />
+        <TxVersionWidget />
         <WalletWidget />
       </Row>
     </Row>
   )
   const mobileNavContent = (
-    <Grid className="grid-cols-[1fr,2fr,1fr] mobile:px-5 mobile:py-3  items-center bg-cyberpunk-card-bg cyberpunk-bg-light">
+    <Grid className="grid-cols-[1fr,2fr,1fr] gap-2 mobile:px-5 mobile:py-3   items-center bg-cyberpunk-card-bg cyberpunk-bg-light">
       <div className="frosted-glass-teal rounded-lg p-2 clickable justify-self-start" onClick={onOpenMenu}>
         <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/msic-menu.svg" />
       </div>
@@ -415,8 +417,8 @@ function Navbar({
         </Link>
       )}
 
-      <Row className="gap-4 items-center justify-self-end">
-        <MessageBoardWidget />
+      <Row className="gap-3 items-center justify-self-end">
+        <TxVersionWidget />
         <WalletWidget />
       </Row>
     </Grid>

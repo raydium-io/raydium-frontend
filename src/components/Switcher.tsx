@@ -43,7 +43,7 @@ export default function Switcher({
       className={twMerge(
         `Switch ${
           isChecked ? (disable ? 'bg-[#7ba4a7]' : 'bg-[#39D0D8]') : 'bg-[#1B1659]'
-        } relative flex flex-shrink-0 h-5 w-10 border-2 border-transparent rounded-full ${
+        } relative flex flex-shrink-0 h-5 w-10 mobile:h-4 mobile:w-7 border-2 border-transparent rounded-full ${
           disable ? 'cursor-not-allowed opacity-20' : 'cursor-pointer'
         } transition-all ease-in-out duration-200 focus:outline-none`,
         className
@@ -52,7 +52,7 @@ export default function Switcher({
     >
       <span
         className={`${isChecked ? 'left-full -translate-x-full' : 'left-0'}
-            pointer-events-none absolute top-1/2 h-4 w-4  rounded-full ${
+            pointer-events-none absolute top-1/2 h-4 w-4 mobile:h-2.5 mobile:w-2.5 rounded-full ${
               isChecked ? 'bg-white' : 'bg-[rgba(171,196,255,0.5)]'
             } shadow-lg transform -translate-y-1/2 transition-all duration-200 ${thumbClassName}`}
       />
