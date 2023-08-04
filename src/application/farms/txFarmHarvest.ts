@@ -1,6 +1,6 @@
-import { Farm, InnerTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, InnerSimpleTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
 
-import txHandler from '@/application/txTools/handleTx'
+import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
@@ -19,7 +19,7 @@ export default async function txFarmHarvest(
   options: { isStaking?: boolean; rewardAmounts: TokenAmount[] }
 ) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-    const innerTransactions: InnerTransaction[] = []
+    const innerTransactions: InnerSimpleTransaction[] = []
     assert(owner, 'require connected wallet')
 
     const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ id }) => String(id) === String(info.id))
@@ -44,7 +44,7 @@ export default async function txFarmHarvest(
     }
 
     // ------------- add withdraw transaction --------------
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     const { innerTransactions: makeInstructions } = await Farm.makeWithdrawInstructionSimple({
       connection,
       fetchPoolInfo: info.fetchedMultiInfo,
@@ -54,7 +54,9 @@ export default async function txFarmHarvest(
         tokenAccounts: tokenAccountRawInfos
       },
       amount: toBN(0),
-      checkCreateATAOwner: true
+      checkCreateATAOwner: true,
+      makeTxVersion: txVersion,
+      lookupTableCache
     })
     innerTransactions.push(...makeInstructions)
 

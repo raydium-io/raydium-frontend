@@ -2,7 +2,7 @@ import { Connection } from '@solana/web3.js'
 
 import { Farm } from '@raydium-io/raydium-sdk'
 
-import txHandler, { SingleTxOption } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOption, lookupTableCache } from '@/application/txTools/handleTx'
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import toPubString from '@/functions/format/toMintString'
@@ -55,7 +55,7 @@ async function createClaimRewardInstruction({
   reward: UIRewardInfo
   farmInfo: HydratedFarmInfo
 }) {
-  const { owner, tokenAccountRawInfos } = useWallet.getState()
+  const { owner, tokenAccountRawInfos, txVersion } = useWallet.getState()
   assert(owner, `Wallet not connected`)
   assert(isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
   assert(reward.token, `reward token haven't set`)
@@ -67,7 +67,9 @@ async function createClaimRewardInstruction({
       tokenAccounts: tokenAccountRawInfos,
       owner
     },
-    withdrawMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint
+    withdrawMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint,
+    makeTxVersion: txVersion,
+    lookupTableCache
   })
 
   assert(innerTransactions, 'withdraw farm valid failed')

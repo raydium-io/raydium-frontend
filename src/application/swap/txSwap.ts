@@ -1,6 +1,4 @@
-import {
-  forecastTransactionSize, InnerTransaction, InstructionType, MEMO_PROGRAM_ID, TradeV2
-} from '@raydium-io/raydium-sdk'
+import { forecastTransactionSize, InnerSimpleTransaction, InstructionType, TradeV2 } from '@raydium-io/raydium-sdk'
 import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js'
 
 import assert from '@/functions/assert'
@@ -12,14 +10,14 @@ import { toString } from '@/functions/numberish/toString'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import txHandler, { TransactionQueue } from '../txTools/handleTx'
+import txHandler, { lookupTableCache, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { useSwap } from './useSwap'
 
 export default async function txSwap() {
   const { programIds } = useAppAdvancedSettings.getState()
-  const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
+  const { checkWalletHasEnoughBalance, tokenAccountRawInfos, txVersion } = useWallet.getState()
   const {
     coin1,
     coin2,
@@ -84,18 +82,27 @@ export default async function txSwap() {
         checkCreateATAOwner: true
       },
       routeProgram: programIds.Router,
-      checkTransaction: true,
+      lookupTableCache,
+      makeTxVersion: txVersion,
       computeBudgetConfig: await getComputeBudgetConfig()
     })
 
     // temp fix
     for (let i = 0; i < innerTransactions.length; i++) {
-      if (innerTransactions[i].instructions[0].programId.toString() !== addComputeUnitLimitIns.programId.toString() && forecastTransactionSize([addComputeUnitLimitIns, ...innerTransactions[i].instructions], [owner])) {
-        innerTransactions[i].instructions = [addComputeUnitLimitIns, ...innerTransactions[i].instructions].map(i => new TransactionInstruction({
-          programId: i.programId,
-          data: i.data,
-          keys: i.keys.map(ii => ii.pubkey.toString() === 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr' ? { ...ii, pubkey: owner } : ii),
-        }))
+      if (
+        innerTransactions[i].instructions[0].programId.toString() !== addComputeUnitLimitIns.programId.toString() &&
+        forecastTransactionSize([addComputeUnitLimitIns, ...innerTransactions[i].instructions], [owner])
+      ) {
+        innerTransactions[i].instructions = [addComputeUnitLimitIns, ...innerTransactions[i].instructions].map(
+          (i) =>
+            new TransactionInstruction({
+              programId: i.programId,
+              data: i.data,
+              keys: i.keys.map((ii) =>
+                ii.pubkey.toString() === 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr' ? { ...ii, pubkey: owner } : ii
+              )
+            })
+        )
       }
     }
 
@@ -104,8 +111,9 @@ export default async function txSwap() {
       {
         txHistoryInfo: {
           title: 'Swap',
-          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
-            }`,
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+            downCoin.symbol
+          }`,
           subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
         } as TxHistoryInfo
       }
@@ -114,13 +122,13 @@ export default async function txSwap() {
   })
 }
 
-function translationSwapTxDescription(tx: InnerTransaction, idx: number, allTxs: InnerTransaction[]) {
+function translationSwapTxDescription(tx: InnerSimpleTransaction, idx: number, allTxs: InnerSimpleTransaction[]) {
   const swapFirstIdx = allTxs.findIndex((tx) => isSwapTransaction(tx))
   const swapLastIdx = allTxs.length - 1 - [...allTxs].reverse().findIndex((tx) => isSwapTransaction(tx))
   return idx < swapFirstIdx ? 'Setup' : idx > swapLastIdx ? 'Cleanup' : 'Swap'
 }
 
-function isSwapTransaction(tx: InnerTransaction): boolean {
+function isSwapTransaction(tx: InnerSimpleTransaction): boolean {
   return (
     tx.instructionTypes.includes(InstructionType.clmmSwapBaseIn) ||
     tx.instructionTypes.includes(InstructionType.clmmSwapBaseOut) ||

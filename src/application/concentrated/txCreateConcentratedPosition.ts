@@ -1,6 +1,6 @@
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 
-import txHandler from '@/application/txTools/handleTx'
+import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toBN from '@/functions/numberish/toBN'
@@ -140,7 +140,7 @@ export async function generateCreateClmmPositionTx(
     currentAmmPool = useConcentrated.getState().currentAmmPool
   }: GenerateCreateClmmPositionTxFnParams = useConcentrated.getState()
 ) {
-  const { tokenAccountRawInfos } = useWallet.getState()
+  const { tokenAccountRawInfos, txVersion } = useWallet.getState()
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
   assert(connection, 'no rpc connection')
@@ -179,7 +179,9 @@ export async function generateCreateClmmPositionTx(
     amountMaxB: !coin1IsMintA ? _coin1Amount : _coin2Amount,
     slippage: 0.015,
     computeBudgetConfig: await getComputeBudgetConfig(),
-    checkCreateATAOwner: true
+    checkCreateATAOwner: true,
+    makeTxVersion: txVersion,
+    lookupTableCache
   })
   return { innerTransactions, nftAddress: String(address.nftMint) }
 }

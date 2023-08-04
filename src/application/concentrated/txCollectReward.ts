@@ -2,7 +2,7 @@ import assert from '@/functions/assert'
 import { AmmV3, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import txHandler from '../txTools/handleTx'
+import txHandler, { lookupTableCache } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import useNotification from '../notification/useNotification'
@@ -35,7 +35,7 @@ export default async function txCollectReward({
   }
 
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
 
     const tokenSymbol = currentAmmPool.rewardInfos.find((r) => r.tokenMint.equals(rewardInfo.tokenMint))!.rewardToken!
@@ -53,7 +53,9 @@ export default async function txCollectReward({
       rewardMint: rewardInfo.tokenMint,
       associatedOnly: false,
       computeBudgetConfig: await getComputeBudgetConfig(),
-      checkCreateATAOwner: true
+      checkCreateATAOwner: true,
+      makeTxVersion: txVersion,
+      lookupTableCache
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

@@ -5,7 +5,7 @@ import toPubString from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import txHandler from '../txTools/handleTx'
+import txHandler, { lookupTableCache } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -58,7 +58,7 @@ export default async function txIncreaseConcentrated({
   }
 
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(coin1, 'not set coin1')
     assert(coin1SlippageAmount, 'not set coin1Amount')
@@ -80,7 +80,9 @@ export default async function txIncreaseConcentrated({
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true,
       amountMaxA: toBN(coin1SlippageAmount, coin1.decimals, 'up'),
-      amountMaxB: toBN(coin2SlippageAmount, coin2.decimals, 'up')
+      amountMaxB: toBN(coin2SlippageAmount, coin2.decimals, 'up'),
+      makeTxVersion: txVersion,
+      lookupTableCache
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

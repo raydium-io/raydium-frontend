@@ -3,7 +3,7 @@ import { Connection } from '@solana/web3.js'
 import { Farm, FarmCreateInstructionParamsV6, FarmRewardInfo } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler, { SingleTxOption } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOption, lookupTableCache } from '@/application/txTools/handleTx'
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import { setDateTimeSecondToZero } from '@/functions/date/dateFormat'
@@ -73,7 +73,7 @@ function createRewardRestartInstruction({
   reward: UIRewardInfo
   farmInfo: HydratedFarmInfo
 }) {
-  const { owner, tokenAccountRawInfos } = useWallet.getState()
+  const { owner, tokenAccountRawInfos, txVersion } = useWallet.getState()
   assert(owner && isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
 
   assert(reward.token, 'reward must have token')
@@ -102,7 +102,9 @@ function createRewardRestartInstruction({
       owner,
       tokenAccounts: tokenAccountRawInfos
     },
-    newRewardInfo
+    newRewardInfo,
+    makeTxVersion: txVersion,
+    lookupTableCache
   })
 }
 
@@ -115,7 +117,7 @@ function createNewRewardInstruction({
   reward: UIRewardInfo
   farmInfo: HydratedFarmInfo
 }) {
-  const { owner, tokenAccountRawInfos } = useWallet.getState()
+  const { owner, tokenAccountRawInfos, txVersion } = useWallet.getState()
   assert(owner, 'Wallet not connected')
   const rewardToken = reward.token
   assert(reward.startTime, 'reward start time is required')
@@ -143,6 +145,8 @@ function createNewRewardInstruction({
       owner,
       tokenAccounts: tokenAccountRawInfos
     },
-    newRewardInfo: newRewardInfo
+    newRewardInfo: newRewardInfo,
+    makeTxVersion: txVersion,
+    lookupTableCache
   })
 }

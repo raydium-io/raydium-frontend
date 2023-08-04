@@ -26,7 +26,7 @@ import { getRichWalletTokenAccounts } from '../../wallet/useTokenAccountsRefresh
 import useWallet, { WalletStore } from '../../wallet/useWallet'
 
 import { isArray, isObject } from '@/functions/judgers/dateType'
-import { InnerTransaction, TxVersion } from '@raydium-io/raydium-sdk'
+import { CacheLTA, InnerSimpleTransaction, TxVersion } from '@raydium-io/raydium-sdk'
 import { buildTransactionsFromSDKInnerTransactions } from './createVersionedTransaction'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
@@ -167,13 +167,16 @@ export type MultiTxCallbacks = {
 }
 
 export type TransactionQueue = (
-  | [tx: InnerTransaction | Transaction, singleTxOptions?: SingleTxOption]
-  | InnerTransaction
+  | [tx: InnerSimpleTransaction | Transaction, singleTxOptions?: SingleTxOption]
+  | InnerSimpleTransaction
   | Transaction
 )[]
 
 export type TransactionCollector = {
-  add(transaction: TransactionQueue | Transaction | InnerTransaction, options?: SingleTxOption & MultiTxsOption): void
+  add(
+    transaction: TransactionQueue | Transaction | InnerSimpleTransaction,
+    options?: SingleTxOption & MultiTxsOption
+  ): void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -204,7 +207,7 @@ export function isTransaction(x: any): x is Transaction {
   return x instanceof Transaction
 }
 
-export function isInnerTransaction(x: any): x is InnerTransaction {
+export function isInnerTransaction(x: any): x is InnerSimpleTransaction {
   return isObject(x) && 'instructions' in x && 'instructionTypes' in x
 }
 
@@ -223,6 +226,10 @@ export function createTxHandler<Arg extends Record<string, any>>(
       mergeObject(options, { additionalMultiOptionCallback: arg, additionalSingleOptionCallback: arg })
     )
 }
+
+/** as it may use without txHandler, so be a isolate variable */
+export const lookupTableCache: CacheLTA = {}
+
 /**
  * **DUTY:**
  *
@@ -315,13 +322,13 @@ function collectTxOptions(
 ) {
   const singleTxOptions = [] as SingleTxOption[]
   const multiTxOption = {} as MultiTxsOption
-  const innerTransactions = [] as (Transaction | InnerTransaction)[]
+  const innerTransactions = [] as (Transaction | InnerSimpleTransaction)[]
   const { additionalSingleOptionCallback, additionalMultiOptionCallback } = additionOptions ?? {}
 
   /**
    * mutable
    */
-  const addSingle = (transaction: Transaction | InnerTransaction, options?: SingleTxOption) => {
+  const addSingle = (transaction: Transaction | InnerSimpleTransaction, options?: SingleTxOption) => {
     innerTransactions.push(transaction)
     singleTxOptions.push(mergeObject(options ?? {}, additionalSingleOptionCallback))
   }
@@ -386,7 +393,7 @@ async function dealWithMultiTxOptions({
   multiOption,
   payload
 }: {
-  transactions: (Transaction | InnerTransaction)[]
+  transactions: (Transaction | InnerSimpleTransaction)[]
   singleOptions: SingleTxOption[]
   multiOption: MultiTxsOption
   payload: SendTransactionPayload

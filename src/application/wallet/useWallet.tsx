@@ -22,6 +22,7 @@ export type WalletStore = {
   /** old version of currentWallet */
   adapter?: Adapter
   adapterInitializing: boolean
+
   txVersion: TxVersion
 
   // a experimental feature (owner isn't in shadowOwners)

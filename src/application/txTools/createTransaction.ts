@@ -1,4 +1,4 @@
-import { InnerTransaction } from '@raydium-io/raydium-sdk'
+import { InnerSimpleTransaction } from '@raydium-io/raydium-sdk'
 import { Transaction, TransactionInstruction } from '@solana/web3.js'
 
 import { TransactionQueue } from './handleTx'
@@ -10,7 +10,7 @@ export type TransactionPiecesCollector = {
   addInstruction: (...instructions: TransactionInstruction[]) => void
   /** @deprecated */
   addEndInstruction: (...instructions: TransactionInstruction[]) => void
-  addInnerTransactions: (...innerTransactions: InnerTransaction[]) => void
+  addInnerTransactions: (...innerTransactions: InnerSimpleTransaction[]) => void
 
   /** @deprecated */
   spawnTransaction: () => Transaction
@@ -22,7 +22,7 @@ export const createTransactionCollector = (defaultRawTransaction?: Transaction):
 
   const frontInstructions: TransactionInstruction[] = []
   const endInstructions: TransactionInstruction[] = []
-  const innerTransactions: InnerTransaction[] = []
+  const innerTransactions: InnerSimpleTransaction[] = []
 
   function setRawTransaction(rawTransaction) {
     innerTransaction = rawTransaction

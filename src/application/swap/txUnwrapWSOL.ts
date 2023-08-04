@@ -9,8 +9,8 @@ import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 export default function txUnwrapAllWSOL() {
-  return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
-    const { allTokenAccounts, tokenAccountRawInfos } = useWallet.getState()
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+    const { allTokenAccounts, tokenAccountRawInfos, txVersion } = useWallet.getState()
 
     const wsolITokenAccounts = allTokenAccounts.filter(
       (tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint)
@@ -28,12 +28,14 @@ export default function txUnwrapAllWSOL() {
     })
 
     const amount = getWSOLAmount({ tokenAccounts: wsolTokenAccounts })
-    const { innerTransactions } = unwarpSol({
+    const { innerTransactions } = await unwarpSol({
+      connection,
       ownerInfo: {
         wallet: owner,
         payer: owner
       },
-      tokenAccounts: wsolTokenAccounts
+      tokenAccounts: wsolTokenAccounts,
+      makeTxVersion: txVersion
     })
 
     const queue = innerTransactions.map((tx, idx) => [

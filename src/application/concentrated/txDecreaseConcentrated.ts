@@ -9,7 +9,7 @@ import { toString } from '@/functions/numberish/toString'
 import { getTransferFeeInfo } from '../token/getTransferFeeInfos'
 import { isToken2022 } from '../token/isToken2022'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import txHandler from '../txTools/handleTx'
+import txHandler, { lookupTableCache } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import useConcentrated from './useConcentrated'
 
@@ -27,7 +27,7 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
     coin1AmountMin,
     coin2AmountMin
   } = useConcentrated.getState()
-  const { tokenAccountRawInfos } = useWallet.getState()
+  const { tokenAccountRawInfos, txVersion } = useWallet.getState()
   assert(currentAmmPool, 'not seleted amm pool')
   assert(coin1, 'not set coin1')
   assert(coin2, 'not set coin2')
@@ -60,7 +60,9 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
         computeBudgetConfig: await getComputeBudgetConfig(),
         checkCreateATAOwner: true,
         amountMinA: toBN(feeInfoA?.pure ?? coin1AmountMin, coin1.decimals),
-        amountMinB: toBN(feeInfoB?.pure ?? coin2AmountMin, coin2.decimals)
+        amountMinB: toBN(feeInfoB?.pure ?? coin2AmountMin, coin2.decimals),
+        makeTxVersion: txVersion,
+        lookupTableCache
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
@@ -87,7 +89,9 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
         // slippage: Number(toString(slippageTolerance)),
         ownerPosition: targetUserPositionAccount.sdkParsed,
         computeBudgetConfig: await getComputeBudgetConfig(),
-        checkCreateATAOwner: true
+        checkCreateATAOwner: true,
+        makeTxVersion: txVersion,
+        lookupTableCache
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {

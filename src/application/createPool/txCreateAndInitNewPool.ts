@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js'
 
 import { WSOLMint } from '@/application/token/quantumSOL'
 import useToken from '@/application/token/useToken'
-import txHandler from '@/application/txTools/handleTx'
+import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -63,7 +63,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     assert(!isAlreadyInited, 'pool already inited')
 
     // assert user has eligible base and quote
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
 
     const [baseTokenProgramId, quoteTokenProgramId] = await Promise.all([
       getTokenProgramId(baseMint),
@@ -120,7 +120,9 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       quoteAmount: toBN(mul(quoteDecimaledAmount, 10 ** quoteDecimals)),
 
       computeBudgetConfig: await getComputeBudgetConfig(),
-      checkCreateATAOwner: true
+      checkCreateATAOwner: true,
+      makeTxVersion: txVersion,
+      lookupTableCache
     })
     transactionCollector.add(innerTransactions, {
       onTxSuccess() {

@@ -1,6 +1,6 @@
-import { Farm, InnerTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, InnerSimpleTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
 
-import txHandler from '@/application/txTools/handleTx'
+import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
@@ -31,7 +31,7 @@ export default async function txFarmDeposit(
       version: poolKeys.version as 6 | 5 | 3
     })
 
-    const innerTransactions: InnerTransaction[] = []
+    const innerTransactions: InnerSimpleTransaction[] = []
 
     // ------------- create ledger --------------
     if (!info.ledger && jsonFarmInfo.version < 6 /* start from v6, no need init ledger any more */) {
@@ -43,7 +43,7 @@ export default async function txFarmDeposit(
     }
 
     // ------------- add deposit transaction --------------
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     const { innerTransactions: depositInstruction } = await Farm.makeDepositInstructionSimple({
       connection,
       poolKeys,
@@ -53,11 +53,14 @@ export default async function txFarmDeposit(
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos
       },
+
       // userKeys: {
       //   ledger: ledgerAddress,
       //   owner,
       //   rewardTokenAccounts: rewardTokenAccountsPublicKeys
       // },
+      lookupTableCache,
+      makeTxVersion: txVersion,
       amount: options.amount.raw,
       checkCreateATAOwner: true
     })

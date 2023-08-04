@@ -44,7 +44,7 @@ export default function txMigrateToClmm({
   currentClmmPool?: HydratedConcentratedInfo
 }) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     assert(currentClmmPool, 'not seleted clmm pool')
 
     const { jsonInfos } = useLiquidity.getState()

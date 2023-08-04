@@ -3,12 +3,13 @@ import { MarketV2 } from '@raydium-io/raydium-sdk'
 import assert from '@/functions/assert'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
-import { createTxHandler } from '../txTools/handleTx'
+import { createTxHandler, lookupTableCache } from '../txTools/handleTx'
 import { useCreateMarket } from './useCreateMarket'
+import useWallet from '../wallet/useWallet'
 
 const txCreateMarket = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { programId, baseToken, quoteToken, minimumOrderSize, tickSize } = useCreateMarket.getState()
-
+  const { txVersion } = useWallet.getState()
   assert(baseToken, 'please select a base token')
   assert(quoteToken, 'please select a quote token')
 
@@ -27,7 +28,9 @@ const txCreateMarket = createTxHandler(() => async ({ transactionCollector, base
     },
     lotSize: Number.parseFloat(toString(minimumOrderSize)),
     tickSize: Number.parseFloat(toString(tickSize)),
-    wallet: owner
+    wallet: owner,
+    makeTxVersion: txVersion,
+    lookupTableCache
   })
 
   transactionCollector.add(innerTransactions, {

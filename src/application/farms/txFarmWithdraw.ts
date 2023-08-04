@@ -1,7 +1,7 @@
 import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler from '@/application/txTools/handleTx'
+import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
@@ -44,7 +44,7 @@ export default async function txFarmWithdraw(
     }
 
     // ------------- add withdraw transaction --------------
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     const depositInstruction = Farm.makeWithdrawInstructionSimple({
       connection,
       fetchPoolInfo: info.fetchedMultiInfo,
@@ -54,7 +54,9 @@ export default async function txFarmWithdraw(
         tokenAccounts: tokenAccountRawInfos
       },
       amount: options.amount.raw,
-      checkCreateATAOwner: true
+      checkCreateATAOwner: true,
+      makeTxVersion: txVersion,
+      lookupTableCache
     })
     piecesCollector.addInnerTransactions(...(await depositInstruction).innerTransactions)
 

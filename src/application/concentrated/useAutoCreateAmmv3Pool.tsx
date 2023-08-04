@@ -16,6 +16,7 @@ import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import { lookupTableCache } from '../txTools/handleTx'
 
 export function useAutoCreateAmmv3Pool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, ammPoolStartTime } = useConcentrated()
@@ -64,7 +65,7 @@ async function createNewConcentratedPool({ timestamp: number }) {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, focusSide, ammPoolStartTime } =
     useConcentrated.getState()
   const { connection } = useConnection.getState()
-  const { owner } = useWallet.getState()
+  const { owner, txVersion } = useWallet.getState()
   const { programIds } = useAppAdvancedSettings.getState()
   assert(connection, 'connection is not ready')
   assert(coin1, 'not set coin1')
@@ -89,8 +90,11 @@ async function createNewConcentratedPool({ timestamp: number }) {
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
     initialPrice: fractionToDecimal(currentPrice, 15),
     owner: owner ?? PublicKey.default,
+    payer: owner ?? PublicKey.default,
     computeBudgetConfig: await getComputeBudgetConfig(),
-    startTime
+    startTime,
+    lookupTableCache,
+    makeTxVersion: txVersion
   })
   const mockedPoolInfo = AmmV3.makeMockPoolInfo({
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,

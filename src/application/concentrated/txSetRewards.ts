@@ -8,7 +8,7 @@ import useConnection from '../connection/useConnection'
 import { getTokenProgramId, isToken2022 } from '../token/isToken2022'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import txHandler from '../txTools/handleTx'
+import txHandler, { lookupTableCache } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo } from './type'
 import { Numberish } from '@/types/constants'
@@ -85,7 +85,7 @@ export default async function txSetRewards({ currentAmmPool, updateRewards, newR
   }
 
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
 
     const commonParams = {
       connection: connection,
@@ -106,7 +106,9 @@ export default async function txSetRewards({ currentAmmPool, updateRewards, newR
         chainTime,
         rewardInfos: updatedRewardInfos,
         computeBudgetConfig: await getComputeBudgetConfig(),
-        checkCreateATAOwner: true
+        checkCreateATAOwner: true,
+        makeTxVersion: txVersion,
+        lookupTableCache
       })
 
       transactionCollector.add(innerTransactions, {
@@ -123,7 +125,9 @@ export default async function txSetRewards({ currentAmmPool, updateRewards, newR
         ...commonParams,
         rewardInfos: newRewardInfos,
         computeBudgetConfig: await getComputeBudgetConfig(),
-        checkCreateATAOwner: true
+        checkCreateATAOwner: true,
+        makeTxVersion: txVersion,
+        lookupTableCache
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {

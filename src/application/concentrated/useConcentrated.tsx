@@ -1,7 +1,7 @@
 import {
   AmmV3,
   ApiAmmV3PositionLinePoint,
-  InnerTransaction,
+  InnerSimpleTransaction,
   ReturnTypeFetchMultiplePoolInfos
 } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -132,7 +132,7 @@ export type ConcentratedStore = {
   availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
   userSettedCurrentPrice?: Numberish // create pool
-  tempDataCache?: InnerTransaction[]
+  tempDataCache?: InnerSimpleTransaction[]
   rewards: UICLMMRewardInfo[] // TEMP
 
   planAApr?: { feeApr: number; rewardsApr: number[]; apr: number }

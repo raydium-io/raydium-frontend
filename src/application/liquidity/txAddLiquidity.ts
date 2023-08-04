@@ -1,7 +1,7 @@
 import { jsonInfo2PoolKeys, Liquidity } from '@raydium-io/raydium-sdk'
 
 import { deUITokenAmount } from '@/application/token/quantumSOL'
-import txHandler from '@/application/txTools/handleTx'
+import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -13,7 +13,7 @@ import useLiquidity from './useLiquidity'
 
 export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
+    const { checkWalletHasEnoughBalance, tokenAccountRawInfos, txVersion } = useWallet.getState()
     const {
       coin1,
       coin2,
@@ -61,7 +61,9 @@ export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicK
       userKeys: { tokenAccounts: tokenAccountRawInfos, owner },
       amountInA: deUITokenAmount(coin1TokenAmount),
       amountInB: deUITokenAmount(coin2TokenAmount),
-      fixedSide: focusSide === 'coin1' ? 'a' : 'b'
+      fixedSide: focusSide === 'coin1' ? 'a' : 'b',
+      makeTxVersion: txVersion,
+      lookupTableCache
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

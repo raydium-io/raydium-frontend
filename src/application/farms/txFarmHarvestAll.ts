@@ -1,6 +1,6 @@
 import { Farm } from '@raydium-io/raydium-sdk'
 
-import { createTxHandler, TransactionQueue } from '@/application/txTools/handleTx'
+import { createTxHandler, lookupTableCache, TransactionQueue } from '@/application/txTools/handleTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
@@ -16,7 +16,7 @@ const txFarmHarvestAll = createTxHandler(
     async ({ transactionCollector, baseUtils: { connection, owner } }) => {
       const infos = options?.infos
       assert(infos, 'should have harvest target')
-      const { tokenAccountRawInfos } = useWallet.getState()
+      const { tokenAccountRawInfos, txVersion } = useWallet.getState()
 
       const { innerTransactions } = await Farm.makeHarvestAllRewardInstructionSimple({
         connection: connection,
@@ -28,7 +28,9 @@ const txFarmHarvestAll = createTxHandler(
           useSOLBalance: true
         },
         associatedOnly: false,
-        checkCreateATAOwner: true
+        checkCreateATAOwner: true,
+        makeTxVersion: txVersion,
+        lookupTableCache
       })
       const listenerId = addWalletAccountChangeListener(
         () => {

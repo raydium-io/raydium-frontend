@@ -1,5 +1,5 @@
-import { buildTransaction, InnerTransaction, TxVersion } from '@raydium-io/raydium-sdk'
-import { Connection, PublicKey, Signer, Transaction, VersionedTransaction } from '@solana/web3.js'
+import { buildSimpleTransaction, InnerSimpleTransaction, TxVersion } from '@raydium-io/raydium-sdk'
+import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 
 export async function buildTransactionsFromSDKInnerTransactions({
   connection,
@@ -10,13 +10,13 @@ export async function buildTransactionsFromSDKInnerTransactions({
   connection: Connection
   wallet: PublicKey
   txVersion: TxVersion
-  transactions: InnerTransaction[]
+  transactions: InnerSimpleTransaction[]
 }): Promise<(Transaction | VersionedTransaction)[]> {
-  const spawnedTransactions = await buildTransaction({
+  const spawnedTransactions = await buildSimpleTransaction({
     connection,
     payer: wallet,
     innerTransactions: transactions,
-    txType: txVersion
+    makeTxVersion: txVersion
   })
   return spawnedTransactions
 }

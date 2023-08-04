@@ -4,7 +4,7 @@ import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import txHandler, { TransactionQueue } from '../txTools/handleTx'
+import txHandler, { TransactionQueue, lookupTableCache } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
@@ -16,7 +16,7 @@ export default async function txHarvestConcentrated({
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { tokenAccountRawInfos } = useWallet.getState()
+    const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
     const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
@@ -35,7 +35,9 @@ export default async function txHarvestConcentrated({
       // slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
-      checkCreateATAOwner: true
+      checkCreateATAOwner: true,
+      makeTxVersion: txVersion,
+      lookupTableCache
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
@@ -49,7 +51,7 @@ export default async function txHarvestConcentrated({
 export async function txHarvestAllConcentrated() {
   const { logError } = useNotification.getState()
   const { originSdkParsedAmmPools, hydratedAmmPools } = useConcentrated.getState()
-  const { tokenAccountRawInfos } = useWallet.getState()
+  const { tokenAccountRawInfos, txVersion } = useWallet.getState()
   const { logInfo } = useNotification.getState()
   const connection = useConnection.getState().connection
   const { owner } = useWallet.getState()
@@ -73,7 +75,9 @@ export async function txHarvestAllConcentrated() {
       useSOLBalance: true
     },
     associatedOnly: true,
-    checkCreateATAOwner: true
+    checkCreateATAOwner: true,
+    makeTxVersion: txVersion,
+    lookupTableCache
   })
 
   // no harvestable position, show notification
