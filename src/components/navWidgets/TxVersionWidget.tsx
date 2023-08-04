@@ -8,7 +8,7 @@ export function TxVersionWidget() {
   const txVersion = useWallet((s) => s.txVersion)
   return (
     <Row className="mobile:flex-col-reverse mobile:gap-0 items-center gap-2">
-      <div className="mobile:text-2xs text-sm text-[#abc4ff80]">ver.TX</div>
+      <div className="mobile:h-2 mobile:text-2xs text-sm text-[#abc4ff80]">ver.TX</div>
       <Switcher
         // className="mobile:h-4"
         checked={txVersion === TxVersion.V0}
