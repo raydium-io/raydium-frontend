@@ -1,20 +1,17 @@
+import { CacheLTA, InnerSimpleTransaction, TxVersion } from '@raydium-io/raydium-sdk'
 import {
-  Connection,
-  Context,
-  Keypair,
-  PublicKey,
-  SignatureResult,
-  Transaction,
-  TransactionError,
-  VersionedTransaction
+  Connection, Context, Keypair, PublicKey, SignatureResult, Transaction, TransactionError, VersionedTransaction
 } from '@solana/web3.js'
 
 import { produce } from 'immer'
 
 import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
 import assert from '@/functions/assert'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { isArray, isObject } from '@/functions/judgers/dateType'
 import { mergeFunction, mergeObject } from '@/functions/merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import tryCatch from '@/functions/tryCatch'
 import { MayPromise } from '@/types/constants'
 
 import { noTailingPeriod } from '../../../functions/format/noTailingPeriod'
@@ -25,13 +22,9 @@ import useTxHistory, { TxHistoryInfo } from '../../txHistory/useTxHistory'
 import { getRichWalletTokenAccounts } from '../../wallet/useTokenAccountsRefresher'
 import useWallet, { WalletStore } from '../../wallet/useWallet'
 
-import { isArray, isObject } from '@/functions/judgers/dateType'
-import { CacheLTA, InnerSimpleTransaction, TxVersion } from '@raydium-io/raydium-sdk'
 import { buildTransactionsFromSDKInnerTransactions } from './createVersionedTransaction'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import tryCatch from '@/functions/tryCatch'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -77,11 +70,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-      type: 'success'
-    } & TxSuccessInfo)
+    type: 'success'
+  } & TxSuccessInfo)
   | ({
-      type: 'error'
-    } & TxErrorInfo)
+    type: 'error'
+  } & TxErrorInfo)
 
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
@@ -155,10 +148,10 @@ export type MultiTxsOption = {
    * send all at once
    */
   sendMode?:
-    | 'queue'
-    | 'queue(all-settle)'
-    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-    | 'parallel(batch-transactions)' /* it will in order */
+  | 'queue'
+  | 'queue(all-settle)'
+  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+  | 'parallel(batch-transactions)' /* it will in order */
 } & MultiTxCallbacks
 
 export type MultiTxCallbacks = {
@@ -436,11 +429,11 @@ async function dealWithMultiTxOptions({
       try {
         const builded = transactions.every(isInnerTransaction)
           ? await buildTransactionsFromSDKInnerTransactions({
-              connection: payload.connection,
-              wallet: payload.owner,
-              txVersion: payload.txVersion,
-              transactions
-            })
+            connection: payload.connection,
+            wallet: payload.owner,
+            txVersion: payload.txVersion,
+            transactions
+          })
           : (transactions as Transaction[])
 
         try {
@@ -449,11 +442,11 @@ async function dealWithMultiTxOptions({
             'tx transactions: ',
             toHumanReadable(builded),
             builded.map((i) =>
-              i
+              Buffer.from(i
                 .serialize({
                   requireAllSignatures: false,
                   verifySignatures: false
-                })
+                }))
                 .toString('base64')
             )
           )
@@ -608,7 +601,7 @@ function composeWithDifferentSendMode({
           method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue(all-settle)' ? 'finally' : 'success')
         }
       },
-      { fn: () => {}, method: 'success' }
+      { fn: () => { }, method: 'success' }
     )
     return queued.fn
   }

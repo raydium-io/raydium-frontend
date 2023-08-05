@@ -3,19 +3,20 @@ import { AmmV3 } from '@raydium-io/raydium-sdk'
 import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 
 import useConnection from '../connection/useConnection'
-import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-
-import useConcentrated, { ConcentratedStore } from './useConcentrated'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import { getEphemeralSigners } from '../txTools/getEphemeralSigners'
+
+import useConcentrated, { ConcentratedStore } from './useConcentrated'
 
 export default async function txCreateConcentratedPosotion({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -59,10 +60,10 @@ export default async function txCreateConcentratedPosotion({
       groupInfo:
         currentAmmPool && priceLower && priceUpper
           ? {
-              ammPool: currentAmmPool,
-              priceLower,
-              priceUpper
-            }
+            ammPool: currentAmmPool,
+            priceLower,
+            priceUpper
+          }
           : undefined,
       caseName: 'openPosition'
     })
@@ -100,9 +101,8 @@ export default async function txCreateConcentratedPosotion({
       txHistoryInfo: {
         title: 'Position Created',
         forceErrorTitle: 'Error creating position',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
-          coin2?.symbol ?? '--'
-        }`
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${coin2?.symbol ?? '--'
+          }`
       }
     })
   })
@@ -177,11 +177,11 @@ export async function generateCreateClmmPositionTx(
     tickUpper: Math.max(priceLowerTick, priceUpperTick),
     amountMaxA: coin1IsMintA ? _coin1Amount : _coin2Amount,
     amountMaxB: !coin1IsMintA ? _coin1Amount : _coin2Amount,
-    slippage: 0.015,
     computeBudgetConfig: await getComputeBudgetConfig(),
     checkCreateATAOwner: true,
     makeTxVersion: txVersion,
-    lookupTableCache
+    lookupTableCache,
+    getEphemeralSigners: await getEphemeralSigners(),
   })
   return { innerTransactions, nftAddress: String(address.nftMint) }
 }

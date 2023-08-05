@@ -111,9 +111,8 @@ export default async function txSwap() {
       {
         txHistoryInfo: {
           title: 'Swap',
-          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
-            downCoin.symbol
-          }`,
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
+            }`,
           subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
         } as TxHistoryInfo
       }

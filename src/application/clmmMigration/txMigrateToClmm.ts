@@ -1,5 +1,7 @@
 import { Liquidity, ZERO } from '@raydium-io/raydium-sdk'
+
 import BN from 'bn.js'
+
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 
@@ -9,12 +11,12 @@ import useFarms from '../farms/useFarms'
 import { HydratedLiquidityInfo } from '../liquidity/type'
 import useLiquidity from '../liquidity/useLiquidity'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import { getEphemeralSigners } from '../txTools/getEphemeralSigners'
 import txHandler from '../txTools/handleTx'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import {
-  addWalletAccountChangeListener,
-  removeWalletAccountChangeListener
+  addWalletAccountChangeListener, removeWalletAccountChangeListener
 } from '../wallet/useWalletAccountChangeListeners'
 
 export default function txMigrateToClmm({
@@ -57,9 +59,9 @@ export default function txMigrateToClmm({
       clmmPoolKeys: currentClmmPool.state,
       farmInfo: farmInfo
         ? {
-            poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
-            amount: farmInfo.userStakedLpAmount?.raw ?? ZERO /* actually, will never use this  */
-          }
+          poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
+          amount: farmInfo.userStakedLpAmount?.raw ?? ZERO /* actually, will never use this  */
+        }
         : undefined,
       createPositionInfo: {
         tickLower,
@@ -74,7 +76,9 @@ export default function txMigrateToClmm({
         owner
       },
       computeBudgetConfig: await getComputeBudgetConfig(),
-      checkCreateATAOwner: true
+      checkCreateATAOwner: true,
+
+      getEphemeralSigners: await getEphemeralSigners(),
     })
     const listenerId = addWalletAccountChangeListener(
       () => {
