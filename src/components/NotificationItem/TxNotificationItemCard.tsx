@@ -161,7 +161,7 @@ export function TxNotificationItemCard({
                   ? `Confirming transactions...(${processedTransactionLength}/${totalTransactionLength})`
                   : `Confirming transaction...`}
               </div>
-              <div className="font-medium text-sm mobile:text-sm text-[#abc4ff] mt-1">
+              <div className="font-medium text-sm whitespace-pre-wrap mobile:text-sm text-[#abc4ff] mt-1">
                 {innerTxInfos[0].historyInfo.description}
               </div>
             </div>

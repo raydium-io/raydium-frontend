@@ -110,7 +110,9 @@ export function NormalNotificationItemCard({ info, close }: { info: NormalNotifi
           <div className="font-medium text-base text-white">{title}</div>
           {subtitle && <div className="font-normal text-base mobile:text-sm text-[#ABC4FF]">{subtitle}</div>}
           {description && (
-            <div className="font-medium text-sm mobile:text-xs text-[rgba(171,196,255,0.5)]">{description}</div>
+            <div className="font-medium text-sm whitespace-pre-wrap mobile:text-xs text-[rgba(171,196,255,0.5)]">
+              {description}
+            </div>
           )}
         </div>
       </Row>
