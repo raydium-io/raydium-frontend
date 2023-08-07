@@ -297,7 +297,7 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
       singleTxOptions?.[0]?.txHistoryInfo?.forceErrorTitle ??
       (singleTxOptions?.[0]?.txHistoryInfo?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
     let systemErrorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
-    if (systemErrorDescription.indexOf("versioned transactions isn't supported") > -1) {
+    if (systemErrorDescription.includes("versioned transactions isn't supported")) {
       systemErrorDescription =
         'Transaction cancelled\nThis wallet might not support Versioned Transaction, turn it off and try again.'
     }
