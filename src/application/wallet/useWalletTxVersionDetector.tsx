@@ -9,18 +9,19 @@ import useWallet from './useWallet'
 /**
  * this list may be updated if more support versione transaction
  */
-const versionTxSupportWalletNames: string[] = [
-  PhantomWalletName,
-  GlowWalletName,
-  SolflareWalletName,
-  BackpackWalletName
+const versionTxBlockWalletNames: string[] = [
+  // seems all wallet support version tx
+  // PhantomWalletName,
+  // GlowWalletName,
+  // SolflareWalletName,
+  // BackpackWalletName
 ]
 
 export function useWalletTxVersionDetector() {
   const adapter = useWallet((s) => s.adapter)
   useEffect(() => {
     if (adapter?.name) {
-      const isWalletSupportVersionTx = versionTxSupportWalletNames.includes(adapter.name)
+      const isWalletSupportVersionTx = !versionTxBlockWalletNames.includes(adapter.name)
       useWallet.setState({ txVersion: isWalletSupportVersionTx ? TxVersion.V0 : TxVersion.LEGACY })
     }
   }, [adapter?.name])
