@@ -473,11 +473,12 @@ async function dealWithMultiTxOptions({
         const allSignedTransactions = await (noNeedSignAgain // if have signer detected, no need signAllTransactions
           ? builded
           : payload.signAllTransactions(builded))
-
         // check all txs are signed, trust wallet doesn't throw error when user reject sign
         allSignedTransactions.forEach((tx) => {
           tx.signatures.forEach((s) => {
-            if (s.publicKey.equals(payload.owner) && !s.signature) throw new Error('User rejected the request')
+            if (s instanceof Uint8Array) {
+              if (!s.valueOf().find((a: number) => a !== 0)) throw new Error('User rejected the request')
+            } else if (s.publicKey.equals(payload.owner) && !s.signature) throw new Error('User rejected the request')
           })
         })
 
