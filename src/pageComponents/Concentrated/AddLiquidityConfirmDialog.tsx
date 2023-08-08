@@ -85,8 +85,6 @@ export default function AddLiquidityConfirmDialog({
   onRefreshSnapshot,
   isSnapshotDataFresh
 }: Props) {
-  const hasUpdated = useHaveUpdated({ freshState: isSnapshotDataFresh, restartState: open })
-
   const hasConfirmed = useRef(false)
   const decimalPlace = Math.min(decimals ?? 6, 6)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -293,12 +291,6 @@ export default function AddLiquidityConfirmDialog({
                             children: 'Refresh Position'
                           }
                         },
-                        hasUpdated
-                          ? {
-                              should: inRange,
-                              fallbackProps: { children: 'Out of Range' }
-                            }
-                          : undefined,
                         {
                           should: haveEnoughCoin1,
                           fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
