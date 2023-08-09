@@ -1,13 +1,6 @@
 import { CacheLTA, InnerSimpleTransaction, TxVersion } from '@raydium-io/raydium-sdk'
 import {
-  Connection,
-  Context,
-  Keypair,
-  PublicKey,
-  SignatureResult,
-  SignaturePubkeyPair,
-  Transaction,
-  TransactionError,
+  Connection, Context, Keypair, PublicKey, SignaturePubkeyPair, SignatureResult, Transaction, TransactionError,
   VersionedTransaction
 } from '@solana/web3.js'
 
@@ -78,11 +71,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-      type: 'success'
-    } & TxSuccessInfo)
+    type: 'success'
+  } & TxSuccessInfo)
   | ({
-      type: 'error'
-    } & TxErrorInfo)
+    type: 'error'
+  } & TxErrorInfo)
 
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
@@ -156,10 +149,10 @@ export type MultiTxsOption = {
    * send all at once
    */
   sendMode?:
-    | 'queue'
-    | 'queue(all-settle)'
-    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-    | 'parallel(batch-transactions)' /* it will in order */
+  | 'queue'
+  | 'queue(all-settle)'
+  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+  | 'parallel(batch-transactions)' /* it will in order */
 } & MultiTxCallbacks
 
 export type MultiTxCallbacks = {
@@ -300,7 +293,7 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
     let systemErrorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
     if (
       systemErrorDescription.includes("versioned transactions isn't supported") ||
-      systemErrorDescription.includes('tx.serializeMessage')
+      systemErrorDescription.includes('.serializeMessage')
     ) {
       systemErrorDescription =
         'Transaction cancelled\nThis wallet might not support Versioned Transaction, turn it off and try again.'
@@ -444,11 +437,11 @@ async function dealWithMultiTxOptions({
       try {
         const builded = transactions.every(isInnerTransaction)
           ? await buildTransactionsFromSDKInnerTransactions({
-              connection: payload.connection,
-              wallet: payload.owner,
-              txVersion: payload.txVersion,
-              transactions
-            })
+            connection: payload.connection,
+            wallet: payload.owner,
+            txVersion: payload.txVersion,
+            transactions
+          })
           : (transactions as Transaction[])
 
         try {
@@ -624,7 +617,7 @@ function composeWithDifferentSendMode({
           method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue(all-settle)' ? 'finally' : 'success')
         }
       },
-      { fn: () => {}, method: 'success' }
+      { fn: () => { }, method: 'success' }
     )
     return queued.fn
   }
