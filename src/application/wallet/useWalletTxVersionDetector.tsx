@@ -1,9 +1,7 @@
-import { TxVersion } from '@raydium-io/raydium-sdk'
-import { BackpackWalletName } from '@solana/wallet-adapter-backpack'
-import { GlowWalletName } from '@solana/wallet-adapter-glow'
-import { PhantomWalletName } from '@solana/wallet-adapter-phantom'
-import { SolflareWalletName } from '@solana/wallet-adapter-solflare'
 import { useEffect } from 'react'
+
+import { TxVersion } from '@raydium-io/raydium-sdk'
+
 import useWallet from './useWallet'
 
 /**
@@ -11,10 +9,7 @@ import useWallet from './useWallet'
  */
 const versionTxBlockWalletNames: string[] = [
   // seems all wallet support version tx
-  // PhantomWalletName,
-  // GlowWalletName,
-  // SolflareWalletName,
-  // BackpackWalletName
+  'SafePal'
 ]
 
 export function useWalletTxVersionDetector() {
