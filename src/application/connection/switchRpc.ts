@@ -57,28 +57,31 @@ export async function switchRpc(customizedEndPoint: Endpoint) {
       // record selection to senssionStorage
       setSessionItem(SESSION_STORAGE_USER_SELECTED_RPC, newEndPoint)
 
-      const isUserAdded = !useConnection
+      const newUserAdded = !useConnection
         .getState()
         .availableEndPoints.map((i) => i.url)
         .includes(newEndPoint.url)
 
-      if (isUserAdded) {
+      if (newUserAdded) {
         // record userAdded to localStorage
         setLocalItem(LOCALSTORAGE_KEY_USER_RPC, (v) =>
-          unifyByKey([{ ...newEndPoint, isUserCustomized: true } as UserCustomizedEndpoint, ...(v ?? [])], (i) => i.url)
+          unifyByKey(
+            [{ ...newEndPoint, isUserCustomized: newUserAdded } as UserCustomizedEndpoint, ...(v ?? [])],
+            (i) => i.url
+          )
         )
       }
 
-      useConnection.setState((s) => {
-        const unified = unifyByKey(
-          [...(s.availableEndPoints ?? []), { ...newEndPoint, isUserCustomized: true } as UserCustomizedEndpoint],
+      useConnection.setState((s) => ({
+        currentEndPoint: newEndPoint,
+        availableEndPoints: unifyByKey(
+          [
+            ...(s.availableEndPoints ?? []),
+            (newUserAdded ? { ...newEndPoint, isUserCustomized: newUserAdded } : newEndPoint) as UserCustomizedEndpoint
+          ],
           (i) => i.url
         )
-        return {
-          currentEndPoint: newEndPoint,
-          availableEndPoints: unified
-        }
-      })
+      }))
 
       return true
     }
