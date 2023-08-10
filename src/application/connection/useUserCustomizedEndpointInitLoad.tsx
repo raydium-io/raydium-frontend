@@ -9,7 +9,7 @@ export function useUserCustomizedEndpointInitLoad() {
   useEffect(() => {
     if (storagedEndpoints?.length) {
       useConnection.setState((s) => ({
-        availableEndPoints: unifyByKey([...s.availableEndPoints, ...storagedEndpoints], (i) => i.url)
+        availableEndPoints: unifyByKey([...storagedEndpoints, ...s.availableEndPoints], (i) => i.url)
       }))
     }
   }, [storagedEndpoints?.length])
