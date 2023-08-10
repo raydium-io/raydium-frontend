@@ -12,7 +12,7 @@ export interface Endpoint {
 }
 
 export interface Config {
-  strategy: 'speed' | 'weight'
+  strategy: 'speed' | 'weight' | 'sequence'
   success: boolean
   rpcs: Endpoint[]
   devrpcs: Endpoint[]

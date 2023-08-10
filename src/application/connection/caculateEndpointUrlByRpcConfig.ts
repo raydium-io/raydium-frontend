@@ -1,7 +1,11 @@
 import { Config, Endpoint } from './type'
 
 export default async function caculateEndpointUrlByRpcConfig({ strategy, rpcs }: Config): Promise<string> {
-  return strategy === 'weight' ? getEndpointUrlByWeight(rpcs) : getEndpointUrlBySpeed(rpcs)
+  return strategy === 'weight'
+    ? getEndpointUrlByWeight(rpcs)
+    : strategy === 'speed'
+    ? getEndpointUrlBySpeed(rpcs)
+    : getEndpointUrlBySequence(rpcs)
 }
 function getEndpointUrlByWeight(endpoints: Endpoint[]): string {
   let pointer = 0
@@ -17,6 +21,10 @@ function getEndpointUrlByWeight(endpoints: Endpoint[]): string {
     }
   }
   return api
+}
+
+function getEndpointUrlBySequence(endpoints: Endpoint[]): string {
+  return endpoints[0]?.url
 }
 
 async function getEndpointUrlBySpeed(endpoints: Endpoint[]): Promise<string> {
