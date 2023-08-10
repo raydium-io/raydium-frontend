@@ -50,7 +50,7 @@ export default function useConnectionInitialization() {
         const connection = new Connection(userSelectedRpc?.url ?? selectedEndpointUrl, 'confirmed') // TEMP for DEV
 
         useConnection.setState((s) => ({
-          availableEndPoints: unifyByKey([...data.rpcs, ...(s.availableEndPoints ?? [])], (i) => i.url),
+          availableEndPoints: unifyByKey([...(s.availableEndPoints ?? []), ...data.rpcs], (i) => i.url),
           availableDevEndPoints: data.devrpcs ? unifyByKey(data.devrpcs, (i) => i.url) : undefined,
           autoChoosedEndPoint: data.rpcs.find(({ url }) => url === selectedEndpointUrl),
           currentEndPoint,
