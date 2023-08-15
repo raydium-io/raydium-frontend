@@ -1,7 +1,10 @@
-import { DEVNET_PROGRAM_ID, ENDPOINT, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 
-import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
+import { DEVNET_PROGRAM_ID, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
+
+import { produce } from 'immer'
+
+import useAppAdvancedSettings, { DEFAULT_URL_ENDPOINT } from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
 import Button from '@/components/Button'
 import Col from '@/components/Col'
@@ -17,7 +20,6 @@ import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isPubEqual } from '@/functions/judgers/areEqual'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { objectMap } from '@/functions/objectMethods'
-import { produce } from 'immer'
 
 export default function SettingsPage() {
   return (
@@ -96,7 +98,7 @@ function ProgramIDTabs() {
           suffix={
             <div
               onClick={() => {
-                setTempApiUrlOrigin(ENDPOINT)
+                setTempApiUrlOrigin(DEFAULT_URL_ENDPOINT)
               }}
               className="text-[#abc4ff] cursor-pointer clickable"
             >
