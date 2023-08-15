@@ -17,7 +17,7 @@ export function TxVersionWidget() {
         <Tooltip placement="bottom">
           <Icon size={isMobile ? 'xs' : 'sm'} heroIconName="information-circle" />
           <Tooltip.Panel>
-            <div className="max-w-[300px] space-y-1.5">
+            <div className="max-w-[300px] space-y-1.5 whitespace-nowrap">
               Versioned Transactions are a new transaction format that allows for additional functionality, including
               advanced swap routing. Before turning on Vers. Tx, ensure that your wallet is compatible.
             </div>
