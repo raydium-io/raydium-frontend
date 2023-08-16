@@ -13,11 +13,11 @@ export function TxVersionWidget() {
   return (
     <Row className="mobile:flex-col-reverse mobile:translate-y-1 mobile:gap-0 items-center gap-2">
       <Row className="items-center gap-1 text-[#abc4ff80]">
-        <div className="mobile:text-2xs text-sm">Vers. Tx</div>
+        <div className="mobile:text-2xs text-sm whitespace-nowrap">Vers. Tx</div>
         <Tooltip placement="bottom">
           <Icon size={isMobile ? 'xs' : 'sm'} heroIconName="information-circle" />
           <Tooltip.Panel>
-            <div className="max-w-[300px] space-y-1.5 whitespace-nowrap">
+            <div className="max-w-[300px] space-y-1.5">
               Versioned Transactions are a new transaction format that allows for additional functionality, including
               advanced swap routing. Before turning on Vers. Tx, ensure that your wallet is compatible.
             </div>
