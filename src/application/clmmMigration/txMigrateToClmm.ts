@@ -12,7 +12,7 @@ import { HydratedLiquidityInfo } from '../liquidity/type'
 import useLiquidity from '../liquidity/useLiquidity'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { getEphemeralSigners } from '../txTools/getEphemeralSigners'
-import txHandler from '../txTools/handleTx'
+import txHandler, { lookupTableCache } from '../txTools/handleTx'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import {
@@ -79,6 +79,9 @@ export default function txMigrateToClmm({
       checkCreateATAOwner: true,
 
       getEphemeralSigners: await getEphemeralSigners(),
+
+      makeTxVersion: txVersion,
+      lookupTableCache,
     })
     const listenerId = addWalletAccountChangeListener(
       () => {
