@@ -1,6 +1,6 @@
 import React, { CSSProperties, RefObject, useEffect, useRef, useState } from 'react'
 
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { shakeFalsyItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import mergeRef from '@/functions/react/mergeRef'
 import { useClick } from '@/hooks/useClick'
 
@@ -38,7 +38,7 @@ export default function Image({
 }) {
   const ref = useRef<HTMLImageElement>(null)
   useClick(ref, { onClick })
-  const rawSrc = shakeUndifindedItem([src].flat())
+  const rawSrc = shakeFalsyItem([src].flat())
   const srcSet = rawSrc.length > 0 ? shakeUndifindedItem([src, fallbackSrc].flat()) : []
   const srcFingerprint = srcSet.join(' ')
   const [currentUsedSrcIndex, setCurrentUsedSrcIndex] = useState(0)
@@ -63,7 +63,7 @@ export default function Image({
       width={width}
       height={height}
       ref={mergeRef(domRef, ref)}
-      className={`Image ${src || srcSet.length ? '' : 'invisible'} ${className ?? ''}`}
+      className={`Image ${className ?? ''}`}
       src={currentSrc}
       alt={alertText}
       style={{ ...style, backgroundColor: fallbackColor }}
