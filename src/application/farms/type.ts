@@ -120,6 +120,7 @@ export type HydratedRewardInfo = {
   claimableRewards?: TokenAmount // v6
   owner?: string // v6
   perSecond?: string | number // v6
+  perWeek?: TokenAmount // v6
 }
 
 /** computed by other info  */

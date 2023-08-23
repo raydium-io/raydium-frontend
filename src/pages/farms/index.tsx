@@ -782,6 +782,7 @@ function FarmPendingRewardBadge({
   farmInfo: HydratedFarmInfo
   reward: HydratedRewardInfo | TokenAmount | undefined
 }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
 
@@ -790,6 +791,7 @@ function FarmPendingRewardBadge({
   const isRewardEnded = isTokenAmount(reward) ? false : reward.isRewardEnded
   const isRewardBeforeStart = isTokenAmount(reward) ? false : reward.isRewardBeforeStart
   const pendingAmount = isTokenAmount(reward) ? reward : reward.userPendingReward
+  const tokenPrices = useToken((s) => s.tokenPrices)
   return (
     <Tooltip placement="bottom">
       <Row
@@ -819,8 +821,27 @@ function FarmPendingRewardBadge({
         </div>
       </Row>
       <Tooltip.Panel>
+        <Row className="text-sm justify-between items-center min-w-[260px] gap-4 mb-1">
+          <Row className="gap-1.5 items-center">
+            <CoinAvatar size={isMobile ? 'xs' : 'smi'} token={reward.token} />
+            {isRewardEnded || isTokenAmount(reward) ? (
+              <span className="text-[#ABC4FF]">{reward.token?.symbol ?? '--'}</span>
+            ) : (
+              <>
+                <span className="text-white">{formatNumber(toString(reward.perWeek))}</span>
+                <span className="text-[#ABC4FF]">{reward.token?.symbol ?? '--'} per week</span>
+              </>
+            )}
+          </Row>
+          {isRewardEnded || isTokenAmount(reward) ? null : (
+            <span className="text-white/50">
+              {toUsdVolume(toTotalPrice(reward.perWeek, tokenPrices[toPubString(reward.token?.mint)] ?? null), {
+                decimalPlace: 0
+              })}
+            </span>
+          )}
+        </Row>
         <div className="mb-1">
-          {reward.token?.symbol ?? '--'}{' '}
           {!isTokenAmount(reward) &&
             reward.openTime &&
             reward.endTime &&

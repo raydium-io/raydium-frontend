@@ -197,6 +197,8 @@ export function hydrateFarmInfo(
               )
             const claimableRewards =
               token && toTokenAmount(token, sub(rewardInfo.totalReward, rewardInfo.totalRewardEmissioned))
+            // const perWeek
+            const rewardPerWeek = toTokenAmount(token, rewardPerSecond.mul(toBN(60 * 60 * 24 * 7)))
 
             const pendingReward = pendingRewards?.[idx]
             const apr = aprs[idx]
@@ -221,6 +223,7 @@ export function hydrateFarmInfo(
               isRewarding,
               isRwardingBeforeEnd72h,
               claimableRewards,
+              perWeek: rewardPerWeek,
               version: 6
             }
           })

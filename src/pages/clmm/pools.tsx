@@ -1043,7 +1043,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
-  const { lpPrices } = usePools()
+  const lpPrices = usePools((s) => s.lpPrices)
   const tokenPrices = useToken((s) => s.tokenPrices)
   const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
 
