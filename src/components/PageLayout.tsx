@@ -586,12 +586,6 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
               AcceleRaytor
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-dropzone.svg" href="https://dropzone.raydium.io/">
-              Dropzone
-            </LinkItem>
-            <LinkItem icon="/icons/entry-icon-nft.svg" href="https://nft.raydium.io/">
-              NFT
-            </LinkItem>
           </div>
 
           <Col className="overflow-scroll no-native-scrollbar">
