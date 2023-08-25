@@ -41,13 +41,11 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     //   ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
     // )
 
-    const isBaseVerifyed = await verifyToken(baseMint, { canWhiteList: true })
+    const isBaseVerifyed = await verifyToken(baseMint, { canWhiteList: true, noLog: true })
     assert(isBaseVerifyed, 'base token verify failed')
     if (!isBaseVerifyed) return { isSuccess: false }
     const baseDecimals = isBaseVerifyed.decimals
-    const isQuoteVerifyed = await verifyToken(quoteMint, {
-      canWhiteList: true
-    })
+    const isQuoteVerifyed = await verifyToken(quoteMint, { canWhiteList: true, noLog: true })
     assert(isQuoteVerifyed, 'quote token verify failed')
     if (!isQuoteVerifyed) return { isSuccess: false }
     const quoteDecimals = isQuoteVerifyed.decimals
