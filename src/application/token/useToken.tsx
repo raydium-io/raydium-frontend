@@ -27,6 +27,7 @@ import {
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
 import { RAYMint, SOLMint } from './wellknownToken.config'
+import { setMinus } from '@/functions/setMethods'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -87,7 +88,7 @@ export type TokenStore = {
   tokenPrices: Record<HexAddress, Price>
 
   // TODO token mint in blacklist means it can't be selected or add by user Added
-  blacklist: string[]
+  blacklist: Set<string>
 
   // TODO: solana token mints
   // TODO: raydium token mints
@@ -114,6 +115,9 @@ export type TokenStore = {
 
   refreshTokenListCount: number
   refreshTokenList(): void
+
+  isTokenUnnamed(tokenMint: PublicKeyish): boolean
+  isTokenUnnamedAndNotUserCustomized(tokenMint: PublicKeyish): boolean
 }
 
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME_DEPRECATED = 'Raydium Mainnet Token List'
@@ -187,7 +191,7 @@ export const useToken = create<TokenStore>((set, get) => ({
   isLpToken: () => false,
 
   tokenPrices: {},
-  blacklist: [],
+  blacklist: new Set(),
 
   userAddedTokens: {},
   addUserAddedToken: async (rawToken: SplToken) => {
@@ -312,6 +316,35 @@ export const useToken = create<TokenStore>((set, get) => ({
   refreshTokenListCount: 0,
   refreshTokenList() {
     set({ refreshTokenListCount: get().refreshTokenListCount + 1 })
+  },
+
+  isTokenUnnamed: (tokenMint: PublicKeyish) => {
+    const { tokenListSettings, blacklist } = get()
+    const officialTokenMints = tokenListSettings['Raydium Token List'].mints
+    if (officialTokenMints?.has(toPubString(tokenMint))) return false
+
+    const unofficialTokenMints = tokenListSettings['Solana Token List'].mints
+    if (unofficialTokenMints?.has(toPubString(tokenMint))) return false
+
+    if (blacklist?.has(toPubString(tokenMint))) return false
+
+    return true
+  },
+
+  isTokenUnnamedAndNotUserCustomized: (tokenMint: PublicKeyish) => {
+    const { tokenListSettings, blacklist } = get()
+    const officialTokenMints = tokenListSettings['Raydium Token List'].mints
+    if (officialTokenMints?.has(toPubString(tokenMint))) return false
+
+    const unofficialTokenMints = tokenListSettings['Solana Token List'].mints
+    if (unofficialTokenMints?.has(toPubString(tokenMint))) return false
+
+    const userTokenMints = tokenListSettings['User Added Token List'].mints
+    if (userTokenMints?.has(toPubString(tokenMint))) return false
+
+    if (blacklist?.has(toPubString(tokenMint))) return false
+
+    return true
   }
 }))
 // TODO: useLocalStorge to record user's token list

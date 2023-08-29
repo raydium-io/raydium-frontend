@@ -4,64 +4,38 @@ import { isNumber, isObject, isString } from '@/functions/judgers/dateType'
 import { objectMap, omit } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayArray, MayFunction } from '@/types/constants'
+import { flap } from './flap'
 
-type SearchConfigItemObj = {
+type MatchRuleObj = {
   text: string | undefined
   entirely?: boolean
 }
 
-export type SearchConfigItem = SearchConfigItemObj | string | undefined
+export type MatchRule = MatchRuleObj | string | undefined
 
 export type SearchOptions<T> = {
-  text?: string /* for controlled component */
-  matchConfigs?: MayFunction<MayArray<SearchConfigItem>, [item: T]>
+  text?: string
+  /**
+   * different search mode may cause different result count
+   * eagle: search for all keywords, if one keyword not match, then this item is not right candidate
+   * fuzzy: search for all keywords, if one keyword not match, then this item is still right candidate
+   * greedy: search for all keywords, but matched config will be removed from rest search configs.(fuzzy + auto-remove)
+   *
+   * default: greedy
+   */
+  searchMode?: 'eagle' | 'fuzzy' | 'greedy'
+  matchConfigs?: MayFunction<MayArray<MatchRule>, [item: T]>
+  canSort?: boolean
 }
 
-/**
- * pure js fn/
- * core of "search" feature
- */
-export function searchItems<T>(items: T[], options?: SearchOptions<T>): T[] {
-  if (!options) return items
-  if (!options.text) return items
-  const allMatchedStatusInfos = shakeUndifindedItem(
-    items.map((item) => getMatchedInfos(item, options.text!, options?.matchConfigs ?? extractItemBeSearchedText(item)))
-  )
-  const meaningfulMatchedInfos = allMatchedStatusInfos.filter((m) => m?.matched)
-  const sortedMatchedInfos = sortByMatchedInfos<T>(meaningfulMatchedInfos)
-  const shaked = shakeUndifindedItem(sortedMatchedInfos.map((m) => m.item))
-  return shaked
-}
-
-function extractItemBeSearchedText(item: unknown): SearchConfigItemObj[] {
-  if (isString(item) || isNumber(item)) return [{ text: String(item) } as SearchConfigItemObj]
-  if (isObject(item)) {
-    const obj = objectMap(omit(item as any, ['id', 'key']), (value) =>
-      isString(value) || isNumber(value) ? ({ text: String(value) } as SearchConfigItemObj) : undefined
-    )
-    return shakeUndifindedItem(Object.values(obj))
-  }
-  return [{ text: '' }]
-}
-
-function getMatchedInfos<T>(item: T, searchText: string, searchTarget: NonNullable<SearchOptions<T>['matchConfigs']>) {
-  const searchKeyWords = String(searchText).trim().split(/\s|-/)
-  const searchConfigs = shakeUndifindedItem(
-    [shrinkToValue(searchTarget, [item])]
-      .flat()
-      .map((c) => (isString(c) ? { text: c } : c) as SearchConfigItemObj | undefined)
-  )
-  return patchSearchInfos({ item, searchKeyWords, searchConfigs })
-}
-
-type MatchedStatus<T> = {
+type MatchInfo<T> = {
   item: T
   matched: boolean
-  allConfigs: SearchConfigItemObj[]
+  allConfigs: MatchRuleObj[]
   matchedConfigs: {
     isEntirelyMatched: boolean
 
-    config: SearchConfigItemObj
+    config: MatchRuleObj
     configIdx: number
 
     searchedKeywordText: string
@@ -69,46 +43,157 @@ type MatchedStatus<T> = {
   }[]
 }
 
-/** it produce matched search config infos */
+/**
+ * pure js fn/
+ * core of "search" feature
+ */
+export function searchItems<T>(
+  items: T[],
+  { text, canSort = true, matchConfigs, searchMode }: SearchOptions<T> = {}
+): T[] {
+  if (!text) return items
+
+  const allMatchedInfos = items.map((item) =>
+    calcMatchInfo({
+      item,
+      searchText: text!,
+      matchConfigs: matchConfigs,
+      searchMode: searchMode
+    })
+  )
+  const meaningfulMatchedInfos = allMatchedInfos.filter((m) => m?.matched) as MatchInfo<T>[]
+  const sortedMatchedInfos = canSort ? sortByMatchedInfos<T>(meaningfulMatchedInfos) : meaningfulMatchedInfos
+  const shaked = shakeUndifindedItem(sortedMatchedInfos.map((m) => m.item))
+  return shaked
+}
+
+/** items: ['hello', 'world'] => config: [{text: 'hello'}, {text: 'world'}] */
+function getDefaultMatchConfigs(item: unknown): MatchRuleObj[] {
+  if (isString(item) || isNumber(item)) return [{ text: String(item) } as MatchRuleObj]
+  if (isObject(item)) {
+    const obj = objectMap(omit(item as any, ['id', 'key']), (value) =>
+      isString(value) || isNumber(value) ? ({ text: String(value) } as MatchRuleObj) : undefined
+    )
+    return shakeUndifindedItem(Object.values(obj))
+  }
+  return [{ text: '' }]
+}
+
+function calcMatchInfo<T>({
+  item,
+  searchText,
+  matchConfigs = getDefaultMatchConfigs(item),
+  searchMode = 'greedy'
+}: {
+  item: T
+  searchText: string
+  matchConfigs: SearchOptions<T>['matchConfigs']
+  searchMode?: SearchOptions<T>['searchMode']
+}) {
+  const searchKeyWords = String(searchText).trim().split(/\s|-/)
+  const matchRules = shakeUndifindedItem(
+    flap(shrinkToValue(matchConfigs, [item])).map((c) => (isString(c) ? { text: c } : c) as MatchRuleObj | undefined)
+  )
+  const matchInfo = patchSearchInfos({ item, searchKeyWords, matchRules, searchMode })
+  return matchInfo
+}
+
+/** coreFN: it produce matched search config infos */
 function patchSearchInfos<T>(options: {
   item: T
   searchKeyWords: string[]
-  searchConfigs: SearchConfigItemObj[]
-}): MatchedStatus<T> | undefined {
-  const matchInfos: MatchedStatus<T> = {
+  matchRules: MatchRuleObj[]
+  searchMode?: SearchOptions<T>['searchMode']
+}): MatchInfo<T> | undefined {
+  const returnedMatchInfo: MatchInfo<T> = {
     item: options.item,
-    allConfigs: options.searchConfigs,
+    allConfigs: options.matchRules,
     matched: false,
     matchedConfigs: []
   }
-  for (const [keywordIdx, keyword] of options.searchKeyWords.entries()) {
+  const keywordPartMustMatch = options.searchMode === 'eagle' || options.searchMode === 'greedy'
+  //  should has at least one different matched configIdx between different keywordIdx
+  const matchConfigShouldNotSame = options.searchMode === 'greedy'
+
+  const searchKeyWords = options.searchKeyWords
+  const searchConfigs = options.matchRules
+  const currentKeywordMatchedConfigsIndexes: { keywordIndex: number; matchedConfigIndexes: number[] }[] = []
+  for (const [keywordIdx, keyword] of searchKeyWords.entries()) {
     let keywardHasMatched = false
-    for (const [configIdx, config] of options.searchConfigs.entries()) {
+
+    const matchConfigIndexes: number[] = []
+    for (const [configIdx, config] of searchConfigs.entries()) {
       const configIsEntirely = config.entirely
-      const matchEntirely = isStringInsensitivelyEqual(config.text, keyword)
-      const matchPartial = isStringInsensitivelyContain(config.text, keyword)
-      if ((matchEntirely && configIsEntirely) || (matchPartial && !configIsEntirely)) {
+
+      let matchEntirely: boolean | undefined = undefined
+      const isMatchEntirely = () => {
+        if (matchEntirely == null) {
+          const b = isStringInsensitivelyEqual(config.text, keyword)
+          matchEntirely = b
+        }
+        return matchEntirely
+      }
+
+      let matchPartial: boolean | undefined = undefined
+      const isMatchPartial = () => {
+        if (matchPartial == null) {
+          const b = isStringInsensitivelyContain(config.text, keyword)
+          matchPartial = b
+        }
+        return matchPartial
+      }
+      const matched = configIsEntirely ? isMatchEntirely() : isMatchPartial()
+      if (matched) {
         keywardHasMatched = true
-        matchInfos.matched = true
-        matchInfos.matchedConfigs.push({
+        matchConfigIndexes.push(configIdx)
+
+        returnedMatchInfo.matched = true
+        returnedMatchInfo.matchedConfigs.push({
           config,
           configIdx,
-          isEntirelyMatched: matchEntirely,
+          isEntirelyMatched: isMatchEntirely(),
           searchedKeywordIdx: keywordIdx,
           searchedKeywordText: keyword
         })
       }
     }
+    currentKeywordMatchedConfigsIndexes.push({ keywordIndex: keywordIdx, matchedConfigIndexes: matchConfigIndexes })
 
-    if (!keywardHasMatched) return // if some keyword don't match anything, means this item is not right candidate
+    // if some keyword don't match anything, means this item is not right candidate
+    if (keywordPartMustMatch && !keywardHasMatched) return // if some keyword don't match anything, means this item is not right candidate
   }
-  return matchInfos
+
+  //  should has at least one different matched configIdx between different keywordIdx
+  if (matchConfigShouldNotSame) {
+    // magic mathematic
+    const isDifferentIndexFromDifferentKeyword = () => {
+      const keywordCount = currentKeywordMatchedConfigsIndexes.length
+      const configSet = new Set<number>()
+      for (const { matchedConfigIndexes } of currentKeywordMatchedConfigsIndexes) {
+        for (const configIdx of matchedConfigIndexes) {
+          configSet.add(configIdx)
+        }
+      }
+      return configSet.size >= keywordCount
+    }
+    return isDifferentIndexFromDifferentKeyword() ? returnedMatchInfo : undefined
+  }
+  return returnedMatchInfo
 }
 
-function sortByMatchedInfos<T>(matchedInfos: MatchedStatus<T>[]) {
+function sortByMatchedInfos<T>(matchedInfos: MatchInfo<T>[]) {
   return [...matchedInfos].sort(
-    (matchedInfoA, matchedInfoB) => toMatchedStatusSignature(matchedInfoB) - toMatchedStatusSignature(matchedInfoA)
+    (matchedInfoA, matchedInfoB) => getMatchStatusSignature(matchedInfoB) - getMatchStatusSignature(matchedInfoA)
   )
+}
+
+// TODO: move to object cache fn
+const weakMap = new WeakMap<MatchInfo<any>, number>()
+function getMatchStatusSignature<T>(matchedInfo: MatchInfo<T>) {
+  if (weakMap.has(matchedInfo)) return weakMap.get(matchedInfo)!
+  const signature = toMatchedStatusSignature(matchedInfo)
+  weakMap.set(matchedInfo, signature)
+  return signature
 }
 
 /**
@@ -121,7 +206,7 @@ function sortByMatchedInfos<T>(matchedInfos: MatchedStatus<T>[]) {
  *
  * @returns item's weight number
  */
-function toMatchedStatusSignature<T>(matchedInfo: MatchedStatus<T>): number {
+function toMatchedStatusSignature<T>(matchedInfo: MatchInfo<T>): number {
   const originalConfigs = matchedInfo.allConfigs
   const entriesSequence = Array.from({ length: originalConfigs.length }, () => 0)
   const partialSequence = Array.from({ length: originalConfigs.length }, () => 0)

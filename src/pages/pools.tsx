@@ -5,16 +5,13 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/common/useAppSettings'
 import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import useFarms from '@/application/farms/useFarms'
-import { isHydratedPoolItemInfo, isJsonPoolItemInfo } from '@/application/pools/is'
+import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo, JsonPairItemInfo } from '@/application/pools/type'
-import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
+import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
-import useTokenListSettingsLocalStorage from '@/application/token/useTokenListSettingsLocalStorage'
-import { createSplToken } from '@/application/token/useTokenListsLoader'
-import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
@@ -46,21 +43,19 @@ import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
+import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
-import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
-import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
-import listToMap from '@/functions/format/listToMap'
 
 /**
  * store:
@@ -457,39 +452,28 @@ function PoolCard() {
     [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
   ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
 
-  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
+  const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
 
-  const searched = useDeferredValue(
-    useMemo(
-      () =>
-        searchItems(dataSource, {
-          text: searchText,
-          matchConfigs: (i) =>
-            isHydratedPoolItemInfo(i)
-              ? [
-                  i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
-                  i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
-                  { text: i.ammId, entirely: true },
-                  { text: i.market, entirely: true },
-                  { text: toPubString(i.base?.mint), entirely: true },
-                  { text: toPubString(i.quote?.mint), entirely: true }
-                ]
-              : [i.name, { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
-        }).sort((a, b) => {
-          // TODO: should be searchItems's sort config.
-          if (!searchText) return 0
-          const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
-          if (isHydratedPoolItemInfo(a) && isHydratedPoolItemInfo(b)) {
-            return a[key].gt(b[key]) ? -1 : a[key].lt(b[key]) ? 1 : 0
-          } else if (isJsonPoolItemInfo(a) && isJsonPoolItemInfo(b)) {
-            return a[key] > b[key] ? -1 : a[key] < b[key] ? 1 : 0
-          } else {
-            return 0
-          }
-        }),
-      [dataSource, searchText, timeBasis]
-    )
+  const originalSearch = useMemo(
+    () =>
+      searchItems(dataSource, {
+        text: searchText,
+        matchConfigs: (i) =>
+          isHydratedPoolItemInfo(i)
+            ? [
+                i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
+                i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
+                { text: i.ammId, entirely: true },
+                { text: i.market, entirely: true },
+                { text: toPubString(i.base?.mint), entirely: true },
+                { text: toPubString(i.quote?.mint), entirely: true }
+              ]
+            : [...i.name.split('-'), { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
+      }),
+    [dataSource.length, isHydratedPoolItemInfo(dataSource[0]), searchText]
   )
+
+  const searched = useDeferredValue(originalSearch)
 
   const {
     sortedData: tempSortedData,
@@ -1309,9 +1293,9 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
 
 function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
   const [showEditDialog, setShowEditDialog] = useState(false)
-  const { isTokenUnnamed } = useTokenListSettingsUtils()
+  const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
 
-  return token && isTokenUnnamed(token.mint) ? (
+  return token && isTokenUnnamedAndNotUserCustomized(token.mint) ? (
     <Row className="items-center">
       <div>{token?.symbol ?? 'UNKNOWN'}</div>
       <div>

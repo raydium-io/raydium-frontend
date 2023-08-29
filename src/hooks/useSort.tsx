@@ -2,10 +2,11 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { ZERO } from '@raydium-io/raydium-sdk'
 
-import { isBigInt, isBN, isBoolean, isFraction, isNumber, isString } from '@/functions/judgers/dateType'
+import { isBigInt, isBN, isBoolean, isFraction, isNumber, isNumberish, isString } from '@/functions/judgers/dateType'
 import { isNullish } from '@/functions/judgers/nil'
 import { EnumStr } from '@/types/constants'
 import { ExactPartial, MayArray } from '@/types/generics'
+import { toString } from '@/functions/numberish/toString'
 
 export type SortMode = 'decrease' | 'increase' | 'none'
 
@@ -147,13 +148,7 @@ export function compareForSort(a: unknown, b: unknown): number {
   if (isNullish(b) && !isNullish(a)) return 1
   if (isNullish(a) && isNullish(b)) return 0
 
-  if (isBN(a) && isBN(b)) {
-    const sub = a.sub(b)
-    return sub.lt(ZERO) ? -1 : sub.gt(ZERO) ? 1 : 0
-  } else if (isFraction(a) && isFraction(b)) {
-    const sub = a.sub(b).numerator
-    return sub.lt(ZERO) ? -1 : sub.gt(ZERO) ? 1 : 0
-  } else if (isNumber(a) && isNumber(b)) {
+  if (isNumber(a) && isNumber(b)) {
     return a - b
   } else if (isBigInt(a) && isBigInt(b)) {
     return Number(a - b)
@@ -169,7 +164,13 @@ export function compareForSort(a: unknown, b: unknown): number {
       // all number string
       return numberA - numberB
     }
+  } else if (isBN(a) && isBN(b)) {
+    const sub = a.sub(b)
+    return sub.lt(ZERO) ? -1 : sub.gt(ZERO) ? 1 : 0
+  } else if (isFraction(a) && isFraction(b)) {
+    const sub = a.sub(b).numerator
+    return sub.lt(ZERO) ? -1 : sub.gt(ZERO) ? 1 : 0
+  } else {
+    return 0
   }
-
-  return 0
 }

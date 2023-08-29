@@ -56,10 +56,10 @@ export function areEqualToken(token1?: SplToken | Token, token2?: SplToken | Tok
 
 export function isStringInsensitivelyEqual(s1: string | undefined, s2: string | undefined) {
   if (isUndefined(s1) || isUndefined(s2)) return false
-  return s1.toLowerCase() === s2.toLowerCase()
+  return s1.length === s2.length && s1.toLowerCase() === s2.toLowerCase()
 }
 
 export function isStringInsensitivelyContain(s1: string | undefined, s2: string | undefined) {
   if (isUndefined(s1) || isUndefined(s2)) return false
-  return s1.toLowerCase().includes(s2.toLowerCase())
+  return s1.length >= s2.length && s1.toLowerCase().includes(s2.toLowerCase())
 }

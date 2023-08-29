@@ -74,6 +74,7 @@ import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useDebounce } from '@/hooks/useDebounce'
 import useOnceEffect from '@/hooks/useOnceEffect'
@@ -84,8 +85,6 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
-import { AsyncAwait } from '@/components/AsyncAwait'
-import useAsyncMemo from '@/hooks/useAsyncMemo'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -611,6 +610,8 @@ function PoolCard() {
     return dataSource.filter((i) => (ownedPoolOnly && owner ? isMintEqual(i.creator, owner) : true))
   }, [dataSource, ownedPoolOnly, owner])
 
+  const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
+
   const searched = useDeferredValue(
     useMemo(
       () =>
@@ -618,6 +619,8 @@ function PoolCard() {
           text: searchText,
           matchConfigs: (i) => [
             i.name,
+            i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
+            i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
             { text: i.idString, entirely: true },
             { text: toPubString(i.base?.mint), entirely: true },
             { text: toPubString(i.quote?.mint), entirely: true }

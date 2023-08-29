@@ -1,25 +1,25 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo, verifyToken } from '@/application/token/getOnlineTokenInfo'
+import { isToken2022 } from '@/application/token/isToken2022'
 import {
+  QuantumSOLVersionSOL,
+  WSOLMint,
   isQuantumSOL,
   isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLVersionSOL,
-  WSOLMint
+  isQuantumSOLVersionWSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
 import { createSplToken } from '@/application/token/useTokenListsLoader'
-import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 import { RAYMint, USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
+import { Token2022Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -41,8 +41,6 @@ import { searchItems } from '@/functions/searchItems'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
-import { isToken2022 } from '@/application/token/isToken2022'
-import { Token2022Badge } from '@/components/Badge'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -136,7 +134,7 @@ function TokenSelectorDialogContent({
 
   const sortedTokens = disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens
 
-  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
+  const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
   // by user's search text
   const originalSearchedTokens = useMemo(
     () =>
