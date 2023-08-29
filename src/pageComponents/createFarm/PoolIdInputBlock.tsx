@@ -8,7 +8,6 @@ import useLiquidity from '@/application/liquidity/useLiquidity'
 import { usePools } from '@/application/pools/usePools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
-import AutoBox from '@/components/AutoBox'
 import AutoComplete, { AutoCompleteCandidateItem } from '@/components/AutoComplete'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
@@ -18,9 +17,8 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isPubKey, isValidPublicKey } from '@/functions/judgers/dateType'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { useClickOutside } from '@/hooks/useClickOutside'
-import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 
 export interface PoolIdInputBlockHandle {
   validate?: () => void
@@ -48,7 +46,7 @@ export function PoolIdInputBlock({
   const selectedPool = liquidityPoolJsons.find((i) => i.id === poolId)
   const selectedPoolPairInfo = pairInfos.find((i) => i.ammId === poolId)
 
-  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
+  const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
 
   const candidates = liquidityPoolJsons
     // .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])

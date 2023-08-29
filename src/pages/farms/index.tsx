@@ -76,7 +76,6 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
-import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -458,7 +457,7 @@ function FarmCard() {
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
-  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
+  const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
   const applySearchedDataSource = useDeferredValue(
     useMemo(
       () =>

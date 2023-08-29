@@ -4,13 +4,14 @@ import { isNumber, isObject, isString } from '@/functions/judgers/dateType'
 import { objectMap, omit } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayArray, MayFunction } from '@/types/constants'
+import { flap } from './flap'
 
-type SearchConfigItemObj = {
+type MatchRuleObj = {
   text: string | undefined
   entirely?: boolean
 }
 
-export type SearchConfigItem = SearchConfigItemObj | string | undefined
+export type MatchRule = MatchRuleObj | string | undefined
 
 export type SearchOptions<T> = {
   text?: string
@@ -23,17 +24,18 @@ export type SearchOptions<T> = {
    * default: greedy
    */
   searchMode?: 'eagle' | 'fuzzy' | 'greedy'
-  matchConfigs?: MayFunction<MayArray<SearchConfigItem>, [item: T]>
+  matchConfigs?: MayFunction<MayArray<MatchRule>, [item: T]>
+  canSort?: boolean
 }
 
 type MatchInfo<T> = {
   item: T
   matched: boolean
-  allConfigs: SearchConfigItemObj[]
+  allConfigs: MatchRuleObj[]
   matchedConfigs: {
     isEntirelyMatched: boolean
 
-    config: SearchConfigItemObj
+    config: MatchRuleObj
     configIdx: number
 
     searchedKeywordText: string
@@ -45,31 +47,32 @@ type MatchInfo<T> = {
  * pure js fn/
  * core of "search" feature
  */
-export function searchItems<T>(items: T[], options?: SearchOptions<T>): T[] {
-  if (!options) return items
-  if (!options.text) return items
-  const allMatchedInfos = shakeUndifindedItem(
-    items.map((item) =>
-      calcMatchInfo({
-        item,
-        searchText: options.text!,
-        searchTarget: options?.matchConfigs ?? getDefaultMatchConfigs(item),
-        searchMode: options.searchMode
-      })
-    )
+export function searchItems<T>(
+  items: T[],
+  { text, canSort = true, matchConfigs, searchMode }: SearchOptions<T> = {}
+): T[] {
+  if (!text) return items
+
+  const allMatchedInfos = items.map((item) =>
+    calcMatchInfo({
+      item,
+      searchText: text!,
+      matchConfigs: matchConfigs,
+      searchMode: searchMode
+    })
   )
-  const meaningfulMatchedInfos = allMatchedInfos.filter((m) => m?.matched)
-  const sortedMatchedInfos = sortByMatchedInfos<T>(meaningfulMatchedInfos)
+  const meaningfulMatchedInfos = allMatchedInfos.filter((m) => m?.matched) as MatchInfo<T>[]
+  const sortedMatchedInfos = canSort ? sortByMatchedInfos<T>(meaningfulMatchedInfos) : meaningfulMatchedInfos
   const shaked = shakeUndifindedItem(sortedMatchedInfos.map((m) => m.item))
   return shaked
 }
 
 /** items: ['hello', 'world'] => config: [{text: 'hello'}, {text: 'world'}] */
-function getDefaultMatchConfigs(item: unknown): SearchConfigItemObj[] {
-  if (isString(item) || isNumber(item)) return [{ text: String(item) } as SearchConfigItemObj]
+function getDefaultMatchConfigs(item: unknown): MatchRuleObj[] {
+  if (isString(item) || isNumber(item)) return [{ text: String(item) } as MatchRuleObj]
   if (isObject(item)) {
     const obj = objectMap(omit(item as any, ['id', 'key']), (value) =>
-      isString(value) || isNumber(value) ? ({ text: String(value) } as SearchConfigItemObj) : undefined
+      isString(value) || isNumber(value) ? ({ text: String(value) } as MatchRuleObj) : undefined
     )
     return shakeUndifindedItem(Object.values(obj))
   }
@@ -79,21 +82,19 @@ function getDefaultMatchConfigs(item: unknown): SearchConfigItemObj[] {
 function calcMatchInfo<T>({
   item,
   searchText,
-  searchTarget,
+  matchConfigs = getDefaultMatchConfigs(item),
   searchMode = 'greedy'
 }: {
   item: T
   searchText: string
-  searchTarget: NonNullable<SearchOptions<T>['matchConfigs']>
+  matchConfigs: SearchOptions<T>['matchConfigs']
   searchMode?: SearchOptions<T>['searchMode']
 }) {
   const searchKeyWords = String(searchText).trim().split(/\s|-/)
-  const searchConfigs = shakeUndifindedItem(
-    [shrinkToValue(searchTarget, [item])]
-      .flat()
-      .map((c) => (isString(c) ? { text: c } : c) as SearchConfigItemObj | undefined)
+  const matchRules = shakeUndifindedItem(
+    flap(shrinkToValue(matchConfigs, [item])).map((c) => (isString(c) ? { text: c } : c) as MatchRuleObj | undefined)
   )
-  const matchInfo = patchSearchInfos({ item, searchKeyWords, searchConfigs, searchMode })
+  const matchInfo = patchSearchInfos({ item, searchKeyWords, matchRules, searchMode })
   return matchInfo
 }
 
@@ -101,12 +102,12 @@ function calcMatchInfo<T>({
 function patchSearchInfos<T>(options: {
   item: T
   searchKeyWords: string[]
-  searchConfigs: SearchConfigItemObj[]
+  matchRules: MatchRuleObj[]
   searchMode?: SearchOptions<T>['searchMode']
 }): MatchInfo<T> | undefined {
   const returnedMatchInfo: MatchInfo<T> = {
     item: options.item,
-    allConfigs: options.searchConfigs,
+    allConfigs: options.matchRules,
     matched: false,
     matchedConfigs: []
   }
@@ -115,7 +116,7 @@ function patchSearchInfos<T>(options: {
   const matchConfigShouldNotSame = options.searchMode === 'greedy'
 
   const searchKeyWords = options.searchKeyWords
-  const searchConfigs = options.searchConfigs
+  const searchConfigs = options.matchRules
   const currentKeywordMatchedConfigsIndexes: { keywordIndex: number; matchedConfigIndexes: number[] }[] = []
   for (const [keywordIdx, keyword] of searchKeyWords.entries()) {
     let keywardHasMatched = false
@@ -182,8 +183,17 @@ function patchSearchInfos<T>(options: {
 
 function sortByMatchedInfos<T>(matchedInfos: MatchInfo<T>[]) {
   return [...matchedInfos].sort(
-    (matchedInfoA, matchedInfoB) => toMatchedStatusSignature(matchedInfoB) - toMatchedStatusSignature(matchedInfoA)
+    (matchedInfoA, matchedInfoB) => getMatchStatusSignature(matchedInfoB) - getMatchStatusSignature(matchedInfoA)
   )
+}
+
+// TODO: move to object cache fn
+const weakMap = new WeakMap<MatchInfo<any>, number>()
+function getMatchStatusSignature<T>(matchedInfo: MatchInfo<T>) {
+  if (weakMap.has(matchedInfo)) return weakMap.get(matchedInfo)!
+  const signature = toMatchedStatusSignature(matchedInfo)
+  weakMap.set(matchedInfo, signature)
+  return signature
 }
 
 /**

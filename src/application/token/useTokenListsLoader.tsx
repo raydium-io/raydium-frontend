@@ -259,7 +259,7 @@ async function getTokenLists(
     }
   },
   existTokens: Record<HexAddress, TokenJson>,
-  existBlacklist: string[]
+  existBlacklist: Set<string>
 ): Promise<{
   devMints: Set<string>
   unOfficialMints: Set<string>
@@ -392,7 +392,7 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
       ),
       s.canFlaggedTokenMints
     ),
-    blacklist: [...blacklist],
+    blacklist: blacklist,
     tokenListSettings: {
       ...s.tokenListSettings,
       [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
@@ -425,7 +425,7 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
 function clearTokenCache() {
   useToken.setState((s) => ({
     canFlaggedTokenMints: new Set(),
-    blacklist: [] as string[],
+    blacklist: new Set(),
     tokenListSettings: {
       ...s.tokenListSettings,
 
