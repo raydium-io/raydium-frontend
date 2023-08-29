@@ -1293,9 +1293,9 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
 
 function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
   const [showEditDialog, setShowEditDialog] = useState(false)
-  const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
+  const isTokenUnnamed = useToken((s) => s.isTokenUnnamed)
 
-  return token && isTokenUnnamedAndNotUserCustomized(token.mint) ? (
+  return token && isTokenUnnamed(token.mint) ? (
     <Row className="items-center">
       <div>{token?.symbol ?? 'UNKNOWN'}</div>
       <div>
