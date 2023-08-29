@@ -42,11 +42,11 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     // )
 
     const isBaseVerifyed = await verifyToken(baseMint, { canWhiteList: true, noLog: true })
-    assert(isBaseVerifyed, 'base token verify failed')
+    assert(isBaseVerifyed, 'base token freeze authority enabled')
     if (!isBaseVerifyed) return { isSuccess: false }
     const baseDecimals = isBaseVerifyed.decimals
     const isQuoteVerifyed = await verifyToken(quoteMint, { canWhiteList: true, noLog: true })
-    assert(isQuoteVerifyed, 'quote token verify failed')
+    assert(isQuoteVerifyed, 'quote token freeze authority enabled')
     if (!isQuoteVerifyed) return { isSuccess: false }
     const quoteDecimals = isQuoteVerifyed.decimals
 
