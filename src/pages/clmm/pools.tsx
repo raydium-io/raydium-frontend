@@ -86,6 +86,7 @@ import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/Remo
 import { Numberish } from '@/types/constants'
 import { AsyncAwait } from '@/components/AsyncAwait'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
+import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -611,6 +612,8 @@ function PoolCard() {
     return dataSource.filter((i) => (ownedPoolOnly && owner ? isMintEqual(i.creator, owner) : true))
   }, [dataSource, ownedPoolOnly, owner])
 
+  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
+
   const searched = useDeferredValue(
     useMemo(
       () =>
@@ -618,6 +621,8 @@ function PoolCard() {
           text: searchText,
           matchConfigs: (i) => [
             i.name,
+            i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
+            i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
             { text: i.idString, entirely: true },
             { text: toPubString(i.base?.mint), entirely: true },
             { text: toPubString(i.quote?.mint), entirely: true }
