@@ -3,14 +3,12 @@ import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import {
-  addWalletAccountChangeListener,
-  removeWalletAccountChangeListener
+  addWalletAccountChangeListener, removeWalletAccountChangeListener
 } from '@/application/wallet/useWalletAccountChangeListeners'
 import assert from '@/functions/assert'
 
-import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
-
 import useWallet from '../wallet/useWallet'
+
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
 
@@ -25,27 +23,9 @@ export default async function txFarmWithdraw(
     const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ id }) => String(id) === String(info.id))
     assert(jsonFarmInfo, 'Farm pool not found')
 
-    // ------------- add farm deposit transaction --------------
-    const poolKeys = jsonInfo2PoolKeys(jsonFarmInfo)
-    const ledgerAddress = await Farm.getAssociatedLedgerAccount({
-      programId: poolKeys.programId,
-      poolId: poolKeys.id,
-      owner,
-      version: poolKeys.version as 6 | 5 | 3
-    })
-
-    // ------------- create ledger --------------
-    if (!info.ledger && jsonFarmInfo.version < 6 /* start from v6, no need init ledger any more */) {
-      const { innerTransaction } = await Farm.makeCreateAssociatedLedgerAccountInstruction({
-        poolKeys,
-        userKeys: { owner, ledger: ledgerAddress }
-      })
-      piecesCollector.addInnerTransactions(innerTransaction)
-    }
-
     // ------------- add withdraw transaction --------------
     const { tokenAccountRawInfos, txVersion } = useWallet.getState()
-    const depositInstruction = Farm.makeWithdrawInstructionSimple({
+    const depositInstruction = await Farm.makeWithdrawInstructionSimple({
       connection,
       fetchPoolInfo: info.fetchedMultiInfo,
       ownerInfo: {
@@ -58,7 +38,7 @@ export default async function txFarmWithdraw(
       makeTxVersion: txVersion,
       lookupTableCache
     })
-    piecesCollector.addInnerTransactions(...(await depositInstruction).innerTransactions)
+    piecesCollector.addInnerTransactions(...depositInstruction.innerTransactions)
 
     const listenerId = addWalletAccountChangeListener(
       () => {

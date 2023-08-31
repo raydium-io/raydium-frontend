@@ -1,16 +1,14 @@
-import { Farm, InnerSimpleTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import {
-  addWalletAccountChangeListener,
-  removeWalletAccountChangeListener
+  addWalletAccountChangeListener, removeWalletAccountChangeListener
 } from '@/application/wallet/useWalletAccountChangeListeners'
 import assert from '@/functions/assert'
-
-import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
-
 import toBN from '@/functions/numberish/toBN'
+
 import useWallet from '../wallet/useWallet'
+
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
 
@@ -19,33 +17,14 @@ export default async function txFarmHarvest(
   options: { isStaking?: boolean; rewardAmounts: TokenAmount[] }
 ) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-    const innerTransactions: InnerSimpleTransaction[] = []
     assert(owner, 'require connected wallet')
 
     const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ id }) => String(id) === String(info.id))
     assert(jsonFarmInfo, 'Farm pool not found')
 
-    // ------------- add farm deposit transaction --------------
-    const poolKeys = jsonInfo2PoolKeys(jsonFarmInfo)
-    const ledgerAddress = Farm.getAssociatedLedgerAccount({
-      programId: poolKeys.programId,
-      poolId: poolKeys.id,
-      owner,
-      version: poolKeys.version as 6 | 5 | 3
-    })
-
-    // ------------- create ledger --------------
-    if (!info.ledger && jsonFarmInfo.version < 6 /* start from v6, no need init ledger any more */) {
-      const { innerTransaction } = Farm.makeCreateAssociatedLedgerAccountInstruction({
-        poolKeys,
-        userKeys: { owner, ledger: ledgerAddress }
-      })
-      innerTransactions.push(innerTransaction)
-    }
-
     // ------------- add withdraw transaction --------------
     const { tokenAccountRawInfos, txVersion } = useWallet.getState()
-    const { innerTransactions: makeInstructions } = await Farm.makeWithdrawInstructionSimple({
+    const { innerTransactions } = await Farm.makeWithdrawInstructionSimple({
       connection,
       fetchPoolInfo: info.fetchedMultiInfo,
       ownerInfo: {
@@ -58,7 +37,6 @@ export default async function txFarmHarvest(
       makeTxVersion: txVersion,
       lookupTableCache
     })
-    innerTransactions.push(...makeInstructions)
 
     const listenerId = addWalletAccountChangeListener(
       () => {

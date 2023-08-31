@@ -1,13 +1,14 @@
-import { Farm, InnerSimpleTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import {
-  addWalletAccountChangeListener,
-  removeWalletAccountChangeListener
+  addWalletAccountChangeListener, removeWalletAccountChangeListener
 } from '@/application/wallet/useWalletAccountChangeListeners'
 import assert from '@/functions/assert'
+
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
+
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
 
@@ -24,27 +25,10 @@ export default async function txFarmDeposit(
 
     // ------------- add farm deposit transaction --------------
     const poolKeys = jsonInfo2PoolKeys(jsonFarmInfo)
-    const ledgerAddress = Farm.getAssociatedLedgerAccount({
-      programId: poolKeys.programId,
-      poolId: poolKeys.id,
-      owner,
-      version: poolKeys.version as 6 | 5 | 3
-    })
-
-    const innerTransactions: InnerSimpleTransaction[] = []
-
-    // ------------- create ledger --------------
-    if (!info.ledger && jsonFarmInfo.version < 6 /* start from v6, no need init ledger any more */) {
-      const { innerTransaction } = Farm.makeCreateAssociatedLedgerAccountInstruction({
-        poolKeys,
-        userKeys: { owner, ledger: ledgerAddress }
-      })
-      innerTransactions.push(innerTransaction)
-    }
 
     // ------------- add deposit transaction --------------
     const { tokenAccountRawInfos, txVersion } = useWallet.getState()
-    const { innerTransactions: depositInstruction } = await Farm.makeDepositInstructionSimple({
+    const { innerTransactions } = await Farm.makeDepositInstructionSimple({
       connection,
       poolKeys,
       fetchPoolInfo: info.fetchedMultiInfo,
@@ -54,17 +38,11 @@ export default async function txFarmDeposit(
         tokenAccounts: tokenAccountRawInfos
       },
 
-      // userKeys: {
-      //   ledger: ledgerAddress,
-      //   owner,
-      //   rewardTokenAccounts: rewardTokenAccountsPublicKeys
-      // },
       lookupTableCache,
       makeTxVersion: txVersion,
       amount: options.amount.raw,
       checkCreateATAOwner: true
     })
-    innerTransactions.push(...depositInstruction)
 
     const listenerId = addWalletAccountChangeListener(
       () => {
