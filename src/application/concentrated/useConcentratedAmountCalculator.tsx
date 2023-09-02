@@ -1,4 +1,4 @@
-import { AmmV3, GetTransferAmountFee, getTransferAmountFee } from '@raydium-io/raydium-sdk'
+import { Clmm, GetTransferAmountFee, getTransferAmountFee } from '@raydium-io/raydium-sdk'
 import { EpochInfo } from '@solana/web3.js'
 import BN from 'bn.js'
 import { useCallback, useEffect, useMemo } from 'react'
@@ -99,7 +99,7 @@ export default function useConcentratedAmountCalculator() {
             isFocus1,
             epochInfo
           })
-        : AmmV3.getLiquidityAmountOutFromAmountIn({
+        : Clmm.getLiquidityAmountOutFromAmountIn({
             poolInfo: currentAmmPool.state,
             slippage: 0,
             inputA: isPairPoolDirectionEq,

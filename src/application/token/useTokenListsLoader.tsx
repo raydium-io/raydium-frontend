@@ -1,4 +1,4 @@
-import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
+import { ApiClmmPoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
 import { addItems, mergeWithOld } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
@@ -158,7 +158,7 @@ async function fetchNormalLiquidityPoolToken(
 }
 
 async function fetchClmmLiquidityPoolToken(
-  response: { data: ApiAmmV3PoolsItem[] },
+  response: { data: ApiClmmPoolsItem[] },
   collector: TokenInfoCollector
 ): Promise<void> {
   if (!response || !response.data) return
@@ -208,10 +208,7 @@ async function fetchTokenList(
         // eslint-disable-next-line no-console
         // console.time(`load ${raw.url()}`)
         const response = await jFetch<
-          | RaydiumTokenListJsonFile
-          | RaydiumDevTokenListJsonFile
-          | LiquidityPoolsJsonFile
-          | { data: ApiAmmV3PoolsItem[] }
+          RaydiumTokenListJsonFile | RaydiumDevTokenListJsonFile | LiquidityPoolsJsonFile | { data: ApiClmmPoolsItem[] }
         >(raw.url())
         if (response) {
           switch (raw.type) {
@@ -232,7 +229,7 @@ async function fetchTokenList(
               await fetchNormalLiquidityPoolToken(response as LiquidityPoolsJsonFile, tokenCollector)
               break
             case TokenListConfigType.LIQUIDITY_V3:
-              await fetchClmmLiquidityPoolToken(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
+              await fetchClmmLiquidityPoolToken(response as { data: ApiClmmPoolsItem[] }, tokenCollector)
               break
             default:
               console.warn('token list type undetected, did you forgot to create this type of case?')

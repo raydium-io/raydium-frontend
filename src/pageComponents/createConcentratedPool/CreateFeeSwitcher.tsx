@@ -1,4 +1,4 @@
-import { HydratedAmmV3ConfigInfo } from '@/application/concentrated/type'
+import { HydratedClmmConfigInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
@@ -35,8 +35,8 @@ function CreateFeeSwitcherContent({
   existIds,
   className
 }: {
-  configs?: HydratedAmmV3ConfigInfo[]
-  current?: HydratedAmmV3ConfigInfo
+  configs?: HydratedClmmConfigInfo[]
+  current?: HydratedClmmConfigInfo
   existIds?: string[]
   className?: string
 }) {

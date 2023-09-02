@@ -1,8 +1,8 @@
 import {
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3ConfigItem,
-  ApiAmmV3PoolsItem,
+  ClmmPoolInfo,
+  ClmmPoolPersonalPosition,
+  ApiClmmConfigItem,
+  ApiClmmPoolsItem,
   CurrencyAmount,
   Fraction,
   Percent,
@@ -20,13 +20,13 @@ import { SplToken } from '../token/type'
 
 import { GetAprPoolTickParameters, GetAprPositionParameters } from './calcApr'
 
-export type APIConcentratedInfo = ApiAmmV3PoolsItem
+export type APIConcentratedInfo = ApiClmmPoolsItem
 
 export type SDKParsedConcentratedInfo = {
   /** SDK info */
-  state: AmmV3PoolInfo
+  state: ClmmPoolInfo
   /** SDK info */
-  positionAccount?: AmmV3PoolPersonalPosition[]
+  positionAccount?: ClmmPoolPersonalPosition[]
 }
 
 export type UICLMMRewardInfo = {
@@ -90,7 +90,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   idString: string
   creator: PublicKey
 
-  ammConfig: AmmV3PoolInfo['ammConfig']
+  ammConfig: ClmmPoolInfo['ammConfig']
   currentPrice: Fraction
   rewardInfos: HydratedConcentratedRewardInfo[]
   tvl: CurrencyAmount
@@ -140,7 +140,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
 
 export interface UserPositionAccount {
   /** transform to SDK function, should not used directlly in UI */
-  sdkParsed: AmmV3PoolPersonalPosition
+  sdkParsed: ClmmPoolPersonalPosition
   rewardInfos: {
     token: SplToken | undefined
     penddingReward: TokenAmount | undefined
@@ -187,7 +187,7 @@ export interface UserPositionAccount {
   // tokenFeesOwedB: BN__default; // currently useless
 }
 
-export interface HydratedAmmV3ConfigInfo {
+export interface HydratedClmmConfigInfo {
   id: string
   index: number
   protocolFeeRate: Percent
@@ -195,5 +195,5 @@ export interface HydratedAmmV3ConfigInfo {
   tickSpacing: number
   description: string
 
-  original: ApiAmmV3ConfigItem
+  original: ApiClmmConfigItem
 }

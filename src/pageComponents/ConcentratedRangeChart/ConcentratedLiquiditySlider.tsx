@@ -1,4 +1,4 @@
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { Clmm } from '@raydium-io/raydium-sdk'
 import { useMemo, useRef } from 'react'
 
 import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
@@ -61,7 +61,7 @@ export default React.memo(function ConcentratedLiquiditySlider({ isAdd = false }
       ])
       if (!canContinue()) return
       const bnValue = toBN(mul(sliderValue, tick))
-      const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
+      const amountFromLiquidity = Clmm.getAmountsFromLiquidity({
         poolInfo: currentAmmPool.state,
         // ownerPosition: position,
         liquidity: bnValue,

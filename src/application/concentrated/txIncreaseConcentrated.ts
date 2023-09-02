@@ -1,4 +1,4 @@
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { Clmm } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
@@ -38,10 +38,10 @@ export default async function txIncreaseConcentrated({
       caseName: 'increase',
       groupInfo: targetUserPositionAccount
         ? {
-            ammPool: targetUserPositionAccount.ammPool,
-            priceLower: targetUserPositionAccount.priceLower,
-            priceUpper: targetUserPositionAccount.priceUpper
-          }
+          ammPool: targetUserPositionAccount.ammPool,
+          priceLower: targetUserPositionAccount.priceLower,
+          priceUpper: targetUserPositionAccount.priceUpper
+        }
         : undefined,
       amount: shakeUndifindedItem([
         toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }),
@@ -66,7 +66,7 @@ export default async function txIncreaseConcentrated({
     assert(coin2SlippageAmount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { innerTransactions } = await AmmV3.makeIncreasePositionFromLiquidityInstructionSimple({
+    const { innerTransactions } = await Clmm.makeIncreasePositionFromLiquidityInstructionSimple({
       connection: connection,
       liquidity,
       poolInfo: currentAmmPool.state,
@@ -87,9 +87,8 @@ export default async function txIncreaseConcentrated({
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
         title: 'Liquidity Added',
-        description: `Added ${toString(coin1SlippageAmount)} ${coin1.symbol} and ${toString(coin2SlippageAmount)} ${
-          coin2.symbol
-        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Added ${toString(coin1SlippageAmount)} ${coin1.symbol} and ${toString(coin2SlippageAmount)} ${coin2.symbol
+          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })

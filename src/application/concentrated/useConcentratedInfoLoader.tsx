@@ -1,7 +1,7 @@
 import { use, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
-import { AmmV3, ApiAmmV3PoolsItem } from '@raydium-io/raydium-sdk'
+import { Clmm, ApiClmmPoolsItem } from '@raydium-io/raydium-sdk'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
@@ -39,7 +39,7 @@ export default function useConcentratedInfoLoader() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const { pathname } = useRouter()
   const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
-  const ammV3PoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Pools)
+  const clmmPoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.clmmPools)
 
   const shouldLoadInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
   const shouldLoadChartPoints = useMemo(
@@ -54,11 +54,11 @@ export default function useConcentratedInfoLoader() {
       if (!apiAmmPools) return // only bug in localhost HMR, it's not a real problem
       if (!shouldForceRefresh && !shouldLoadInfo) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
-      const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl) // note: previously Rudy has Test API for dev
-      if (ammV3PoolsUrl !== apiUrls.ammV3Pools) return
+      const response = await jFetch<{ data: ApiClmmPoolsItem[] }>(clmmPoolsUrl) // note: previously Rudy has Test API for dev
+      if (clmmPoolsUrl !== apiUrls.clmmPools) return
       useConcentrated.setState({ apiAmmPools: response?.data })
     },
-    [refreshCount, ammV3PoolsUrl, shouldLoadInfo]
+    [refreshCount, clmmPoolsUrl, shouldLoadInfo]
   )
 
   /**  api json info list ➡ SDK info list */
@@ -66,7 +66,7 @@ export default function useConcentratedInfoLoader() {
     if (!connection) return
     if (chainTimeOffset == null) return
     if (!apiAmmPools || apiAmmPools.length === 0) return
-    const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
+    const sdkParsed = await Clmm.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,
       ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,

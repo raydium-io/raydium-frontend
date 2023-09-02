@@ -9,7 +9,7 @@ import {
 export const getLiquidityMainnetListUrl = () => useAppAdvancedSettings.getState().apiUrls.poolInfo
 const getCustomTokenListUrl = () => '/custom-token-list.json'
 const getRaydiumMainnetTokenListUrl = () => useAppAdvancedSettings.getState().apiUrls.tokenInfo
-const getClmmPoolListUrl = () => useAppAdvancedSettings.getState().apiUrls.ammV3Pools // note: previously Rudy has Test API for dev
+const getClmmPoolListUrl = () => useAppAdvancedSettings.getState().apiUrls.clmmPools
 
 export const rawTokenListConfigs = [
   {

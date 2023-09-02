@@ -1,4 +1,4 @@
-import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
+import { Clmm, Fraction } from '@raydium-io/raydium-sdk'
 
 import {
   decimalToFraction, fractionToDecimal, recursivelyDecimalToFraction
@@ -13,13 +13,13 @@ import { SplToken } from '../token/type'
 
 import { HydratedConcentratedInfo } from './type'
 
-export function getPriceAndTick(info: Parameters<typeof AmmV3['getPriceAndTick']>[0]) {
-  const result = AmmV3.getPriceAndTick(info)
+export function getPriceAndTick(info: Parameters<typeof Clmm['getPriceAndTick']>[0]) {
+  const result = Clmm.getPriceAndTick(info)
   return recursivelyDecimalToFraction(result)
 }
 
-export function getTickPrice(info: Parameters<typeof AmmV3['getTickPrice']>[0]) {
-  const result = AmmV3.getTickPrice(info)
+export function getTickPrice(info: Parameters<typeof Clmm['getTickPrice']>[0]) {
+  const result = Clmm.getTickPrice(info)
   return recursivelyDecimalToFraction(result)
 }
 

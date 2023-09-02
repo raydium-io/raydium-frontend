@@ -1,6 +1,6 @@
 import {
-  AmmV3,
-  ApiAmmV3PositionLinePoint,
+  Clmm,
+  ApiClmmPositionLinePoint,
   InnerSimpleTransaction,
   ReturnTypeFetchMultiplePoolInfos
 } from '@raydium-io/raydium-sdk'
@@ -23,7 +23,7 @@ import { SplToken } from '../token/type'
 
 import {
   APIConcentratedInfo,
-  HydratedAmmV3ConfigInfo,
+  HydratedClmmConfigInfo,
   HydratedConcentratedInfo,
   SDKParsedConcentratedInfo,
   UICLMMRewardInfo,
@@ -65,7 +65,7 @@ export type ConcentratedStore = {
   selectableAmmPools?: HydratedConcentratedInfo[]
   currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
-  chartPoints?: ApiAmmV3PositionLinePoint[]
+  chartPoints?: ApiClmmPositionLinePoint[]
   lazyLoadChart: boolean
   loadChartPointsAct: (poolId: string, options?: { force?: boolean }) => void
   liquidity?: BN // from SDK, just store in UI
@@ -129,8 +129,8 @@ export type ConcentratedStore = {
   timeBasis: TimeBasis
   aprCalcMode: 'D' | 'C'
 
-  availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
-  userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
+  availableAmmConfigFeeOptions?: HydratedClmmConfigInfo[] // create pool
+  userSelectedAmmConfigFeeOption?: HydratedClmmConfigInfo // create pool
   userSettedCurrentPrice?: Numberish // create pool
   tempDataCache?: InnerSimpleTransaction[]
   rewards: UICLMMRewardInfo[] // TEMP
@@ -184,9 +184,9 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isSearchAmmDialogOpen: false,
   removeAmount: '',
   loadChartPointsAct: async (poolId: string, options?: { force?: boolean }) => {
-    const ammV3PositionLineUrl = useAppAdvancedSettings.getState().apiUrls.ammV3PositionLine
-    const chartResponse = await jFetch<{ data: ApiAmmV3PositionLinePoint[] }>(
-      `${ammV3PositionLineUrl.replace('<poolId>', poolId)}`,
+    const clmmPositionLineUrl = useAppAdvancedSettings.getState().apiUrls.clmmPositionLine
+    const chartResponse = await jFetch<{ data: ApiClmmPositionLinePoint[] }>(
+      `${clmmPositionLineUrl.replace('<poolId>', poolId)}`,
       { cacheFreshTime: options?.force ? undefined : 60 * 1000 }
     )
     const currentAmmPool = get().currentAmmPool
@@ -219,7 +219,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     if (!connection || get().whitelistRewards.length > 0) return
     const { getToken } = useToken.getState()
     const { programIds } = useAppAdvancedSettings.getState()
-    AmmV3.getWhiteListMint({
+    Clmm.getWhiteListMint({
       connection,
       programId: programIds.CLMM
     }).then((data) => {

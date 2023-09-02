@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { AmmV3, Token } from '@raydium-io/raydium-sdk'
+import { Clmm, Token } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -126,7 +126,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     ])
 
     try {
-      const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
+      const amountFromLiquidity = Clmm.getAmountsFromLiquidity({
         poolInfo: currentAmmPool.state,
         // ownerPosition: position,
         liquidity: position.liquidity,

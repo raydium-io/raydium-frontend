@@ -1,5 +1,5 @@
 import assert from '@/functions/assert'
-import { AmmV3, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Clmm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler, { lookupTableCache } from '../txTools/handleTx'
@@ -41,7 +41,7 @@ export default async function txCollectReward({
     const tokenSymbol = currentAmmPool.rewardInfos.find((r) => r.tokenMint.equals(rewardInfo.tokenMint))!.rewardToken!
       .symbol
 
-    const { innerTransactions } = await AmmV3.makeCollectRewardInstructionSimple({
+    const { innerTransactions } = await Clmm.makeCollectRewardInstructionSimple({
       connection: connection,
       poolInfo: currentAmmPool.state,
       ownerInfo: {

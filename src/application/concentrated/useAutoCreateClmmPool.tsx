@@ -4,7 +4,7 @@ import { div } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
-import { AmmV3, AmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
+import { Clmm, ClmmConfigInfo } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { useEffect, useRef } from 'react'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
@@ -18,7 +18,7 @@ import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 import { lookupTableCache } from '../txTools/handleTx'
 
-export function useAutoCreateAmmv3Pool() {
+export function useAutoCreateClmmPool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, ammPoolStartTime } = useConcentrated()
   const connection = useConnection((s) => s.connection)
   const owner = useWallet((s) => s.owner)
@@ -82,12 +82,12 @@ async function createNewConcentratedPool({ timestamp: number }) {
   const startTime = toBN((ammPoolStartTime?.getTime() ?? 0) / 1000)
   const mint1TokenProgramId = getTokenProgramId(coin1.mint)
   const mint2TokenProgramId = getTokenProgramId(coin2.mint)
-  const { innerTransactions, address } = await AmmV3.makeCreatePoolInstructionSimple({
+  const { innerTransactions, address } = await Clmm.makeCreatePoolInstructionSimple({
     connection: connection,
     programId: programIds.CLMM,
     mint1: { programId: mint1TokenProgramId, mint: coin1.mint, decimals: coin1.decimals },
     mint2: { programId: mint2TokenProgramId, mint: coin2.mint, decimals: coin2.decimals },
-    ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
+    ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as ClmmConfigInfo,
     initialPrice: fractionToDecimal(currentPrice, 15),
     owner: owner ?? PublicKey.default,
     payer: owner ?? PublicKey.default,
@@ -96,8 +96,8 @@ async function createNewConcentratedPool({ timestamp: number }) {
     lookupTableCache,
     makeTxVersion: txVersion
   })
-  const mockedPoolInfo = AmmV3.makeMockPoolInfo({
-    ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
+  const mockedPoolInfo = Clmm.makeMockPoolInfo({
+    ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as ClmmConfigInfo,
     mint1: { programId: mint1TokenProgramId, mint: coin1.mint, decimals: coin1.decimals },
     mint2: { programId: mint2TokenProgramId, mint: coin2.mint, decimals: coin2.decimals },
     owner: owner ?? PublicKey.default,

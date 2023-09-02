@@ -1,4 +1,4 @@
-import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
+import { ClmmPoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { BN } from 'bn.js'
@@ -213,14 +213,14 @@ function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     (base
       ? base.symbol
       : sdkConcentratedInfo.state.mintA.mint
-      ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
-      : 'unknown') +
+        ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
+        : 'unknown') +
     '-' +
     (quote
       ? quote?.symbol
       : sdkConcentratedInfo.state.mintB.mint
-      ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
-      : 'unknown')
+        ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
+        : 'unknown')
 
   return {
     id: sdkConcentratedInfo.state.id,
@@ -279,20 +279,20 @@ function hydrateUserPositionAccounnt(
           idx === 0
             ? toPercent(ammPoolInfo.state.day.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-            ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
-            : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
+              ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
+              : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
         const apr7d =
           idx === 0
             ? toPercent(ammPoolInfo.state.week.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-            ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
-            : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
+              ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
+              : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
         const apr30d =
           idx === 0
             ? toPercent(ammPoolInfo.state.month.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-            ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
-            : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
+              ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
+              : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
         return { penddingReward, apr24h, apr7d, apr30d, token }
       })
       .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos']
@@ -338,7 +338,7 @@ function hydrateUserPositionAccounnt(
 
 function checkIsInRange(
   sdkConcentratedInfo: SDKParsedConcentratedInfo,
-  userPositionAccount: AmmV3PoolPersonalPosition
+  userPositionAccount: ClmmPoolPersonalPosition
 ) {
   const currentPrice = decimalToFraction(sdkConcentratedInfo.state.currentPrice)
   const priceLower = decimalToFraction(userPositionAccount.priceLower)

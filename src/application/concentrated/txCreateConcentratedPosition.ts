@@ -1,4 +1,4 @@
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { Clmm } from '@raydium-io/raydium-sdk'
 
 import txHandler, { lookupTableCache } from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
@@ -163,7 +163,7 @@ export async function generateCreateClmmPositionTx(
   const _coin1Amount = toBN(coin1SlippageAmount, coin1.decimals, 'up')
   const _coin2Amount = toBN(coin2SlippageAmount, coin2.decimals, 'up')
 
-  const { innerTransactions, address } = await AmmV3.makeOpenPositionFromLiquidityInstructionSimple({
+  const { innerTransactions, address } = await Clmm.makeOpenPositionFromLiquidityInstructionSimple({
     connection: connection,
     liquidity,
     poolInfo: currentAmmPool.state,

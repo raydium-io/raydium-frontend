@@ -1,4 +1,4 @@
-import { HydratedAmmV3ConfigInfo, HydratedConcentratedInfo } from '@/application/concentrated/type'
+import { HydratedClmmConfigInfo, HydratedConcentratedInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
 import Icon from '@/components/Icon'
@@ -36,7 +36,7 @@ function ConcentratedFeeSwitcherContent({
   className
 }: {
   availableAmmPools?: HydratedConcentratedInfo[]
-  configs?: HydratedAmmV3ConfigInfo[]
+  configs?: HydratedClmmConfigInfo[]
   currentPool?: HydratedConcentratedInfo
   unavailableIds?: string[]
   className?: string

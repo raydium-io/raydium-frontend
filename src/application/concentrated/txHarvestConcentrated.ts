@@ -1,5 +1,5 @@
 import assert from '@/functions/assert'
-import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
+import { Clmm, ZERO } from '@raydium-io/raydium-sdk'
 
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
@@ -19,7 +19,7 @@ export default async function txHarvestConcentrated({
     const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
+    const { innerTransactions } = await Clmm.makeDecreaseLiquidityInstructionSimple({
       connection: connection,
       liquidity: ZERO,
       amountMinA: ZERO,
@@ -65,7 +65,7 @@ export async function txHarvestAllConcentrated() {
   }
 
   // call sdk to get the txs, and check if user has harvestable position
-  const { innerTransactions } = await AmmV3.makeHarvestAllRewardInstructionSimple({
+  const { innerTransactions } = await Clmm.makeHarvestAllRewardInstructionSimple({
     connection: connection,
     fetchPoolInfos: originSdkParsedAmmPools,
     ownerInfo: {

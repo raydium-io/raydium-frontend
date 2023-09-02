@@ -3,7 +3,7 @@ import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import { toPub } from '@/functions/format/toMintString'
 import { div, mul } from '@/functions/numberish/operations'
-import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
+import { Clmm, Fraction } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
 import { getTokenProgramId, isToken2022 } from '../token/isToken2022'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
@@ -101,7 +101,7 @@ export default async function txSetRewards({ currentAmmPool, updateRewards, newR
     if (updatedRewardInfos.length) {
       const { chainTimeOffset } = useConnection.getState()
       const chainTime = ((chainTimeOffset ?? 0) + Date.now()) / 1000
-      const { innerTransactions } = await AmmV3.makeSetRewardsInstructionSimple({
+      const { innerTransactions } = await Clmm.makeSetRewardsInstructionSimple({
         ...commonParams,
         chainTime,
         rewardInfos: updatedRewardInfos,
@@ -121,7 +121,7 @@ export default async function txSetRewards({ currentAmmPool, updateRewards, newR
     }
 
     if (newRewardInfos.length) {
-      const { innerTransactions } = await AmmV3.makeInitRewardsInstructionSimple({
+      const { innerTransactions } = await Clmm.makeInitRewardsInstructionSimple({
         ...commonParams,
         rewardInfos: newRewardInfos,
         computeBudgetConfig: await getComputeBudgetConfig(),

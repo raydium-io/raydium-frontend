@@ -1,5 +1,5 @@
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { AmmV3, AmmV3PoolInfo, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Clmm, ClmmPoolInfo, TokenAmount } from '@raydium-io/raydium-sdk'
 import { getMultiMintInfos } from './getMultiMintInfos'
 import { getEpochInfo } from './getEpochInfo'
 
@@ -11,7 +11,7 @@ export async function getResultAmountByTick({
   tickUpper,
   slippage
 }: {
-  info: AmmV3PoolInfo
+  info: ClmmPoolInfo
   baseAmount: TokenAmount
   quoteAmount: TokenAmount
   tickLower: number
@@ -22,7 +22,7 @@ export async function getResultAmountByTick({
     getMultiMintInfos({ mints: [info.mintA.mint, info.mintB.mint] }),
     getEpochInfo()
   ])
-  const { amountA, amountB, liquidity, amountSlippageA, amountSlippageB } = AmmV3.getLiquidityFromAmounts({
+  const { amountA, amountB, liquidity, amountSlippageA, amountSlippageB } = Clmm.getLiquidityFromAmounts({
     add: true, // backend force
     poolInfo: info,
     amountA: baseAmount.raw,

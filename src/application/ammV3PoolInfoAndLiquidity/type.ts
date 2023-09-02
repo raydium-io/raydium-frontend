@@ -1,4 +1,4 @@
-import { AmmV3PoolInfo, ApiPoolInfoItem, PoolType } from '@raydium-io/raydium-sdk'
+import { ClmmPoolInfo, ApiPoolInfoItem, PoolType } from '@raydium-io/raydium-sdk'
 
 export type BestResultStartTimeInfo = {
   ammId: string
@@ -8,7 +8,7 @@ export type BestResultStartTimeInfo = {
 }
 
 export type BestResultStartTimePoolInfo = {
-  rawInfo: AmmV3PoolInfo | ApiPoolInfoItem
+  rawInfo: ClmmPoolInfo | ApiPoolInfoItem
   ammId: string
   quoteMint: string
   baseMint: string

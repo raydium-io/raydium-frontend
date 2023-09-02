@@ -1,4 +1,4 @@
-import { AmmV3, AmmV3PoolPersonalPosition, Price, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { Clmm, ClmmPoolPersonalPosition, Price, PublicKeyish } from '@raydium-io/raydium-sdk'
 import { toPercent } from '@/functions/format/toPercent'
 import { add, div } from '@/functions/numberish/operations'
 import useToken from '../token/useToken'
@@ -82,7 +82,7 @@ export function getPoolTickAprCore({
 }: GetAprPoolTickParameters) {
   const { getToken } = useToken.getState()
   if (planType === 'D') {
-    const planBApr = AmmV3.estimateAprsForPriceRangeDelta({
+    const planBApr = Clmm.estimateAprsForPriceRangeDelta({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       mintPrice: tokenPrices,
@@ -108,7 +108,7 @@ export function getPoolTickAprCore({
     }
   } else {
     // (planType === 'C')
-    const planCApr = AmmV3.estimateAprsForPriceRangeMultiplier({
+    const planCApr = Clmm.estimateAprsForPriceRangeMultiplier({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       positionTickLowerIndex: Math.min(tickLower, tickUpper),
@@ -132,7 +132,7 @@ export function getPoolTickAprCore({
 }
 export type GetAprPositionParameters = {
   ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
-  positionAccount: AmmV3PoolPersonalPosition
+  positionAccount: ClmmPoolPersonalPosition
   poolRewardTokens: PublicKeyish[]
   tokenPrices: Record<string, Price>
   tokenDecimals: Record<string, number>
@@ -152,7 +152,7 @@ export function getPositonAprCore({
 }: GetAprPositionParameters) {
   const { getToken } = useToken.getState()
   if (planType === 'D') {
-    const planBApr = AmmV3.estimateAprsForPriceRangeDelta({
+    const planBApr = Clmm.estimateAprsForPriceRangeDelta({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       mintPrice: tokenPrices,
@@ -178,7 +178,7 @@ export function getPositonAprCore({
     }
   } else {
     // (planType === 'C')
-    const planCApr = AmmV3.estimateAprsForPriceRangeMultiplier({
+    const planCApr = Clmm.estimateAprsForPriceRangeMultiplier({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       positionTickLowerIndex: Math.min(positionAccount.tickLower, positionAccount.tickUpper),

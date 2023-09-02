@@ -1,4 +1,4 @@
-import { ApiAmmV3ConfigItem } from '@raydium-io/raydium-sdk'
+import { ApiClmmConfigItem } from '@raydium-io/raydium-sdk'
 
 import jFetch from '@/functions/dom/jFetch'
 import { toPercent } from '@/functions/format/toPercent'
@@ -17,12 +17,12 @@ import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 export default function useConcentratedAmmConfigInfoLoader() {
   const availableAmmConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
   const inDev = useAppSettings((s) => s.inDev)
-  const ammV3ConfigsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Configs)
+  const clmmConfigsUrl = useAppAdvancedSettings((s) => s.apiUrls.clmmConfigs)
 
   /** fetch api json info list  */
   useAsyncEffect(async () => {
     if (availableAmmConfigFeeOptions?.length) return
-    const response = await jFetch<{ data: Record<string, ApiAmmV3ConfigItem> }>(ammV3ConfigsUrl)
+    const response = await jFetch<{ data: Record<string, ApiClmmConfigItem> }>(clmmConfigsUrl)
     const data = inDev // dev data
       ? {
           AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce: {
@@ -67,5 +67,5 @@ export default function useConcentratedAmmConfigInfoLoader() {
         }))
       })
     }
-  }, [inDev, ammV3ConfigsUrl])
+  }, [inDev, clmmConfigsUrl])
 }

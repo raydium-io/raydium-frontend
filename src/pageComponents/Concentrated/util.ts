@@ -1,4 +1,4 @@
-import { ApiAmmV3PositionLinePoint, Fraction, Percent } from '@raydium-io/raydium-sdk'
+import { ApiClmmPositionLinePoint, Fraction, Percent } from '@raydium-io/raydium-sdk'
 
 import { SplToken } from '@/application/token/type'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -14,7 +14,7 @@ export function canTokenPairBeSelected(targetToken: SplToken | undefined, candid
   return !isMintEqual(targetToken?.mint, candidateToken?.mint)
 }
 
-export function toXYChartFormat(points: ApiAmmV3PositionLinePoint[]): ChartPoint[] {
+export function toXYChartFormat(points: ApiClmmPositionLinePoint[]): ChartPoint[] {
   return points.map(({ liquidity, price }) => ({
     x: Number(price),
     y: Number(liquidity)
@@ -42,8 +42,8 @@ export function calculateRatio({
     ? amount1HasVal
       ? mul(amount1, currentPrice).add(amount2Fraction)
       : amount2HasVal
-      ? amount2Fraction
-      : toFraction(1)
+        ? amount2Fraction
+        : toFraction(1)
     : toFraction(1)
 
   try {

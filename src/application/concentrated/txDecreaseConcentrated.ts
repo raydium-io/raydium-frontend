@@ -1,4 +1,4 @@
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { Clmm } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
@@ -45,7 +45,7 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const [feeInfoA, feeInfoB] = await Promise.all([feeInfo1, feeInfo2])
     if (options?.closePosition) {
-      const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
+      const { innerTransactions } = await Clmm.makeDecreaseLiquidityInstructionSimple({
         connection: connection,
         liquidity,
         poolInfo: currentAmmPool.state,
@@ -73,7 +73,7 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
     } else {
       assert(coin1AmountMin, 'not set coin1AmountMin')
       assert(coin2AmountMin, 'not set coin2AmountMin')
-      const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
+      const { innerTransactions } = await Clmm.makeDecreaseLiquidityInstructionSimple({
         connection: connection,
         liquidity,
         poolInfo: currentAmmPool.state,
@@ -96,11 +96,10 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Liquidity Removed',
-          description: `Removed ${toString(feeInfoA?.pure ?? coin1AmountMin, { decimalLength: 6 })} ${
-            coin1.symbol
-          } and ${toString(feeInfoB?.pure ?? coin2AmountMin, { decimalLength: 6 })} ${coin2.symbol} from ${toPubString(
-            targetUserPositionAccount.poolId
-          ).slice(0, 6)}`
+          description: `Removed ${toString(feeInfoA?.pure ?? coin1AmountMin, { decimalLength: 6 })} ${coin1.symbol
+            } and ${toString(feeInfoB?.pure ?? coin2AmountMin, { decimalLength: 6 })} ${coin2.symbol} from ${toPubString(
+              targetUserPositionAccount.poolId
+            ).slice(0, 6)}`
         }
       })
     }

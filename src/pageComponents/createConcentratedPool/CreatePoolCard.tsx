@@ -9,7 +9,7 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
-import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
+import { useAutoCreateClmmPool } from '@/application/concentrated/useAutoCreateClmmPool'
 import useConcentrated, { ConcentratedStore } from '@/application/concentrated/useConcentrated'
 import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
@@ -64,7 +64,7 @@ const maxAcceptPriceDecimal = 15
 const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
 
 export function CreatePoolCard() {
-  useAutoCreateAmmv3Pool()
+  useAutoCreateClmmPool()
 
   const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
   const isMobile = useAppSettings((s) => s.isMobile)

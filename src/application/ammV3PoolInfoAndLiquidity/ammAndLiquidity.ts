@@ -5,10 +5,10 @@
  */
 
 import {
-  AmmV3,
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3PoolsItem,
+  Clmm,
+  ClmmPoolInfo,
+  ClmmPoolPersonalPosition,
+  ApiClmmPoolsItem,
   ApiPoolInfo,
   PoolType,
   PublicKeyish,
@@ -43,7 +43,7 @@ import { BestResultStartTimeInfo } from './type'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 
 const apiCache = {} as {
-  ammV3?: ApiAmmV3PoolsItem[]
+  ammV3?: ApiClmmPoolsItem[]
   liquidity?: ApiPoolInfo
 }
 
@@ -71,8 +71,8 @@ export function clearApiCache() {
 }
 
 async function getAmmV3PoolKeys() {
-  const ammPoolsUrl = useAppAdvancedSettings.getState().apiUrls.ammV3Pools
-  const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammPoolsUrl) // note: previously Rudy has Test API for dev
+  const ammPoolsUrl = useAppAdvancedSettings.getState().apiUrls.clmmPools
+  const response = await jFetch<{ data: ApiClmmPoolsItem[] }>(ammPoolsUrl) // note: previously Rudy has Test API for dev
   return response?.data
 }
 
@@ -85,8 +85,8 @@ async function getOldKeys() {
 const parsedAmmV3PoolInfoCache = new Map<
   string,
   {
-    state: AmmV3PoolInfo
-    positionAccount?: AmmV3PoolPersonalPosition[] | undefined
+    state: ClmmPoolInfo
+    positionAccount?: ClmmPoolPersonalPosition[] | undefined
   }
 >()
 
@@ -100,12 +100,12 @@ async function getParsedAmmV3PoolInfo({
   chainTimeOffset = useConnection.getState().chainTimeOffset ?? 0
 }: {
   connection: Connection
-  apiAmmPools: ApiAmmV3PoolsItem[]
+  apiAmmPools: ApiClmmPoolsItem[]
   chainTimeOffset?: number
 }) {
   const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
   if (needRefetchApiAmmPools.length) {
-    const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
+    const sdkParsed = await Clmm.fetchMultiplePoolInfos({
       poolKeys: needRefetchApiAmmPools,
       connection,
       batchRequest: !isInLocalhost && !isInBonsaiTest,
@@ -153,7 +153,7 @@ function getSDKCacheInfos({
   outputMint: PublicKey
 
   apiPoolList: ApiPoolInfo
-  sdkParsedAmmV3PoolInfo: Awaited<ReturnType<(typeof AmmV3)['fetchMultiplePoolInfos']>>
+  sdkParsedAmmV3PoolInfo: Awaited<ReturnType<(typeof Clmm)['fetchMultiplePoolInfos']>>
 }) {
   const key = toPubString(inputMint) + toPubString(outputMint)
   if (!sdkCaches.has(key)) {
@@ -161,7 +161,7 @@ function getSDKCacheInfos({
       inputMint,
       outputMint,
       apiPoolList: apiPoolList,
-      ammV3List: Object.values(sdkParsedAmmV3PoolInfo).map((i) => i.state)
+      clmmList: Object.values(sdkParsedAmmV3PoolInfo).map((i) => i.state)
     })
     const mintInfos = fetchMultipleMintInfos({
       connection,
@@ -170,7 +170,7 @@ function getSDKCacheInfos({
       sdkCaches.delete(key)
       throw err
     })
-    const tickCache = AmmV3.fetchMultiplePoolTickArrays({
+    const tickCache = Clmm.fetchMultiplePoolTickArrays({
       connection,
       poolKeys: routes.needTickArray,
       batchRequest: !isInLocalhost && !isInBonsaiTest
@@ -304,9 +304,9 @@ function getBestCalcResult(
   chainTime: number
 ):
   | {
-      bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
-      bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
-    }
+    bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
+    bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
+  }
   | undefined {
   if (!routeList.length) return undefined
   const readyRoutes = routeList.filter((i) => i.poolReady)
@@ -330,7 +330,7 @@ function getBestCalcResult(
   }
 }
 
-function isAmmV3PoolInfo(poolType: PoolType): poolType is AmmV3PoolInfo {
+function isAmmV3PoolInfo(poolType: PoolType): poolType is ClmmPoolInfo {
   return isObject(poolType) && 'protocolFeesTokenA' in poolType
 }
 
