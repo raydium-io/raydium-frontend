@@ -41,7 +41,10 @@ export default function useConcentratedInfoLoader() {
   const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
   const clmmPoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.clmmPools)
 
-  const shouldLoadInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
+  const shouldLoadInfo = true // temp always load position info to detect if user has position
+  // const shouldLoadInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')]) // temporary force every page to load info
+  const shouldLoadHydrateInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
+
   const shouldLoadChartPoints = useMemo(
     () => pathname.includes('clmm') && !pathname.includes('create-pool'),
     [pathname.includes('clmm'), pathname.includes('create-pools')]
@@ -83,6 +86,7 @@ export default function useConcentratedInfoLoader() {
     if (!connection) return // don't hydrate when connection is not ready
     if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
     if (!sdkParsedAmmPools || sdkParsedAmmPools.length === 0) return
+    if (!shouldLoadHydrateInfo) return
     const sdkParsedAmmPoolsList = Object.values(sdkParsedAmmPools)
 
     const hydratedInfos = await lazyMap({
@@ -110,7 +114,7 @@ export default function useConcentratedInfoLoader() {
         useConcentrated.setState({ targetUserPositionAccount: updatedUserPosition })
       }
     }
-  }, [sdkParsedAmmPools, connection, tokens, shouldLoadInfo])
+  }, [sdkParsedAmmPools, connection, tokens, shouldLoadInfo, shouldLoadHydrateInfo])
 
   /** select pool chart data */
   useTransitionedEffect(async () => {

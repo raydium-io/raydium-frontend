@@ -47,6 +47,8 @@ import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
 import { TxVersionWidget } from './navWidgets/TxVersionWidget'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import toPubString from '@/functions/format/toMintString'
 
 /**
  * for easier to code and read
@@ -105,7 +107,10 @@ export default function PageLayout(props: {
       }}
       className={`w-full mobile:w-full h-full mobile:h-full`}
     >
-      <RPCPerformanceBanner className="grid-area-d" />
+      <div className="grid-area-d">
+        <RPCPerformanceBanner className="w-full" />
+        <NewConcentratedPoolBanner className="w-full" />
+      </div>
       {isMobile ? (
         <>
           <Navbar className="grid-area-a" barTitle={props.mobileBarTitle} onOpenMenu={() => setIsSideMenuOpen(true)} />
@@ -156,6 +161,40 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
           <div className="bg-[#dacc363f] text-center text-[#D8CB39] text-sm mobile:text-xs px-4 py-1">
             The Solana network is experiencing congestion or reduced performance. Transactions may fail to send or
             confirm.
+          </div>
+        )}
+      </FadeIn>
+    </div>
+  )
+}
+
+function NewConcentratedPoolBanner({ className }: { className?: string }) {
+  const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
+  const oldCLMMID = new Set([
+    'DdigEybG2begUfkpSUP63o5CKF2Q9yGCWktZ6Hnb1RxN' /* old stSOL-SOL */,
+    'HZf7wppva3wk4dCnrUe2GE1c8aUEXsUNk5asMFQ5sYch' /* old mSOL-SOL */,
+    'EXudMHn33b14PXVNzB6icD4jGLF27dbSC3m2bJXMuLEN' /* old mSOL-stSOL */,
+    '3NeUgARDmFgnKtkJLqUcEUNCfknFCcGsFfMJCtx6bAgx' /* old USDC-USDT */
+  ])
+  const userHasTargetPosition = useMemo(
+    () =>
+      sdkParsedAmmPools.some((c) => {
+        const clmmID = toPubString(c.state.id)
+        const isTargetPool = oldCLMMID.has(clmmID)
+        return isTargetPool && Boolean(c.positionAccount?.length)
+      }),
+    [sdkParsedAmmPools]
+  )
+  return (
+    <div className={className}>
+      <FadeIn>
+        {userHasTargetPosition && (
+          <div className="bg-[#dacc363f] text-center text-[#D8CB39] text-sm mobile:text-xs px-4 py-1">
+            You have a concentrated liquidity position to migrate. 0.01% fee tier pools have been upgraded with
+            optimized tick spacing to allow for more granular price ranges on stable-pairs. RAY rewards have shifted
+            from old pools to upgraded pools.
+            <br />
+            Go to the Concentrated liquidity page and manually migrate liquidity to continue receiving RAY rewards.
           </div>
         )}
       </FadeIn>
