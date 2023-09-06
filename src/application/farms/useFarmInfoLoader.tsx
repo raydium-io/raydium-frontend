@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 
 import { Endpoint } from '@/application/connection/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -14,17 +14,22 @@ import useToken from '../token/useToken'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { fetchFarmAprJsonInfos, fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
-import useAppSettings from '../common/useAppSettings'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 
 export default function useFarmInfoLoader() {
   const { pathname } = useRouter()
-  const { jsonInfos, sdkParsedInfos, farmRefreshCount, blockSlotCount } = useFarms()
+
+  // const { jsonInfos, sdkParsedInfos, farmRefreshCount, blockSlotCount } = useFarms()
+  const jsonInfos = useFarms((s) => s.jsonInfos)
+  const sdkParsedInfos = useFarms((s) => s.sdkParsedInfos)
+  const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
+  const blockSlotCount = useFarms((s) => s.blockSlotCount)
+
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const pairs = usePools((s) => s.rawJsonInfos)
   const getToken = useToken((s) => s.getToken)
@@ -137,7 +142,7 @@ export default function useFarmInfoLoader() {
  */
 export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefined) {
   if (!currentEndPoint) {
-    useFarms.setState({ blockSlotCount: 2 })
+    useFarms.setState((s) => ({ blockSlotCount: s.blockSlotCount ?? 2 }))
     return
   }
   const result = await jFetch<{
@@ -161,7 +166,7 @@ export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefine
     })
   })
   if (!result) {
-    useFarms.setState({ blockSlotCount: 2 })
+    useFarms.setState((s) => ({ blockSlotCount: s.blockSlotCount ?? 2 }))
     return
   }
 

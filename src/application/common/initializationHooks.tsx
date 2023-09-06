@@ -223,14 +223,14 @@ function useRpcPerformance() {
 function useGetSlotCountForSecond() {
   const currentEndPoint = useConnection((s) => s.currentEndPoint)
 
-  const getSlot = useCallback(async () => {
-    await getSlotCountForSecond(currentEndPoint)
-    setTimeout(getSlot, 1000 * 60)
-  }, [getSlotCountForSecond, currentEndPoint])
-
   useEffect(() => {
-    getSlot()
-  }, [getSlot])
+    if (!currentEndPoint) return
+    getSlotCountForSecond(currentEndPoint)
+    const timeoutId = setInterval(() => getSlotCountForSecond(currentEndPoint), 1000 * 60)
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [currentEndPoint])
 }
 
 function useHandleWindowTopError() {
