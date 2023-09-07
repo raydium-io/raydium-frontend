@@ -379,14 +379,28 @@ function ConcentratedCard() {
         !isMin && useConcentrated.setState({ priceUpperTick: res[tickKey], priceUpper: res.priceUpper })
       } else {
         // prevent new min/max ticks overlaps
-        if (res.priceLowerTick === res.priceUpperTick) return useConcentrated.getState()
+        const currentState = useConcentrated.getState()
+        const hasData =
+          currentState.priceLowerTick !== undefined &&
+          currentState.priceUpperTick !== undefined &&
+          currentState.priceLower !== undefined &&
+          currentState.priceUpper !== undefined
+        const preState = hasData
+          ? {
+              priceLowerTick: currentState.priceLowerTick as number,
+              priceLower: currentState.priceLower as Fraction,
+              priceUpperTick: currentState.priceUpperTick as number,
+              priceUpper: currentState.priceUpper as Fraction
+            }
+          : undefined
+        if (res.priceLowerTick === res.priceUpperTick) return preState
         if (
           isFocus1 &&
           side &&
           ((isMin && res.priceLowerTick >= tickRef.current.upper!) ||
             (!isMin && res.priceUpperTick <= tickRef.current.lower!))
         ) {
-          return useConcentrated.getState()
+          return preState
         }
         if (
           !isFocus1 &&
@@ -394,7 +408,7 @@ function ConcentratedCard() {
           ((isMin && res.priceLowerTick - tickRef.current.upper! <= 0) ||
             (!isMin && res.priceUpperTick - tickRef.current.lower! >= 0))
         )
-          return useConcentrated.getState()
+          return preState
 
         tickRef.current = { lower: res.priceLowerTick, upper: res.priceUpperTick }
         useConcentrated.setState(res)
