@@ -164,6 +164,8 @@ function ConcentratedCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const priceUpper = useConcentrated((s) => s.priceUpper)
   const priceLower = useConcentrated((s) => s.priceLower)
+  const priceUpperTick = useConcentrated((s) => s.priceUpperTick)
+  const priceLowerTick = useConcentrated((s) => s.priceLowerTick)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const [poolSnapShot, setPoolSnapShot] = useState<{
@@ -720,7 +722,7 @@ function ConcentratedCard() {
                 }
               },
               {
-                should: gt(sub(priceUpper, priceLower), div(currentPrice, 1000)),
+                should: gt(sub(priceUpperTick, priceLowerTick), 0),
                 fallbackProps: {
                   children: 'Range too small'
                 }
