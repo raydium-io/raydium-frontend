@@ -191,10 +191,9 @@ function NewConcentratedPoolBanner({ className }: { className?: string }) {
         {userHasTargetPosition && (
           <div className="bg-[#dacc363f] text-center text-[#D8CB39] text-sm mobile:text-xs px-4 py-1">
             You have a concentrated liquidity position to migrate. 0.01% fee tier pools have been upgraded with
-            optimized tick spacing to allow for more granular price ranges on stable-pairs. RAY rewards have shifted
-            from old pools to upgraded pools.
-            <br />
-            Go to the Concentrated liquidity page and manually migrate liquidity to continue receiving RAY rewards.
+            optimized tick spacing to allow for more granular price ranges on stable-pairs.
+            <br /> RAY rewards have shifted from old pools to upgraded pools. Go to the Concentrated liquidity page and
+            manually migrate liquidity to continue receiving RAY rewards.
           </div>
         )}
       </FadeIn>
