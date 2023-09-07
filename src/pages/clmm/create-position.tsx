@@ -722,7 +722,7 @@ function ConcentratedCard() {
                 }
               },
               {
-                should: gt(sub(priceUpperTick, priceLowerTick), 0),
+                should: !eq(sub(priceUpperTick, priceLowerTick), 0),
                 fallbackProps: {
                   children: 'Range too small'
                 }
