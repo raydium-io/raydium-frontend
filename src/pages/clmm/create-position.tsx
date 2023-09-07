@@ -36,7 +36,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, lte, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { div, mul, sub } from '@/functions/numberish/operations'
@@ -359,7 +359,6 @@ function ConcentratedCard() {
     }
     return originRes
   })
-
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
       if (!currentAmmPool || !coin1 || !coin2 || isNaN(pos.min) || isNaN(pos.max)) return
@@ -379,6 +378,24 @@ function ConcentratedCard() {
         isMin && useConcentrated.setState({ priceLowerTick: res[tickKey], priceLower: res.priceLower })
         !isMin && useConcentrated.setState({ priceUpperTick: res[tickKey], priceUpper: res.priceUpper })
       } else {
+        // prevent new min/max ticks overlaps
+        if (res.priceLowerTick === res.priceUpperTick) return useConcentrated.getState()
+        if (
+          isFocus1 &&
+          side &&
+          ((isMin && res.priceLowerTick >= tickRef.current.upper!) ||
+            (!isMin && res.priceUpperTick <= tickRef.current.lower!))
+        ) {
+          return useConcentrated.getState()
+        }
+        if (
+          !isFocus1 &&
+          side &&
+          ((isMin && res.priceLowerTick - tickRef.current.upper! <= 0) ||
+            (!isMin && res.priceUpperTick - tickRef.current.lower! >= 0))
+        )
+          return useConcentrated.getState()
+
         tickRef.current = { lower: res.priceLowerTick, upper: res.priceUpperTick }
         useConcentrated.setState(res)
       }
@@ -401,13 +418,24 @@ function ConcentratedCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
+
+      // prevent new min/max ticks overlaps
+      if (isFocus1 && ((isMin && nextTick >= tickRef.current.upper!) || (!isMin && nextTick <= tickRef.current.lower!)))
+        return toFraction(p)
+      if (
+        !isFocus1 &&
+        ((isMin && nextTick - tickRef.current.upper! <= 0) || (!isMin && nextTick - tickRef.current.lower! >= 0))
+      )
+        return toFraction(p)
+
       if (isMin && gte(price.toFixed(20), chartRef.current!.getPosition().max.toFixed(20))) return toFraction(p)
+      if (!isMin && lte(price.toFixed(20), chartRef.current!.getPosition().min.toFixed(20))) return toFraction(p)
       tickRef.current[tickKey] = nextTick
       isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
       !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
       return price
     },
-    [coin1?.mint, coin2?.mint, currentAmmPool?.idString, tickDirection, decimals]
+    [coin1?.mint, coin2?.mint, currentAmmPool?.idString, tickDirection, decimals, isFocus1]
   )
 
   const refreshSnapshot = useEvent(() => {

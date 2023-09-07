@@ -371,7 +371,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     }) => {
       timer && clearTimeout(timer)
       const updateFunc = () => {
-        const res = onPositionChange?.(pos)
+        const res = onPositionChange?.({ ...pos, side: side === 'area' ? undefined : (side as Range) })
         if (!res) return
         const [newMin, newMax] = [
           Number(res.priceLower.toFixed(maxDecimals)),
@@ -764,7 +764,7 @@ export default forwardRef(function Chart(props: Props, ref) {
               tickLine={false}
               dataKey="x"
             />
-            <YAxis allowDataOverflow domain={['dataMin', yAxisMax]} type="number" hide={true} />
+            <YAxis allowDataOverflow domain={[0, yAxisMax * 1.05]} type="number" hide={true} />
             {!hideRangeLine && !isNaN(position[Range.Min]) && (
               <ReferenceLine
                 {...getMouseEvent(Range.Min)}
