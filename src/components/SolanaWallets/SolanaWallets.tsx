@@ -19,7 +19,6 @@ import {
   PhantomWalletAdapter,
   SafePalWalletAdapter,
   SlopeWalletAdapter,
-  SolflareWalletAdapter,
   SolletExtensionWalletAdapter,
   SolletWalletAdapter,
   SolongWalletAdapter,
@@ -28,6 +27,7 @@ import {
   TrustWalletAdapter,
   WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
+import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
 import SquadsEmbeddedWalletAdapter, { detectEmbeddedInSquadsIframe } from './SquadsMultisig'
 import { clusterApiUrl } from '@solana/web3.js'
 import { OKXWalletAdapter } from './OKXAdapter'
