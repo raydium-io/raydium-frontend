@@ -287,8 +287,11 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   useEffect(() => {
     if (!showCurrentPriceOnly || !chartOptions?.isStable) return
-    setupXAxis({ min: Number(defaultMin?.toFixed(15)) * 0.995, max: Number(defaultMax?.toFixed(15)) * 1.005 })
-  }, [points, showCurrentPriceOnly, defaultMin, defaultMax, chartOptions?.isStable])
+    setupXAxis({
+      min: Math.min(Number(defaultMin?.toFixed(15)), Number(currentPriceNum)) * 0.9995,
+      max: Math.max(Number(defaultMax?.toFixed(15)), priceMax ?? 100) * 1.0005
+    })
+  }, [points, showCurrentPriceOnly, defaultMin, defaultMax, chartOptions?.isStable, priceMax, currentPriceNum])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
