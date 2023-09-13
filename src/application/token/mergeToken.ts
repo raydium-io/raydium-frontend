@@ -1,4 +1,6 @@
+import { mergeObjectsWithConfigs } from '@/functions/mergeObjects'
 import { SplToken, TokenJson } from './type'
+import toPubString from '@/functions/format/toMintString'
 
 export function mergeToken(oldTokenA: TokenJson | undefined, newTokenB: TokenJson): TokenJson
 export function mergeToken(oldTokenA: SplToken | undefined, newTokenB: SplToken): SplToken
@@ -12,23 +14,20 @@ export function mergeToken(
 ): SplToken | TokenJson | undefined {
   if (!oldTokenA) return newTokenB
   if (!newTokenB) return oldTokenA
-  const diffInfo = Object.fromEntries(
-    Object.entries(newTokenB).filter(([k, vB]) => {
-      if (k === 'symbol' && oldTokenA[k]) {
-        const isSystemDefaultValue = vB === 'UNKNOWN'
-        const isCustomizedDefaultValue = vB.length >= 6 && newTokenB[k]?.startsWith(vB)
-        const needIgnore = isSystemDefaultValue || isCustomizedDefaultValue
-        return !needIgnore
-      }
-      if (k === 'name' && oldTokenA[k]) {
-        const isSystemDefaultValue = vB === 'UNKNOWN'
-        const isCustomizedDefaultValue = vB.length >= 12 && newTokenB[k]?.startsWith(vB)
-        const needIgnore = isSystemDefaultValue || isCustomizedDefaultValue
-        return !needIgnore
-      }
-      return oldTokenA[k] !== vB
-    })
-  )
-  const result = Object.assign({}, oldTokenA, diffInfo)
-  return result
+
+  return mergeObjectsWithConfigs([oldTokenA, newTokenB], ({ key, valueA, valueB }) => {
+    if (key === 'symbol' && valueA) {
+      const isSystemDefaultValue = valueB === 'UNKNOWN'
+      const isCustomizedDefaultValue = valueB.length >= 6 && toPubString(newTokenB['mint'])?.startsWith(valueB)
+      const needIgnore = isSystemDefaultValue || isCustomizedDefaultValue
+      return needIgnore ? valueA : valueB
+    } else if (key === 'name' && valueA) {
+      const isSystemDefaultValue = valueB === 'UNKNOWN'
+      const isCustomizedDefaultValue = valueB.length >= 12 && toPubString(newTokenB['mint'])?.startsWith(valueB)
+      const needIgnore = isSystemDefaultValue || isCustomizedDefaultValue
+      return needIgnore ? valueA : valueB
+    } else {
+      return valueB ?? valueA
+    }
+  })
 }

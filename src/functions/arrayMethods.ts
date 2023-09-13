@@ -1,6 +1,6 @@
 import listToMap from './format/listToMap'
 import { isArray, isObject, isSet } from './judgers/dateType'
-import { mergeObjectsWithConfigs } from './objectMethods'
+import { mergeObjects, mergeObjectsWithConfigs } from './mergeObjects'
 
 export function hasSameItems<T>(arr1: T[], arr2: any[]): arr2 is T[] {
   if (arr1.length !== arr2.length) return false
@@ -85,7 +85,7 @@ export function mergeWithOld<T extends Record<keyof any, any>>(
     sameKeyMergeRule?: (newItem: T[number], oldItem: T[number]) => T[number]
   }
 ): T
-export function mergeWithOld<T>(
+export function mergeWithOld(
   newData,
   oldData,
   options?: {
@@ -95,7 +95,11 @@ export function mergeWithOld<T>(
 ) {
   if (!oldData) return newData
   if (isSet(newData) && isSet(oldData)) {
-    return new Set([...oldData, ...newData])
+    const resultSet = new Set(oldData)
+    for (const item of newData) {
+      resultSet.add(item)
+    }
+    return resultSet
   }
   if (isArray(newData) && isArray(oldData)) {
     return options?.uniqueKey
@@ -114,7 +118,7 @@ export function mergeWithOld<T>(
       ? mergeObjectsWithConfigs([oldData, newData], ({ valueA, valueB }) =>
           valueA && valueB ? options.sameKeyMergeRule!(valueA, valueB) : valueA ?? valueB
         )
-      : { ...oldData, ...newData }
+      : mergeObjects(oldData, newData)
   }
 }
 

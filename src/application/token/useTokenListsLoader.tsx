@@ -41,6 +41,8 @@ import useToken, {
 import { SOLMint } from './wellknownToken.config'
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { isToken2022 } from './isToken2022'
+import { makeAbortable } from '@/functions/makeAbortable'
+import { useEffect } from 'react'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -54,22 +56,22 @@ export default function useTokenListsLoader() {
   useIsomorphicLayoutEffect(() => {
     clearTokenCache()
   }, [tokenInfoUrl])
-  useRecordedEffect(
-    (prevs) => {
+  useEffect(() => {
+    const { abort } = makeAbortable((canContinue) => {
       rawTokenListConfigs.forEach((config) => {
-        loadTokens([config])
+        loadTokens([config], canContinue)
       })
-    },
-    [
-      walletRefreshCount,
-      swapRefreshCount,
-      liquidityRefreshCount,
-      farmRefreshCount,
-      poolRefreshCount,
-      clmmRefreshCount,
-      tokenInfoUrl
-    ]
-  )
+    })
+    return abort
+  }, [
+    walletRefreshCount,
+    swapRefreshCount,
+    liquidityRefreshCount,
+    farmRefreshCount,
+    poolRefreshCount,
+    clmmRefreshCount,
+    tokenInfoUrl
+  ])
 }
 
 function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
@@ -306,7 +308,7 @@ async function getTokenLists(
 
   for (const pair of checkMapping) {
     if (tokenCollector[pair.collector].length === 0 && tokenListSettings[pair.settings].mints) {
-      tokenCollector[pair.collector] = Array.from(tokenListSettings[pair.settings].mints.values())
+      tokenCollector[pair.collector] = Array.from(tokenListSettings[pair.settings].mints)
     }
   }
 
@@ -345,11 +347,14 @@ export function toSplTokenInfo(splToken: SplToken): TokenJson {
   }
 }
 
-async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
+async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], canContinue: () => boolean) {
   const { tokenListSettings, tokenJsonInfos, blacklist: existBlacklist } = useToken.getState()
   // const customTokenIcons = await fetchTokenIconInfoList()
+  console.time('fetchTokenLists')
   const fetched = await getTokenLists(inputTokenListConfigs, tokenListSettings, tokenJsonInfos, existBlacklist)
-  // if length has not changed, don't parse again
+  console.timeEnd('fetchTokenLists')
+
+  if (!canContinue()) return
 
   const isSameAsOlder =
     isSubSet(fetched.devMints, tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints ?? new Set()) &&
@@ -365,30 +370,36 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
     /* shake off tokens in raydium blacklist */
     .filter((info) => !blacklistSet.has(info.mint))
 
+  console.time('sort')
   const splTokenJsonInfos = listToMap(
     initiallySortTokens(unsortedTokenInfos, officialMints, unOfficialMints),
     (i) => i.mint
   )
+  console.timeEnd('sort')
 
+  console.time('createSplToken')
   const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo))
+  console.timeEnd('createSplToken')
 
   /** have QSOL */
   const tokens = { ...pureTokens, [toPubString(QuantumSOL.mint)]: QuantumSOL }
 
+  console.time('pickout wsol')
   const verboseTokens = [
     QuantumSOLVersionSOL,
     ...Object.values(replaceValue(pureTokens, (v, k) => k === toPubString(WSOL.mint), QuantumSOLVersionWSOL))
   ]
+  console.timeEnd('pickout wsol')
 
+  console.time('load canFlaggedTokenMints')
+  const canFlaggedTokenMints = new Set(
+    Object.values(tokens)
+      .filter((token) => !officialMints.has(toPubString(token.mint)))
+      .map((token) => toPubString(token.mint))
+  )
+  console.timeEnd('load canFlaggedTokenMints')
   useToken.setState((s) => ({
-    canFlaggedTokenMints: mergeWithOld(
-      new Set(
-        Object.values(tokens)
-          .filter((token) => !officialMints.has(toPubString(token.mint)))
-          .map((token) => toPubString(token.mint))
-      ),
-      s.canFlaggedTokenMints
-    ),
+    canFlaggedTokenMints: mergeWithOld(canFlaggedTokenMints, s.canFlaggedTokenMints),
     blacklist: blacklist,
     tokenListSettings: {
       ...s.tokenListSettings,
