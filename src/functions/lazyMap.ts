@@ -258,15 +258,6 @@ async function loadTasks<F extends () => any>(
     taskName: loopTaskName,
     subTasks: tasks
   }
-  // console.log(
-  //   '[lazymap] toDoSubtaskingList: ',
-  //   toDoSubtaskingList,
-  //   'subtask idle: ',
-  //   subTaskIdleIds,
-  //   'waiting:',
-  //   loopTaskWaitingIntervalIds.slice()
-  // )
-
   if (subTaskIdleIds.length === 0) startLazyMapConsumer()
 }
 

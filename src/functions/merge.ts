@@ -73,6 +73,10 @@ export function mergeFunction<T extends AnyFn>(...fns: T[]): (...params: Paramet
   }
 }
 
+/**
+ *
+ * @deprecated use mergeObjects instead
+ */
 export function mergeObject<T>(...objs: [T]): T
 export function mergeObject<T, U>(...objs: [T, U]): T & U
 export function mergeObject<T, U, W>(...objs: [T, U, W]): T & U & W
@@ -89,6 +93,10 @@ export function mergeObject<T>(...objs: [T, ...any[]]): T {
   })
 }
 
+/**
+ *
+ * @deprecated use mergeObjects instead
+ */
 export function coverlyMergeObject<T>(...objs: [T]): T
 export function coverlyMergeObject<T, U>(...objs: [T, U]): T & U
 export function coverlyMergeObject<T, U, W>(...objs: [T, U, W]): T & U & W
