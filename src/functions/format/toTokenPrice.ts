@@ -31,5 +31,5 @@ export default function toTokenPrice(
 }
 
 function withZeroTail(n: number | string, decimal: number) {
-  return n.toString().padEnd(decimal, '0')
+  return `${n}${'0'.repeat(decimal)}`
 }

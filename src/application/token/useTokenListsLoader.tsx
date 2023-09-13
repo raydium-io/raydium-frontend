@@ -3,7 +3,7 @@ import { ApiClmmPoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-
 import { addItems, mergeWithOld } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isArray, isObject } from '@/functions/judgers/dateType'
 import { isSubSet } from '@/functions/setMethods'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
@@ -18,8 +18,13 @@ import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
 
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { createCachedFunction } from '@/functions/createCachedFunction'
+import { makeAbortable } from '@/functions/makeAbortable'
+import { mergeObjects } from '@/functions/mergeObjects'
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { useEffect } from 'react'
 import { initiallySortTokens } from './initiallySortTokens'
+import { isToken2022 } from './isToken2022'
 import { mergeToken } from './mergeToken'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
 import { rawTokenListConfigs } from './rawTokenLists.config'
@@ -39,12 +44,6 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
-import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { isToken2022 } from './isToken2022'
-import { makeAbortable } from '@/functions/makeAbortable'
-import { useEffect } from 'react'
-import { mergeObjects } from '@/functions/mergeObjects'
-import { createCachedFunction } from '@/functions/createCachedFunction'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -352,7 +351,7 @@ export function createSplToken(
       get(_target, key) {
         switch (key) {
           case 'mint':
-            return info.mint
+            return toPub(info.mint)
           case 'id':
             return info.mint
           case 'symbol':
@@ -374,7 +373,7 @@ export function createSplToken(
         }
       },
       has: (_target, key) => splTokenKeys.includes(key as string),
-      getPrototypeOf: () => ({}),
+      getPrototypeOf: () => Object.getPrototypeOf(token()),
       ownKeys: () => splTokenKeys,
       // for Object.keys to filter
       getOwnPropertyDescriptor: (_target, prop) => ({
