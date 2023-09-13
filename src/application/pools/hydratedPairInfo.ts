@@ -8,8 +8,8 @@ import { LpToken } from '../token/type'
 
 import computeUserLedgerInfo from './infoCalculater'
 import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
-import { AnyFn } from '@/types/constants'
 import { mergeObjects } from '@/functions/mergeObjects'
+import { createCachedFunction } from '../../functions/createCachedFunction'
 
 export function hydratedPairInfo(
   pair: JsonPairItemInfo,
@@ -100,17 +100,4 @@ export function hydratedPairInfo(
     isStablePool: Boolean(payload.isStable),
     isOpenBook: Boolean(payload.isOpenBook)
   })
-}
-
-/**
- * invoke only once, return the cached result when invoke again
- */
-function createCachedFunction<F extends AnyFn>(fn: F): F {
-  let cachedResult: ReturnType<F> | undefined = undefined
-  return function (...args: Parameters<F>) {
-    if (cachedResult == null) {
-      cachedResult = fn(...args)
-    }
-    return cachedResult
-  } as F
 }

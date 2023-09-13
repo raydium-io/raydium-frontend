@@ -1,12 +1,9 @@
-import BN from 'bn.js'
-import { CurrencyAmount, Fraction, TEN } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
-import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import toBN from '@/functions/numberish/toBN'
 import { Numberish } from '@/types/constants'
 
 import { mul } from '../numberish/operations'
-import toFraction from '../numberish/toFraction'
 
 import { usdCurrency } from './toTokenPrice'
 

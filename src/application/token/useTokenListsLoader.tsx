@@ -43,6 +43,8 @@ import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { isToken2022 } from './isToken2022'
 import { makeAbortable } from '@/functions/makeAbortable'
 import { useEffect } from 'react'
+import { mergeObjects } from '@/functions/mergeObjects'
+import { createCachedFunction } from '@/functions/createCachedFunction'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -324,20 +326,82 @@ export function createSplToken(
   },
   customTokenIcons?: Record<string, SrcAddress>
 ): SplToken {
-  const { mint, symbol, name, decimals, isToken2022: optIsToken2022 = isToken2022(info), ...rest } = info
-  // TODO: recordPubString(token.mint)
-  const splToken = Object.assign(
-    new Token(optIsToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID, mint, decimals, symbol, name ?? symbol),
-    { id: mint },
-    rest
-  )
-  if (customTokenIcons?.[mint]) {
-    splToken.icon = customTokenIcons[mint]
-  }
-  if (optIsToken2022) {
-    splToken.extensions = { ...splToken.extensions, version: 'TOKEN2022' }
-  }
-  return splToken
+  const splTokenKeys = [
+    'mint',
+    'symbol',
+    'name',
+    'decimals',
+    'isToken2022',
+    'extensions',
+    'programIds',
+    'id',
+    'icon',
+    'userAdded',
+    'hasFreeze'
+  ]
+  const tokenIsToken2022 = createCachedFunction(() => info.isToken2022 ?? isToken2022(info))
+  const token = createCachedFunction(() => {
+    const { mint, symbol, name, decimals, extensions, ...rest } = info
+    // TODO: recordPubString(token.mint)
+    const splToken = mergeObjects(
+      new Token(tokenIsToken2022() ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID, mint, decimals, symbol, name ?? symbol),
+      { id: mint },
+      rest
+    )
+    return splToken
+  })
+  return new Proxy(
+    {},
+    {
+      get(_target, key) {
+        switch (key) {
+          case 'mint':
+            return info.mint
+          case 'id':
+            return info.mint
+          case 'symbol':
+            return info.symbol
+          case 'name':
+            return info.name ?? info.symbol
+          case 'decimals':
+            return info.decimals
+          case 'isToken2022':
+            return tokenIsToken2022()
+          case 'extensions':
+            return tokenIsToken2022() ? { ...info.extensions, version: 'TOKEN2022' } : info.extensions
+          case 'programIds':
+            return tokenIsToken2022() ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
+          case 'icon':
+            return customTokenIcons?.[info.mint] ?? info.icon
+          default:
+            return info[key] ?? token()[key]
+        }
+      },
+      has: (_target, key) => splTokenKeys.includes(key as string),
+      getPrototypeOf: () => ({}),
+      ownKeys: () => splTokenKeys,
+      // for Object.keys to filter
+      getOwnPropertyDescriptor: (_target, prop) => ({
+        value: undefined,
+        enumerable: true,
+        configurable: true
+      })
+    }
+  ) as SplToken
+  // const { mint, symbol, name, decimals, isToken2022: optIsToken2022 = isToken2022(info), extensions, ...rest } = info
+  // // TODO: recordPubString(token.mint)
+  // const splToken = mergeObjects(
+  //   new Token(optIsToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID, mint, decimals, symbol, name ?? symbol),
+  //   { id: mint },
+  //   rest
+  // )
+  // if (customTokenIcons?.[mint]) {
+  //   splToken.icon = customTokenIcons[mint]
+  // }
+  // if (optIsToken2022) {
+  //   splToken.extensions = { ...extensions, version: 'TOKEN2022' }
+  // }
+  // return splToken
 }
 
 export function toSplTokenInfo(splToken: SplToken): TokenJson {
