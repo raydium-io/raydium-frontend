@@ -398,10 +398,12 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], can
       .map((token) => toPubString(token.mint))
   )
   console.timeEnd('load canFlaggedTokenMints')
-  useToken.setState((s) => ({
-    canFlaggedTokenMints: mergeWithOld(canFlaggedTokenMints, s.canFlaggedTokenMints),
-    blacklist: blacklist,
-    tokenListSettings: {
+  useToken.setState((s) => {
+    console.time('merged')
+    const merged = mergeWithOld(canFlaggedTokenMints, s.canFlaggedTokenMints)
+    console.timeEnd('merged')
+    console.time('newSettings')
+    const newSettings = {
       ...s.tokenListSettings,
       [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
@@ -419,12 +421,18 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], can
         ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
         mints: unNamedMints
       }
-    },
-    tokenJsonInfos: allTokens,
-    tokens: tokens,
-    pureTokens: pureTokens,
-    verboseTokens: verboseTokens
-  }))
+    }
+    console.timeEnd('newSettings')
+    return {
+      canFlaggedTokenMints: merged,
+      blacklist: blacklist,
+      tokenListSettings: newSettings,
+      tokenJsonInfos: allTokens,
+      tokens: tokens,
+      pureTokens: pureTokens,
+      verboseTokens: verboseTokens
+    }
+  })
 }
 
 /**

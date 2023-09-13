@@ -110,7 +110,7 @@ export default function usePoolsInfoLoader() {
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
           isOpenBook: isPairInfoOpenBook(pair.ammId)
         }),
-      options: { priority: pathname.includes('pools') || pathname.includes('liquidity') ? 1 : 0 }
+      options: { priority: pathname.includes('pools') || pathname.includes('liquidity') ? 1 : 0, oneGroupTasksSize: 32 }
     })
     usePools.setState({ hydratedInfos })
   }, [jsonInfos, lpTokens, getLpToken, balances, stableLiquidityJsonInfoLpMints, userAddedTokens])

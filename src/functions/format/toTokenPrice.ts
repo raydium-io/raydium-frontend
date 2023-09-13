@@ -1,12 +1,8 @@
-import { Currency, Price, TEN, Token } from '@raydium-io/raydium-sdk'
-
-import BN from 'bn.js'
+import { Currency, Price, Token } from '@raydium-io/raydium-sdk'
 
 import { TokenJson } from '@/application/token/type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
-
-import toBN from '../numberish/toBN'
 
 export const usdCurrency = new Currency(6, 'usd', 'usd')
 
@@ -24,12 +20,16 @@ export default function toTokenPrice(
   options?: { alreadyDecimaled?: boolean }
 ): Price {
   const { numerator, denominator } = parseNumberInfo(numberPrice)
-  const parsedNumerator = options?.alreadyDecimaled ? toBN(numerator).mul(TEN.pow(toBN(token.decimals))) : numerator
-  const parsedDenominator = toBN(denominator).mul(TEN.pow(toBN(usdCurrency.decimals)))
+  const parsedNumerator = options?.alreadyDecimaled ? withZeroTail(numerator, token.decimals) : numerator
+  const parsedDenominator = withZeroTail(denominator, usdCurrency.decimals)
   return new Price(
     usdCurrency,
-    parsedDenominator.toString(),
+    parsedDenominator,
     new Currency(token.decimals, token.symbol, token.name),
-    parsedNumerator.toString()
+    parsedNumerator
   )
+}
+
+function withZeroTail(n: number | string, decimal: number) {
+  return n.toString().padEnd(decimal, '0')
 }

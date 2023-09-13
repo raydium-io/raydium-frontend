@@ -20,6 +20,7 @@ export default function useLpTokensLoader() {
   const { pathname } = useRouter()
 
   useAsyncEffect(async () => {
+    console.time('start create lp')
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       loopTaskName: 'load lp token',
@@ -49,6 +50,7 @@ export default function useLpTokensLoader() {
         return lpToken
       }
     })
+    console.timeEnd('start create lp')
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
     const sameAsPrevious =
       useToken.getState().lpTokens && toTokenKeys(useToken.getState().lpTokens) == toTokenKeys(lpTokens)

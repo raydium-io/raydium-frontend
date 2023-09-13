@@ -97,7 +97,7 @@ export function mergeWithOld(
   if (isSet(newData) && isSet(oldData)) {
     const resultSet = new Set(oldData)
     for (const item of newData) {
-      resultSet.add(item)
+      if (!resultSet.has(item)) resultSet.add(item)
     }
     return resultSet
   }
