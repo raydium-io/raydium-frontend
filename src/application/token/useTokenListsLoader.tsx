@@ -209,8 +209,6 @@ async function fetchTokenList(
   return Promise.all(
     configs.map((raw) => {
       const task = async () => {
-        // eslint-disable-next-line no-console
-        // console.time(`load ${raw.url()}`)
         const response = await jFetch<
           RaydiumTokenListJsonFile | RaydiumDevTokenListJsonFile | LiquidityPoolsJsonFile | { data: ApiClmmPoolsItem[] }
         >(raw.url())
@@ -240,8 +238,6 @@ async function fetchTokenList(
               break
           }
         }
-        // eslint-disable-next-line no-console
-        // console.timeEnd(`load ${raw.url()}`)
       }
       return task()
     })
@@ -414,9 +410,7 @@ export function toSplTokenInfo(splToken: SplToken): TokenJson {
 async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], canContinue: () => boolean) {
   const { tokenListSettings, tokenJsonInfos, blacklist: existBlacklist } = useToken.getState()
   // const customTokenIcons = await fetchTokenIconInfoList()
-  console.time('fetchTokenLists')
   const fetched = await getTokenLists(inputTokenListConfigs, tokenListSettings, tokenJsonInfos, existBlacklist)
-  console.timeEnd('fetchTokenLists')
 
   if (!canContinue()) return
 
@@ -434,39 +428,28 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], can
     /* shake off tokens in raydium blacklist */
     .filter((info) => !blacklistSet.has(info.mint))
 
-  console.time('sort')
   const splTokenJsonInfos = listToMap(
     initiallySortTokens(unsortedTokenInfos, officialMints, unOfficialMints),
     (i) => i.mint
   )
-  console.timeEnd('sort')
 
-  console.time('createSplToken')
   const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo))
-  console.timeEnd('createSplToken')
 
   /** have QSOL */
   const tokens = { ...pureTokens, [toPubString(QuantumSOL.mint)]: QuantumSOL }
 
-  console.time('pickout wsol')
   const verboseTokens = [
     QuantumSOLVersionSOL,
     ...Object.values(replaceValue(pureTokens, (v, k) => k === toPubString(WSOL.mint), QuantumSOLVersionWSOL))
   ]
-  console.timeEnd('pickout wsol')
 
-  console.time('load canFlaggedTokenMints')
   const canFlaggedTokenMints = new Set(
     Object.values(tokens)
       .filter((token) => !officialMints.has(toPubString(token.mint)))
       .map((token) => toPubString(token.mint))
   )
-  console.timeEnd('load canFlaggedTokenMints')
   useToken.setState((s) => {
-    console.time('merged')
     const merged = mergeWithOld(canFlaggedTokenMints, s.canFlaggedTokenMints)
-    console.timeEnd('merged')
-    console.time('newSettings')
     const newSettings = {
       ...s.tokenListSettings,
       [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
@@ -486,7 +469,6 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], can
         mints: unNamedMints
       }
     }
-    console.timeEnd('newSettings')
     return {
       canFlaggedTokenMints: merged,
       blacklist: blacklist,
