@@ -38,7 +38,7 @@ export interface FarmPoolJsonInfo {
 
   baseMint: string
   quoteMint: string
-  name: string
+  symbol: string
 
   version: number
   programId: string
@@ -131,7 +131,7 @@ export type HydratedFarmInfo = SdkParsedFarmInfo & {
 
   base: SplToken | undefined
   quote: SplToken | undefined
-  name: string
+  symbol: string
 
   ammId: string | undefined
 

@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
-import { HydratedFarmInfo } from '@/application/farms/type'
+import { FarmPoolJsonInfo, HydratedFarmInfo } from '@/application/farms/type'
 import useFarms from '@/application/farms/useFarms'
 import useStaking from '@/application/staking/useStaking'
 import useToken from '@/application/token/useToken'
@@ -30,6 +30,8 @@ import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
+import { isHydratedFarmInfo } from '@/application/farms/judgeFarmInfo'
+import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 
 export default function StakingPage() {
   return (
@@ -61,7 +63,15 @@ function StakingHeader() {
 
 function StakingCard() {
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
-  const infos = useMemo(() => hydratedInfos.filter((i) => i.isStakePool), [hydratedInfos])
+  const jsonInfos = useFarms((s) => s.jsonInfos)
+
+  const infos = useMemo(
+    () =>
+      hydratedInfos.length > 0
+        ? hydratedInfos.filter((i) => i.isStakePool)
+        : jsonInfos.filter((i) => i.category === 'stake'),
+    [hydratedInfos, jsonInfos]
+  ) as (FarmPoolJsonInfo | HydratedFarmInfo)[]
   if (!infos.length)
     return (
       <Row className="text-center justify-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">
@@ -76,7 +86,7 @@ function StakingCard() {
             <Collapse>
               <Collapse.Face>{({ isOpen }) => <StakingCardCollapseItemFace open={isOpen} info={info} />}</Collapse.Face>
               <Collapse.Body>
-                <StakingCardCollapseItemContent hydratedInfo={info} />
+                <StakingCardCollapseItemContent info={info} />
               </Collapse.Body>
             </Collapse>
           </div>
@@ -87,7 +97,7 @@ function StakingCard() {
   )
 }
 
-function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: HydratedFarmInfo }) {
+function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: HydratedFarmInfo | FarmPoolJsonInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const pcCotent = (
     <Row
@@ -102,13 +112,17 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
         name="Pending Rewards"
         value={
           <div>
-            {info.rewards.map(
-              ({ token, userPendingReward, userHavedReward }, idx) =>
-                userHavedReward && (
-                  <div key={idx}>
-                    {toString(userPendingReward ?? 0)} {token?.symbol}
-                  </div>
-                )
+            {isHydratedFarmInfo(info) ? (
+              info.rewards.map(
+                ({ token, userPendingReward, userHavedReward }, idx) =>
+                  userHavedReward && (
+                    <div key={idx}>
+                      {toString(userPendingReward ?? 0)} {token?.symbol}
+                    </div>
+                  )
+              )
+            ) : (
+              <LoadingCircleSmall className="w-3 h-3" />
             )}
           </div>
         }
@@ -116,20 +130,51 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
       <TextInfoItem
         name="Staked"
         value={
-          info.base && info.ledger
-            ? `${toString(toTokenAmount(info.base, info.ledger.deposited))} ${info.base?.symbol ?? ''}`
-            : `0 ${info.base?.symbol ?? ''}`
+          isHydratedFarmInfo(info) ? (
+            info.base && info.ledger ? (
+              `${toString(toTokenAmount(info.base, info.ledger.deposited))} ${info.base?.symbol ?? ''}`
+            ) : (
+              `0 ${info.base?.symbol ?? ''}`
+            )
+          ) : (
+            <LoadingCircleSmall className="w-3 h-3" />
+          )
         }
       />
 
-      <TextInfoItem name="APR" value={info.totalApr7d ? toPercentString(info.totalApr7d) : '0%'} />
+      <TextInfoItem
+        name="APR"
+        value={
+          isHydratedFarmInfo(info) ? (
+            info.totalApr7d ? (
+              toPercentString(info.totalApr7d)
+            ) : (
+              '0%'
+            )
+          ) : (
+            <LoadingCircleSmall className="w-3 h-3" />
+          )
+        }
+      />
 
       <TextInfoItem
         name="Total Staked"
-        value={info.tvl ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}` : '--'}
+        value={
+          isHydratedFarmInfo(info) ? (
+            info.tvl ? (
+              `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}`
+            ) : (
+              '--'
+            )
+          ) : (
+            <LoadingCircleSmall className="w-3 h-3" />
+          )
+        }
         subValue={
-          info.stakedLpAmount &&
-          `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} ${info.base?.symbol ?? ''}`
+          isHydratedFarmInfo(info)
+            ? info.stakedLpAmount &&
+              `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} ${info.base?.symbol ?? ''}`
+            : undefined
         }
       />
 
@@ -154,20 +199,37 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
             name="Pending Rewards"
             value={
               <div>
-                {info.rewards.map(
-                  ({ token, userPendingReward, userHavedReward }, idx) =>
-                    userHavedReward && (
-                      <div key={idx}>
-                        {toString(userPendingReward ?? 0)} {token?.symbol ?? ''}
-                      </div>
-                    )
+                {isHydratedFarmInfo(info) ? (
+                  info.rewards.map(
+                    ({ token, userPendingReward, userHavedReward }, idx) =>
+                      userHavedReward && (
+                        <div key={idx}>
+                          {toString(userPendingReward ?? 0)} {token?.symbol ?? ''}
+                        </div>
+                      )
+                  )
+                ) : (
+                  <LoadingCircleSmall className="w-3 h-3" />
                 )}
               </div>
             }
           />
 
           {/* {console.log(info)} */}
-          <TextInfoItem name="APR" value={info.totalApr7d ? toPercentString(info.totalApr7d) : '--'} />
+          <TextInfoItem
+            name="APR"
+            value={
+              isHydratedFarmInfo(info) ? (
+                info.totalApr7d ? (
+                  toPercentString(info.totalApr7d)
+                ) : (
+                  '--'
+                )
+              ) : (
+                <LoadingCircleSmall className="w-3 h-3" />
+              )
+            }
+          />
 
           <Grid className="w-6 h-6 place-items-center">
             <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
@@ -181,13 +243,37 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
 
           <TextInfoItem
             name="Staked"
-            value={info.base && info.ledger ? toString(toTokenAmount(info.base, info.ledger.deposited)) : '--'}
+            value={
+              isHydratedFarmInfo(info) ? (
+                info.base && info.ledger ? (
+                  toString(toTokenAmount(info.base, info.ledger.deposited))
+                ) : (
+                  '--'
+                )
+              ) : (
+                <LoadingCircleSmall className="w-3 h-3" />
+              )
+            }
           />
 
           <TextInfoItem
             name="Total Staked"
-            value={info.tvl ? `≈${toUsdVolume(info.tvl, { autoSuffix: true })}` : '--'}
-            subValue={info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} RAY`}
+            value={
+              isHydratedFarmInfo(info) ? (
+                info.tvl ? (
+                  `≈${toUsdVolume(info.tvl, { autoSuffix: true })}`
+                ) : (
+                  '--'
+                )
+              ) : (
+                <LoadingCircleSmall className="w-3 h-3" />
+              )
+            }
+            subValue={
+              isHydratedFarmInfo(info)
+                ? info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} RAY`
+                : undefined
+            }
           />
           <div></div>
 
@@ -200,17 +286,18 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
   return isMobile ? mobileContent : pcCotent
 }
 
-function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: HydratedFarmInfo }) {
+function StakingCardCollapseItemContent({ info }: { info: HydratedFarmInfo | FarmPoolJsonInfo }) {
   const prices = useToken((s) => s.tokenPrices)
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const hasPendingReward = useMemo(
     () =>
+      isHydratedFarmInfo(info) &&
       gt(
-        hydratedInfo.rewards.reduce((acc, reward) => add(acc, reward.userPendingReward ?? ZERO), new Fraction(ZERO)),
+        info.rewards.reduce((acc, reward) => add(acc, reward.userPendingReward ?? ZERO), new Fraction(ZERO)),
         ZERO
       ),
-    [hydratedInfo]
+    [info]
   )
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
@@ -222,19 +309,20 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
         <div className="flex-grow">
           <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Deposited</div>
           <div className="text-white font-medium text-base mobile:text-xs">
-            {formatNumber(toString(hydratedInfo.userStakedLpAmount ?? 0), {
-              fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
-            })}{' '}
+            {isHydratedFarmInfo(info) &&
+              formatNumber(toString(info.userStakedLpAmount ?? 0), {
+                fractionLength: info.userStakedLpAmount?.token.decimals
+              })}{' '}
             RAY
           </div>
           <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-            {prices[String(hydratedInfo.lpMint)] && hydratedInfo.userStakedLpAmount
-              ? toUsdVolume(toTotalPrice(hydratedInfo.userStakedLpAmount, prices[String(hydratedInfo.lpMint)]))
+            {isHydratedFarmInfo(info) && prices[String(info.lpMint)] && info.userStakedLpAmount
+              ? toUsdVolume(toTotalPrice(info.userStakedLpAmount, prices[String(info.lpMint)]))
               : '--'}
           </div>
         </div>
         <Row className="gap-3">
-          {hydratedInfo.userHasStaked ? (
+          {isHydratedFarmInfo(info) && info.userHasStaked ? (
             <>
               <Button
                 className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
@@ -294,41 +382,43 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
         )}
       >
         <Row className="flex-grow divide-x-1.5 w-full">
-          {hydratedInfo.rewards?.map(
-            (reward, idx) =>
-              reward.userHavedReward && (
-                <div
-                  key={idx}
-                  className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
-                    idx === hydratedInfo.rewards.length - 1 ? 'pr-0' : ''
-                  } border-[rgba(171,196,255,.5)]`}
-                >
-                  <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                    Pending rewards
+          {isHydratedFarmInfo(info) &&
+            info.rewards?.map(
+              (reward, idx) =>
+                reward.userHavedReward && (
+                  <div
+                    key={idx}
+                    className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
+                      idx === info.rewards.length - 1 ? 'pr-0' : ''
+                    } border-[rgba(171,196,255,.5)]`}
+                  >
+                    <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                      Pending rewards
+                    </div>
+                    <div className="text-white font-medium text-base mobile:text-xs">
+                      {toString(reward.userPendingReward ?? 0)} {reward.token?.symbol}
+                    </div>
+                    <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                      {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                        ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
+                        : '--'}
+                    </div>
                   </div>
-                  <div className="text-white font-medium text-base mobile:text-xs">
-                    {toString(reward.userPendingReward ?? 0)} {reward.token?.symbol}
-                  </div>
-                  <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                    {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
-                      ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                      : '--'}
-                  </div>
-                </div>
-              )
-          )}
+                )
+            )}
         </Row>
         <Button
           // disable={Number(info.pendingReward?.numerator) <= 0}
           className="frosted-glass frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
           isLoading={isApprovePanelShown}
           onClick={() => {
-            txFarmHarvest(hydratedInfo, {
-              isStaking: true,
-              rewardAmounts: hydratedInfo.rewards
-                .map(({ userPendingReward }) => userPendingReward)
-                .filter(isMeaningfulNumber) as TokenAmount[]
-            })
+            isHydratedFarmInfo(info) &&
+              txFarmHarvest(info, {
+                isStaking: true,
+                rewardAmounts: info.rewards
+                  .map(({ userPendingReward }) => userPendingReward)
+                  .filter(isMeaningfulNumber) as TokenAmount[]
+              })
           }}
           validators={[
             {
@@ -349,19 +439,16 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
   )
 }
 
-function CoinAvatarInfoItem({ info }: { info: HydratedFarmInfo }) {
-  const { base, name } = info
+function CoinAvatarInfoItem({ info }: { info: HydratedFarmInfo | FarmPoolJsonInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <AutoBox
-      is={isMobile ? 'Col' : 'Row'}
-      className="clickable flex-wrap items-center mobile:items-start"
-      // onClick={() => {
-      //   push(`/liquidity/?coin1=${base?.mint}&coin2=${quote?.mint}`)
-      // }}
-    >
-      <CoinAvatar size={isMobile ? 'sm' : 'md'} token={base} className="justify-self-center mr-2" />
-      <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
+    <AutoBox is={isMobile ? 'Col' : 'Row'} className="clickable flex-wrap items-center mobile:items-start">
+      <CoinAvatar
+        size={isMobile ? 'sm' : 'md'}
+        token={isHydratedFarmInfo(info) ? info.base : undefined}
+        className="justify-self-center mr-2"
+      />
+      <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{info.symbol}</div>
     </AutoBox>
   )
 }

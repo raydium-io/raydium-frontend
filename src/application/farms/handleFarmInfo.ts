@@ -253,7 +253,7 @@ export function hydrateFarmInfo(
     lpPrice,
     base: baseToken,
     quote: quoteToken,
-    name,
+    symbol: name,
 
     isStakePool,
     isDualFusionPool,

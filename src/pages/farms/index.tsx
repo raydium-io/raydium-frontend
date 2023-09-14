@@ -628,7 +628,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                sortCompare: (i) => (isHydratedFarmInfo(i) ? i.name : undefined)
+                sortCompare: (i) => (isHydratedFarmInfo(i) ? i.symbol : undefined)
               })
             }}
           >
@@ -1667,7 +1667,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       </AutoBox>
     )
   }
-  const { base, quote, name } = info
+  const { base, quote, symbol: name } = info
   return (
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
