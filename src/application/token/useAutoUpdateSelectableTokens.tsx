@@ -4,6 +4,8 @@ import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
 
 import useToken, { USER_ADDED_TOKEN_LIST_NAME } from './useToken'
+import { mergeObjects } from '@/functions/mergeObjects'
+import { SplToken } from './type'
 
 /**
  * a feature hook
@@ -32,25 +34,29 @@ export default function useAutoUpdateSelectableTokens() {
       (i) => !verboseTokensMints.includes(toPubString(i.mint))
     )
 
-    return [...verboseTokens, ...filteredUserAddedTokens]
-      .filter((token) => {
-        const isUserFlagged =
-          tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(toPubString(token.mint))
-        const isOnByTokenList = activeTokenListNames.some((tokenListName) =>
-          tokenListSettings[tokenListName]?.mints?.has(toPubString(token.mint))
-        )
-        return isUserFlagged || isOnByTokenList
-      })
-      .map((t) => {
-        const tPubString = toPubString(t.mint)
-        if (userAddedTokens[tPubString]) {
-          t.symbol = userAddedTokens[tPubString].symbol
-          t.name = userAddedTokens[tPubString].name
-            ? userAddedTokens[tPubString].name
-            : userAddedTokens[tPubString].symbol
-        }
-        return t
-      })
+    const filteredTokens: SplToken[] = []
+    for (const token of verboseTokens.concat(filteredUserAddedTokens)) {
+      const isUserFlagged =
+        tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(toPubString(token.mint))
+      if (!isUserFlagged) continue
+
+      const isOnByTokenList = activeTokenListNames.some((tokenListName) =>
+        tokenListSettings[tokenListName]?.mints?.has(toPubString(token.mint))
+      )
+      if (!isOnByTokenList) continue
+
+      const userAddedToken = userAddedTokens[token.mintString]
+      if (userAddedToken) {
+        const newToken = mergeObjects(token, {
+          symbol: userAddedToken.symbol,
+          name: userAddedToken.name ?? userAddedToken.symbol
+        })
+        filteredTokens.push(newToken)
+      } else {
+        filteredTokens.push(token)
+      }
+    }
+    return filteredTokens
   }, [verboseTokens, userAddedTokens, tokenListSettings, userAddedTokens])
 
   // have sorted

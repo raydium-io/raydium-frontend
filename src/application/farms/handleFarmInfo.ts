@@ -44,6 +44,7 @@ import {
   SdkParsedFarmInfo
 } from './type'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+import { mergeObjects } from '@/functions/mergeObjects'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.rewardOpenTime))
@@ -95,15 +96,13 @@ export async function mergeSdkFarmInfo(
   const rawInfos = await Farm.fetchMultipleInfoAndUpdate(options).catch(() => {})
   const result =
     rawInfos && Object.values(rawInfos).length
-      ? options.pools.map((pool, idx) => {
-          return {
-            ...payload.jsonInfos[idx],
-            ...pool,
-            ...rawInfos?.[String(pool.id)],
-            fetchedMultiInfo: rawInfos?.[String(pool.id)],
-            jsonInfo: payload.jsonInfos[idx]
-          } as unknown as SdkParsedFarmInfo
-        })
+      ? options.pools.map(
+          (pool, idx) =>
+            mergeObjects(payload.jsonInfos[idx], pool, rawInfos?.[toPubString(pool.id)], {
+              fetchedMultiInfo: rawInfos?.[toPubString(pool.id)],
+              jsonInfo: payload.jsonInfos[idx]
+            }) as unknown as SdkParsedFarmInfo
+        )
       : []
   return result
 }

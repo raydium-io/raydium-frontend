@@ -323,6 +323,7 @@ export function createSplToken(
 ): SplToken {
   const splTokenKeys = [
     'mint',
+    'mintString',
     'symbol',
     'name',
     'decimals',
@@ -345,13 +346,16 @@ export function createSplToken(
     )
     return splToken
   })
+  const getMint = createCachedFunction(() => toPub(info.mint))
   return new Proxy(
     {},
     {
-      get(_target, key) {
+      get: (_target, key) => {
         switch (key) {
           case 'mint':
-            return toPub(info.mint)
+            return getMint()
+          case 'mintString':
+            return info.mint
           case 'id':
             return info.mint
           case 'symbol':

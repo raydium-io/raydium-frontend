@@ -62,6 +62,7 @@ export const QuantumSOL = Object.assign(
     quantumSOLHydratedTokenJsonInfo.symbol,
     quantumSOLHydratedTokenJsonInfo.name
   ),
+  { mintString: quantumSOLHydratedTokenJsonInfo.mint },
   omit(quantumSOLHydratedTokenJsonInfo, ['mint', 'decimals', 'symbol', 'name'])
 ) as QuantumSOLToken
 
@@ -89,6 +90,7 @@ export const QuantumSOLVersionSOL = Object.assign(
     quantumSOLVersionSOLTokenJsonInfo.symbol,
     quantumSOLVersionSOLTokenJsonInfo.name
   ),
+  { mintString: quantumSOLVersionSOLTokenJsonInfo.mint },
   omit(quantumSOLVersionSOLTokenJsonInfo, ['mint', 'decimals', 'symbol', 'name'])
 ) as QuantumSOLToken
 
@@ -116,6 +118,7 @@ export const QuantumSOLVersionWSOL = Object.assign(
     quantumSOLVersionWSOLTokenJsonInfo.symbol,
     quantumSOLVersionWSOLTokenJsonInfo.name
   ),
+  { mintString: quantumSOLVersionWSOLTokenJsonInfo.mint },
   omit(quantumSOLVersionWSOLTokenJsonInfo, ['mint', 'decimals', 'symbol', 'name'])
 ) as QuantumSOLToken
 

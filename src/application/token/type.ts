@@ -38,7 +38,8 @@ export interface TokenJson {
 export type SplToken = Token & {
   icon?: SrcAddress
   /** 'sol' or mint. for `<TokenSelector>` */
-  id: string
+  id: HexAddress
+  mintString: HexAddress
   extensions?: {
     coingeckoId?: string
     website?: string
@@ -57,7 +58,8 @@ export type LpToken = Token & {
   quote: SplToken
   icon: SrcAddress
   /** mint. for `<TokenSelector>`*/
-  id: string
+  id: HexAddress
+  mintString: HexAddress
   extensions: {
     coingeckoId?: string
     website?: string
