@@ -44,9 +44,10 @@ export default function useConcentratedInfoLoader() {
   const shouldLoadInfo = true // temp always load position info to detect if user has position
   const inClmmPage = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
   const inLiquidityPage = useMemo(() => pathname.includes('liquidity'), [pathname.includes('liquidity')])
+  const inFarmPage = useMemo(() => pathname.includes('farm'), [pathname.includes('farm')])
   const inCreatePoolPage = useMemo(() => pathname.includes('create-pool'), [pathname.includes('create-pool')])
-  const shouldLoadHydrateInfo = inClmmPage || inLiquidityPage
-  const shouldLoadChartPoints = (inClmmPage || inLiquidityPage) && !inCreatePoolPage
+  const shouldLoadHydrateInfo = inClmmPage || inLiquidityPage || inFarmPage
+  const shouldLoadChartPoints = inClmmPage && !inCreatePoolPage
 
   /** fetch api json info list  */
   useRecordedEffect(
