@@ -470,7 +470,7 @@ function PoolCard() {
               ]
             : [...i.name.split('-'), { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
       }),
-    [dataSource.length, isHydratedPoolItemInfo(dataSource[0]), searchText]
+    [dataSource, isHydratedPoolItemInfo(dataSource[0]), searchText]
   )
 
   const searched = useDeferredValue(originalSearch)
@@ -792,7 +792,7 @@ function PoolCardDatabaseBody({
             open={expandedPoolIds.has(info.ammId)}
             onToggle={() => {
               usePools.setState((s) => ({ expandedPoolIds: toggleSetItem(s.expandedPoolIds, info.ammId) }))
-            }}
+            } }
           >
             <Collapse.Face>
               {({ isOpen }) => (
@@ -803,11 +803,10 @@ function PoolCardDatabaseBody({
                   isFavourite={favouriteIds?.includes(info.ammId)}
                   onUnFavorite={(ammId) => {
                     setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
-                  }}
+                  } }
                   onStartFavorite={(ammId) => {
                     setFavouriteIds((ids) => addItem(ids ?? [], ammId))
-                  }}
-                />
+                  } } />
               )}
             </Collapse.Face>
             <Collapse.Body>
