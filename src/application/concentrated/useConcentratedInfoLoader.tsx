@@ -42,13 +42,11 @@ export default function useConcentratedInfoLoader() {
   const clmmPoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.clmmPools)
 
   const shouldLoadInfo = true // temp always load position info to detect if user has position
-  // const shouldLoadInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')]) // temporary force every page to load info
-  const shouldLoadHydrateInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
-
-  const shouldLoadChartPoints = useMemo(
-    () => pathname.includes('clmm') && !pathname.includes('create-pool'),
-    [pathname.includes('clmm'), pathname.includes('create-pools')]
-  )
+  const inClmmPage = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
+  const inLiquidityPage = useMemo(() => pathname.includes('liquidity'), [pathname.includes('liquidity')])
+  const inCreatePoolPage = useMemo(() => pathname.includes('create-pool'), [pathname.includes('create-pool')])
+  const shouldLoadHydrateInfo = inClmmPage || inLiquidityPage
+  const shouldLoadChartPoints = (inClmmPage || inLiquidityPage) && !inCreatePoolPage
 
   /** fetch api json info list  */
   useRecordedEffect(

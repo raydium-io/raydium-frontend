@@ -618,7 +618,6 @@ function PoolCard() {
         searchItems(applyFiltersDataSource, {
           text: searchText,
           matchConfigs: (i) => [
-            i.name,
             i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
             i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
             { text: i.idString, entirely: true },
