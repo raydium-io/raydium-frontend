@@ -351,7 +351,7 @@ export function createSplToken(
       get(_target, key) {
         switch (key) {
           case 'mint':
-            return toPub(info.mint)
+            return info.mint
           case 'id':
             return info.mint
           case 'symbol':
