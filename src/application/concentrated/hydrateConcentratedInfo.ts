@@ -26,6 +26,7 @@ import {
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
+import { createCachedObject } from '@/functions/createCachedFunction'
 
 export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
   const hydrate1 = hydratePoolInfo(concentratedInfo)
@@ -53,38 +54,40 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
 
   const newRewardInfos = sdkConcentratedInfo.state.rewardInfos.map((r) => {
     const rewardToken = getToken(r.tokenMint)
-    return coverlyMergeObject(r, {
-      get perSecond() {
-        return toFraction(r.perSecond.toString())
-      },
-      get rewardToken() {
-        return rewardToken
-      },
-      get openTime() {
-        return r.openTime.toNumber() * 1000
-      },
-      get endTime() {
-        return r.endTime.toNumber() * 1000
-      },
-      get creator() {
-        return sdkConcentratedInfo.state.creator
-      },
-      get lastUpdateTime() {
-        return r.lastUpdateTime.toNumber() * 1000
-      },
-      get rewardClaimed() {
-        return rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined
-      },
-      get rewardTotalEmissioned() {
-        return rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined
-      },
-      get rewardPerWeek() {
-        return rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7))
-      },
-      get rewardPerDay() {
-        return rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
-      }
-    })
+    return createCachedObject(
+      coverlyMergeObject(r, {
+        get perSecond() {
+          return toFraction(r.perSecond.toString())
+        },
+        get rewardToken() {
+          return rewardToken
+        },
+        get openTime() {
+          return r.openTime.toNumber() * 1000
+        },
+        get endTime() {
+          return r.endTime.toNumber() * 1000
+        },
+        get creator() {
+          return sdkConcentratedInfo.state.creator
+        },
+        get lastUpdateTime() {
+          return r.lastUpdateTime.toNumber() * 1000
+        },
+        get rewardClaimed() {
+          return rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined
+        },
+        get rewardTotalEmissioned() {
+          return rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined
+        },
+        get rewardPerWeek() {
+          return rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7))
+        },
+        get rewardPerDay() {
+          return rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
+        }
+      })
+    )
   })
 
   const part1 = {
@@ -96,7 +99,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl)
   }
 
-  const part2 = {
+  const part2 = createCachedObject({
     get totalApr24h() {
       return toPercent(sdkConcentratedInfo.state.day.apr, { alreadyDecimaled: true })
     },
@@ -136,8 +139,8 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
         toPercent(sdkConcentratedInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
       ].slice(0, rewardLength)
     }
-  }
-  const part3 = {
+  })
+  const part3 = createCachedObject({
     get volume24h() {
       return toUsdCurrency(sdkConcentratedInfo.state.day.volume)
     },
@@ -178,7 +181,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
         ? toTokenAmount(tokenB, sdkConcentratedInfo.state.month.feeB, { alreadyDecimaled: true })
         : undefined
     }
-  }
+  })
 
   return coverlyMergeObject(part1, part2, part3)
 }
@@ -213,14 +216,14 @@ function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     (base
       ? base.symbol
       : sdkConcentratedInfo.state.mintA.mint
-        ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
-        : 'unknown') +
+      ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
+      : 'unknown') +
     '-' +
     (quote
       ? quote?.symbol
       : sdkConcentratedInfo.state.mintB.mint
-        ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
-        : 'unknown')
+      ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
+      : 'unknown')
 
   return {
     id: sdkConcentratedInfo.state.id,
@@ -279,20 +282,20 @@ function hydrateUserPositionAccounnt(
           idx === 0
             ? toPercent(ammPoolInfo.state.day.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
         const apr7d =
           idx === 0
             ? toPercent(ammPoolInfo.state.week.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
         const apr30d =
           idx === 0
             ? toPercent(ammPoolInfo.state.month.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
         return { penddingReward, apr24h, apr7d, apr30d, token }
       })
       .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos']
@@ -336,10 +339,7 @@ function hydrateUserPositionAccounnt(
   })
 }
 
-function checkIsInRange(
-  sdkConcentratedInfo: SDKParsedConcentratedInfo,
-  userPositionAccount: ClmmPoolPersonalPosition
-) {
+function checkIsInRange(sdkConcentratedInfo: SDKParsedConcentratedInfo, userPositionAccount: ClmmPoolPersonalPosition) {
   const currentPrice = decimalToFraction(sdkConcentratedInfo.state.currentPrice)
   const priceLower = decimalToFraction(userPositionAccount.priceLower)
   const priceUpper = decimalToFraction(userPositionAccount.priceUpper)
