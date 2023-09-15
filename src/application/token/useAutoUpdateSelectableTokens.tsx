@@ -1,11 +1,8 @@
-import { useEffect, useMemo } from 'react'
-
 import useWallet from '@/application/wallet/useWallet'
-import toPubString from '@/functions/format/toMintString'
-
-import useToken, { USER_ADDED_TOKEN_LIST_NAME } from './useToken'
-import { mergeObjects } from '@/functions/mergeObjects'
+import { mergeObjects, mergeSets } from '@/functions/mergeObjects'
+import { useEffect, useMemo } from 'react'
 import { SplToken } from './type'
+import useToken, { USER_ADDED_TOKEN_LIST_NAME } from './useToken'
 
 /**
  * a feature hook
@@ -24,24 +21,22 @@ export default function useAutoUpdateSelectableTokens() {
     const activeTokenListNames = Object.entries(tokenListSettings)
       .filter(([, setting]) => setting.isOn)
       .map(([name]) => name)
+    const activeTokensMints = mergeSets(
+      ...activeTokenListNames.map((tokenListName) => tokenListSettings[tokenListName]?.mints ?? new Set())
+    ) as Set<string>
 
-    const havUserAddedTokens = activeTokenListNames.some(
-      (tokenListName) => tokenListName === USER_ADDED_TOKEN_LIST_NAME
-    )
-
-    const verboseTokensMints = verboseTokens.map((t) => toPubString(t.mint))
+    const havUserAddedTokens = activeTokenListNames.includes(USER_ADDED_TOKEN_LIST_NAME)
+    const verboseTokensMints = verboseTokens.map((t) => t.mintString)
     const filteredUserAddedTokens = (havUserAddedTokens ? Object.values(userAddedTokens) : []).filter(
-      (i) => !verboseTokensMints.includes(toPubString(i.mint))
+      (i) => !verboseTokensMints.includes(i.mintString)
     )
 
     const filteredTokens: SplToken[] = []
     for (const token of verboseTokens.concat(filteredUserAddedTokens)) {
-      const isUserFlagged =
-        tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(toPubString(token.mint))
+      const isUserFlagged = tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(token.mintString)
       if (!isUserFlagged) {
-        const isOnByTokenList = activeTokenListNames.some((tokenListName) =>
-          tokenListSettings[tokenListName]?.mints?.has(toPubString(token.mint))
-        )
+        const isOnByTokenList = activeTokensMints.has(token.mintString)
+
         if (!isOnByTokenList) continue
       }
 

@@ -5,6 +5,7 @@ import { objectMap, objectMapMultiEntry, objectShakeNil } from '@/functions/obje
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useToken from './useToken'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export default function useTokenPriceRefresher() {
   const tokenJsonInfos = useToken((s) => s.tokenJsonInfos)
@@ -13,14 +14,11 @@ export default function useTokenPriceRefresher() {
 
   useAsyncEffect(async () => {
     if (!Object.values(tokenJsonInfos).length) return
-    const coingeckoIds = Object.values(tokenJsonInfos)
-      .map((t) => t?.extensions?.coingeckoId)
-      .filter(Boolean)
+    const coingeckoIds = shakeUndifindedItem(Object.values(tokenJsonInfos).map((t) => t?.extensions?.coingeckoId))
     const coingeckoPrices: Record<string, { usd?: number }> | undefined = await jFetch(
       `https://api.coingecko.com/api/v3/simple/price?ids=${coingeckoIds}&vs_currencies=usd`,
       { ignoreCache: true }
     )
-
     const coingeckoIdMap = listToMultiItemsMap(Object.values(tokenJsonInfos), (i) => i.extensions?.coingeckoId)
     const coingeckoTokenPrices = objectShakeNil(
       objectMapMultiEntry(
@@ -34,6 +32,7 @@ export default function useTokenPriceRefresher() {
     )
 
     const raydiumPrices = await jFetch<Record<string, number>>(priceUrl)
+
     const raydiumTokenPrices = objectMap(raydiumPrices, (v, k) =>
       tokenJsonInfos[k] ? toTokenPrice(tokenJsonInfos[k], v, { alreadyDecimaled: true }) : undefined
     )
