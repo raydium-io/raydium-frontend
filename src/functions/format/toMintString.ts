@@ -1,22 +1,23 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { PublicKeyish, Token } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import { isArray, isObject, isString } from '../judgers/dateType'
 import { objectMap } from '../objectMethods'
 import tryCatch from '../tryCatch'
 
-const mintCache = new WeakMap<PublicKey, string>()
+const pubCache = new WeakMap<PublicKey, string>()
+const reversePubCache = new Map<string, WeakRef<PublicKey>>()
 
-//TODO: no token
 export default function toPubString(mint: PublicKeyish | undefined | null): string {
   if (!mint) return ''
   if (isString(mint)) return mint
-  if (mintCache.has(mint)) {
-    return mintCache.get(mint)!
+  if (pubCache.has(mint)) {
+    return pubCache.get(mint)!
   } else {
     const mintString = mint.toBase58()
-    mintCache.set(mint, mintString)
+    pubCache.set(mint, mintString)
+    reversePubCache.set(mintString, new WeakRef(mint))
     return mintString
   }
 }
@@ -27,10 +28,20 @@ export function toPub(mint: undefined): undefined
 export function toPub(mint: PublicKeyish | undefined): PublicKey | undefined
 export function toPub(mint: PublicKeyish | undefined): PublicKey | undefined {
   if (!mint) return undefined
-  try {
-    return new PublicKey(mint)
-  } catch {
-    return undefined
+  if (mint instanceof PublicKey) return mint
+  if (reversePubCache.has(mint)) {
+    return reversePubCache.get(mint)!.deref()
+  } else {
+    const pub = (() => {
+      try {
+        return new PublicKey(mint)
+      } catch {
+        return undefined
+      }
+    })()
+    pub && reversePubCache.set(mint, new WeakRef(pub))
+    pub && pubCache.set(pub, mint)
+    return pub
   }
 }
 
