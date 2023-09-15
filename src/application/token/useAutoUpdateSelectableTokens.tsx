@@ -62,7 +62,7 @@ export default function useAutoUpdateSelectableTokens() {
   // have sorted
   const sortedTokens = useMemo(
     () => sortTokens(settingsFiltedTokens),
-    [settingsFiltedTokens, sortTokens, balances, verboseTokens]
+    [settingsFiltedTokens, sortTokens, balances, verboseTokens.length]
   )
 
   useEffect(() => {
