@@ -1,6 +1,6 @@
 import { ApiClmmPoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
-import { addItems, mergeWithOld } from '@/functions/arrayMethods'
+import { addItems, mergeWithOld, shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -440,17 +440,14 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], can
   const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo))
 
   /** have QSOL */
-  const tokens = { ...pureTokens, [toPubString(QuantumSOL.mint)]: QuantumSOL }
+  const tokens = { ...pureTokens, [QuantumSOL.mintString]: QuantumSOL }
 
-  const verboseTokens = [
-    QuantumSOLVersionSOL,
-    ...Object.values(replaceValue(pureTokens, (v, k) => k === toPubString(WSOL.mint), QuantumSOLVersionWSOL))
-  ]
+  const verboseTokens: SplToken[] = [QuantumSOLVersionSOL as SplToken].concat(
+    Object.values(replaceValue(pureTokens, (v, k) => k === toPubString(WSOL.mint), QuantumSOLVersionWSOL))
+  )
 
-  const canFlaggedTokenMints = new Set(
-    Object.values(tokens)
-      .filter((token) => !officialMints.has(toPubString(token.mint)))
-      .map((token) => toPubString(token.mint))
+  const canFlaggedTokenMints = shakeUndifindedItem(
+    new Set(Object.values(tokens).map((token) => (officialMints.has(token.mintString) ? undefined : token.mintString)))
   )
   useToken.setState((s) => {
     const merged = mergeWithOld(canFlaggedTokenMints, s.canFlaggedTokenMints)

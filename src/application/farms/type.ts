@@ -102,7 +102,7 @@ export type HydratedRewardInfo = {
   token: SplToken | undefined
   /** only when user have deposited and connected wallet */
   userPendingReward: TokenAmount | undefined
-  version: 3 | 5 | 6
+  version: number //3 | 5 | 6
   rewardVault: PublicKey
   openTime?: Date // v6
   endTime?: Date // v6
