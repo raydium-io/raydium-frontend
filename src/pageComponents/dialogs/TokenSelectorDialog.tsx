@@ -99,8 +99,8 @@ function TokenSelectorDialogContent({
     closePanel?.()
   })
   const selectToken = useEvent(async (splToken: SplToken) => {
-    const isOfficialToken = tokenListSettings['Raydium Token List'].mints?.has(toPubString(splToken.mint))
-    // tokenListSettings['Solana Token List'][toPubString(splToken.mint)]
+    const isOfficialToken = tokenListSettings['Raydium Token List'].mints?.has(splToken.mintString)
+    // tokenListSettings['Solana Token List'][splToken.mintString]
     const canSelect =
       turnOnTokenVerification && !isOfficialToken
         ? await verifyToken(splToken.mint, { canWhiteList: canSelectIfInWhiteList })
@@ -142,7 +142,7 @@ function TokenSelectorDialogContent({
         text: searchText,
         matchConfigs: (i) => [
           { text: i.id, entirely: true },
-          { text: toPubString(i?.mint), entirely: true },
+          { text: i?.mintString, entirely: true },
           !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.symbol : undefined,
           !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.name : undefined
         ]
@@ -176,7 +176,7 @@ function TokenSelectorDialogContent({
       <ListFast
         className="flex-grow flex flex-col px-4 mobile:px-2 mx-2 gap-2 overflow-auto my-2"
         sourceData={searchedTokens}
-        getKey={(token, idx) => (isQuantumSOL(token) ? token.symbol : toPubString(token?.mint)) ?? idx}
+        getKey={(token, idx) => (isQuantumSOL(token) ? token.symbol : token?.mintString) ?? idx}
         renderItem={(token, idx) => (
           <div>
             <Row
@@ -376,7 +376,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   const canFlaggedTokenMints = useToken((s) => s.canFlaggedTokenMints)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
   const tokens = useToken((s) => s.tokens)
-  const isUserAddedToken = Boolean(userAddedTokens[toPubString(token.mint)] && !tokens[toPubString(token.mint)])
+  const isUserAddedToken = Boolean(userAddedTokens[token.mintString] && !tokens[token.mintString])
   const toggleFlaggedToken = useToken((s) => s.toggleFlaggedToken)
   const deleteUserAddedToken = useToken((s) => s.deleteUserAddedToken)
   const editUserAddedToken = useToken((s) => s.editUserAddedToken)
@@ -403,7 +403,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 </div>
                 {isToken2022(token) && <Token2022Badge pale />}
               </Row>
-              {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+              {isUserAddedToken && !canFlaggedTokenMints.has(token.mintString) ? (
                 <Row
                   onClick={(ev) => {
                     deleteUserAddedToken(token.mint)
@@ -420,7 +420,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
               {token.name}
             </div>
           </Col>
-          {/* {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          {/* {canFlaggedTokenMints.has(token.mintString) ? (
             <div
               onClick={(ev) => {
                 toggleFlaggedToken(token)
@@ -428,10 +428,10 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
               }}
               className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
             >
-              {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
+              {userFlaggedTokenMints.has(token.mintString) ? '[Remove Token]' : '[Add Token]'}
             </div>
           ) : null} */}
-          {/* {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          {/* {isUserAddedToken && !canFlaggedTokenMints.has(token.mintString) ? (
             <>
               <div
                 onClick={(ev) => {
@@ -482,7 +482,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             iconClassName="text-[#abc4ff]"
             iconRowClassName="ml-1.5 gap-0.5"
           >
-            {toPubString(token.mint)}
+            {token.mintString}
           </AddressItem>
         </Col>
       </Row>

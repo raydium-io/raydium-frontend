@@ -10,8 +10,8 @@ export default function useAutoCleanLiquidityInfoCache() {
   const swapRefresh = useSwap((s) => s.refreshCount)
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
-  const coin1Mint = toPubString(coin1?.mint)
-  const coin2Mint = toPubString(coin2?.mint)
+  const coin1Mint = coin1?.mintString
+  const coin2Mint = coin2?.mintString
 
   const liquidityRefresh = useLiquidity((s) => s.refreshCount)
   const poolsRefresh = usePools((s) => s.refreshCount)

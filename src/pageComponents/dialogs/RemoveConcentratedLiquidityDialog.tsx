@@ -176,10 +176,10 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   })
 
   const [token2022HasLoadDataBase, setToken2022HasLoadDataBase] = useState(false)
-  useEffect(() => () => setToken2022HasLoadDataBase(false), [toPubString(coinBase?.mint)])
+  useEffect(() => () => setToken2022HasLoadDataBase(false), [coinBase?.mintString])
 
   const [token2022HasLoadDataQuote, setToken2022HasLoadDataQuote] = useState(false)
-  useEffect(() => () => setToken2022HasLoadDataQuote(false), [toPubString(coinQuote?.mint)])
+  useEffect(() => () => setToken2022HasLoadDataQuote(false), [coinQuote?.mintString])
 
   return (
     <ResponsiveDialogDrawer

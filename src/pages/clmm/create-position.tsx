@@ -415,7 +415,7 @@ function ConcentratedCard() {
       }
       return res
     },
-    [toPubString(coin1?.mint), toPubString(coin2?.mint), currentAmmPool?.idString, isFocus1, firstDecimal, decimals]
+    [coin1?.mintString, coin2?.mintString, currentAmmPool?.idString, isFocus1, firstDecimal, decimals]
   )
 
   const handleClickInDecrease = useCallback(
@@ -518,10 +518,10 @@ function ConcentratedCard() {
   )
 
   const [token2022HasLoadData1, setToken2022HasLoadData1] = useState(false)
-  useEffect(() => () => setToken2022HasLoadData1(false), [toPubString(coin1?.mint)])
+  useEffect(() => () => setToken2022HasLoadData1(false), [coin1?.mintString])
 
   const [token2022HasLoadData2, setToken2022HasLoadData2] = useState(false)
-  useEffect(() => () => setToken2022HasLoadData2(false), [toPubString(coin2?.mint)])
+  useEffect(() => () => setToken2022HasLoadData2(false), [coin2?.mintString])
 
   return (
     <CyberpunkStyleCard
@@ -566,10 +566,8 @@ function ConcentratedCard() {
                 componentRef={coinInputBox1ComponentRef}
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
-                HTMLTitleTooltip={toPubString(coin1?.mint)}
-                topLeftLabel={
-                  coin1 ? `${toPubString(coin1.mint).slice(0, 5)}...${toPubString(coin1.mint).slice(-5)}` : undefined
-                }
+                HTMLTitleTooltip={coin1?.mintString}
+                topLeftLabel={coin1 ? `${coin1.mintString.slice(0, 5)}...${coin1.mintString.slice(-5)}` : undefined}
                 haveCoinIcon
                 maxValue={coin1MaxValue}
                 onPriceChange={updatePrice1}
@@ -595,10 +593,8 @@ function ConcentratedCard() {
                 disabledInput={!currentAmmPool || coin2InputDisabled}
                 noDisableStyle
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
-                HTMLTitleTooltip={toPubString(coin2?.mint)}
-                topLeftLabel={
-                  coin2 ? `${toPubString(coin2.mint).slice(0, 5)}...${toPubString(coin2.mint).slice(-5)}` : undefined
-                }
+                HTMLTitleTooltip={coin2?.mintString}
+                topLeftLabel={coin2 ? `${coin2.mintString.slice(0, 5)}...${coin2.mintString.slice(-5)}` : undefined}
                 haveHalfButton
                 haveCoinIcon
                 maxValue={coin2MaxValue}
@@ -659,7 +655,7 @@ function ConcentratedCard() {
                   }
                 ].map(({ isToken2022, token, disabled, info, rawAmount, side }) =>
                   disabled || !token ? undefined : (
-                    <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
+                    <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={token?.mintString}>
                       <Row className="items-center gap-1 overflow-hidden">
                         <div className="font-medium text-white">{token?.symbol}</div>
                         <CoinAvatar size="sm" token={token} />

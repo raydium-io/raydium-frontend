@@ -792,7 +792,7 @@ function PoolCardDatabaseBody({
             open={expandedPoolIds.has(info.ammId)}
             onToggle={() => {
               usePools.setState((s) => ({ expandedPoolIds: toggleSetItem(s.expandedPoolIds, info.ammId) }))
-            } }
+            }}
           >
             <Collapse.Face>
               {({ isOpen }) => (
@@ -803,10 +803,11 @@ function PoolCardDatabaseBody({
                   isFavourite={favouriteIds?.includes(info.ammId)}
                   onUnFavorite={(ammId) => {
                     setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
-                  } }
+                  }}
                   onStartFavorite={(ammId) => {
                     setFavouriteIds((ids) => addItem(ids ?? [], ammId))
-                  } } />
+                  }}
+                />
               )}
             </Collapse.Face>
             <Collapse.Body>
@@ -1259,7 +1260,7 @@ function CoinAvatarInfoItem({
                               textClassName="flex text-xs text-[#abc4ff] justify-start "
                               iconClassName="text-[#abc4ff]"
                             >
-                              {toPubString(token.mint)}
+                              {token.mintString}
                             </AddressItem>
                           </Row>
                         ) : null
@@ -1337,8 +1338,8 @@ function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplTo
 
   // if we got custom symbol/name, use them, otherwise use token original symbol/name
   const [newInfo, setNewInfo] = useState({
-    symbol: userAddedTokens[toPubString(token.mint)] ? userAddedTokens[toPubString(token.mint)].symbol : token.symbol,
-    name: userAddedTokens[toPubString(token.mint)] ? userAddedTokens[toPubString(token.mint)].name : token.name
+    symbol: userAddedTokens[token.mintString] ? userAddedTokens[token.mintString].symbol : token.symbol,
+    name: userAddedTokens[token.mintString] ? userAddedTokens[token.mintString].name : token.name
   })
 
   return (
@@ -1377,7 +1378,7 @@ function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplTo
             <Button
               className="frosted-glass-teal"
               onClick={() => {
-                const mintPubString = toPubString(token.mint)
+                const mintPubString = token.mintString
                 if (userAddedTokens[mintPubString]) {
                   editUserAddedToken({ symbol: newInfo.symbol ?? '', name: newInfo.name ?? '' }, token.mint)
                 } else {

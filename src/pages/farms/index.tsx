@@ -994,7 +994,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
                     ({ token, userPendingReward, userHavedReward }) =>
                       userHavedReward &&
                       token && (
-                        <div key={toPubString(token?.mint)}>
+                        <div key={token?.mintString}>
                           <FarmPendingRewardBadge
                             farmInfo={info}
                             reward={userPendingReward ?? toTokenAmount(token, 0)}
@@ -1742,7 +1742,7 @@ function CoinAvatarInfoItemSymbol({ mint }: { mint: PublicKeyish }) {
                   textClassName="flex text-xs text-[#abc4ff]"
                   iconClassName="text-[#abc4ff]"
                 >
-                  {toPubString(token?.mint)}
+                  {token?.mintString}
                 </AddressItem>
               </Row>
             </div>

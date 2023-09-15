@@ -407,7 +407,7 @@ export function createSplToken(
 export function toSplTokenInfo(splToken: SplToken): TokenJson {
   return {
     ...splToken,
-    mint: toPubString(splToken.mint)
+    mint: splToken.mintString
   }
 }
 
