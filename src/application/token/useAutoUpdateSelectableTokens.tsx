@@ -38,12 +38,12 @@ export default function useAutoUpdateSelectableTokens() {
     for (const token of verboseTokens.concat(filteredUserAddedTokens)) {
       const isUserFlagged =
         tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(toPubString(token.mint))
-      if (!isUserFlagged) continue
-
-      const isOnByTokenList = activeTokenListNames.some((tokenListName) =>
-        tokenListSettings[tokenListName]?.mints?.has(toPubString(token.mint))
-      )
-      if (!isOnByTokenList) continue
+      if (!isUserFlagged) {
+        const isOnByTokenList = activeTokenListNames.some((tokenListName) =>
+          tokenListSettings[tokenListName]?.mints?.has(toPubString(token.mint))
+        )
+        if (!isOnByTokenList) continue
+      }
 
       const userAddedToken = userAddedTokens[token.mintString]
       if (userAddedToken) {
@@ -62,7 +62,7 @@ export default function useAutoUpdateSelectableTokens() {
   // have sorted
   const sortedTokens = useMemo(
     () => sortTokens(settingsFiltedTokens),
-    [settingsFiltedTokens, sortTokens, balances, verboseTokens.length]
+    [settingsFiltedTokens, sortTokens, balances, verboseTokens]
   )
 
   useEffect(() => {
