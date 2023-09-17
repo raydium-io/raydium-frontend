@@ -8,24 +8,26 @@ import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMetho
 import { setLocalItem } from '@/functions/dom/jStorage'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { mergeObjects } from '@/functions/mergeObjects'
 import { omit } from '@/functions/objectMethods'
 import { HexAddress, SrcAddress } from '@/types/constants'
+
 import useWallet from '../wallet/useWallet'
+
 import { verifyToken } from './getOnlineTokenInfo'
 import {
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
   QuantumSOLToken,
   QuantumSOLVersionSOL,
   QuantumSOLVersionWSOL,
   SOLUrlMint,
-  WSOLMint,
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL
+  WSOLMint
 } from './quantumSOL'
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
 import { RAYMint, SOLMint } from './wellknownToken.config'
+import { setMinus } from '@/functions/setMethods'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -194,7 +196,7 @@ export const useToken = create<TokenStore>((set, get) => ({
   userAddedTokens: {},
   addUserAddedToken: async (rawToken: SplToken) => {
     const isVarified = await verifyToken(rawToken.mint, { noLog: true })
-    const token = mergeObjects(rawToken, { hasFreeze: !isVarified } as Partial<SplToken>)
+    const token = Object.assign(rawToken, { hasFreeze: !isVarified } as Partial<SplToken>)
     set((s) =>
       produce(s, (draft) => {
         if (!draft.userAddedTokens[token.mintString]) {

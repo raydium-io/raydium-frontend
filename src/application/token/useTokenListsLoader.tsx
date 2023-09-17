@@ -375,7 +375,7 @@ export function createSplToken(
             return info[key] ?? _target[key] ?? token()[key]
         }
       },
-      set: (target, p, newValue, receiver) => Reflect.set(target, p, newValue, receiver),
+      set: (target, p, newValue) => Reflect.set(target, p, newValue),
       has: (_target, key) => splTokenKeys.includes(key as string),
       getPrototypeOf: () => Object.getPrototypeOf(token()),
       ownKeys: () => splTokenKeys,
