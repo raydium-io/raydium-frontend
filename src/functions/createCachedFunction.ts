@@ -30,8 +30,8 @@ export function createCachedObject<T extends object>(obj: T): T {
         return value
       }
     },
-    set(target, key, value, receiver) {
-      return Reflect.set(cachedObj, key, value, receiver)
+    set(target, key, value) {
+      return Reflect.set(cachedObj, key, value)
     }
   })
 }
