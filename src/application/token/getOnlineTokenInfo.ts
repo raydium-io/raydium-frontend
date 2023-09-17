@@ -73,8 +73,10 @@ export async function getOnlineTokenInfo(
   if (mintInfoCache.has(toPubString(mintish))) return mintInfoCache.get(toPubString(mintish))!
   const { connection } = useConnection.getState() // TEST devnet
   assert(connection, "must set connection to get token's online token info")
+  const pub = toPub(mintish)
+  assert(pub, 'provided string is not publicKey')
   const [mintAccount, epochInfo] = await Promise.all([
-    options?.cachedAccountInfo ?? connection.getAccountInfo(toPub(mintish)),
+    options?.cachedAccountInfo ?? connection.getAccountInfo(pub),
     getEpochInfo()
   ])
   assert(mintAccount, "can't fetch mintAccount")

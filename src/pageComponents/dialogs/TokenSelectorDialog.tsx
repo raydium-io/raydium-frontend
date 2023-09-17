@@ -156,7 +156,7 @@ function TokenSelectorDialogContent({
   const haveSearchResult = searchedTokens.length > 0
 
   const onlineTokenMintInfo = useAsyncValue(
-    !haveSearchResult && searchText ? getOnlineTokenInfo(searchText) : undefined,
+    !haveSearchResult && searchText ? getOnlineTokenInfo(searchText).catch(() => undefined) : undefined,
     undefined,
     [searchText, haveSearchResult]
   )
