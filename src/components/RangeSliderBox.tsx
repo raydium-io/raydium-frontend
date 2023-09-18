@@ -13,6 +13,7 @@ import { useEvent } from '@/hooks/useEvent'
 import Row from './Row'
 
 import 'rc-slider/assets/index.css'
+import { isMeaninglessNumber } from '@/functions/numberish/compare'
 
 // TODO: dirty fixed tick
 export interface RangeSliderBoxProps {
@@ -56,7 +57,9 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
   })
 
   useEffect(() => {
-    let newCurrentPercentage = Number(toString(div(liquidity ?? 0, mul(max, tick)), { decimalLength: 'auto 4' }))
+    const t = mul(max, tick)
+    if (isMeaninglessNumber(t)) return
+    let newCurrentPercentage = Number(toString(div(liquidity ?? 0, t), { decimalLength: 'auto 4' }))
     newCurrentPercentage = newCurrentPercentage > 1 ? 1 : newCurrentPercentage
     setCurrentPercentage(newCurrentPercentage)
     setCurrentValue(Number(toString(newCurrentPercentage * max, { decimalLength: 'auto 2' })) ?? 0)
