@@ -603,11 +603,11 @@ export function CreatePoolCard() {
                 fallbackProps: { children: 'Token Amount Fail to Create Pool' }
               },
               {
-                should: haveEnoughCoin1,
+                should: coin1InputDisabled || haveEnoughCoin1,
                 fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
               },
               {
-                should: haveEnoughCoin2,
+                should: coin2InputDisabled || haveEnoughCoin2,
                 fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
               }
             ]}

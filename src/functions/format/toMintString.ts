@@ -30,19 +30,20 @@ export function toPub(mint: PublicKeyish | undefined): PublicKey | undefined {
   if (!mint) return undefined
   if (mint instanceof PublicKey) return mint
   if (reversePubCache.has(mint)) {
-    return reversePubCache.get(mint)!.deref()
-  } else {
-    const pub = (() => {
-      try {
-        return new PublicKey(mint)
-      } catch {
-        return undefined
-      }
-    })()
-    pub && reversePubCache.set(mint, new WeakRef(pub))
-    pub && pubCache.set(pub, mint)
-    return pub
+    const pub = reversePubCache.get(mint)!.deref() // may be undefined
+    if (pub) return pub
   }
+
+  const pub = (() => {
+    try {
+      return new PublicKey(mint)
+    } catch {
+      return undefined
+    }
+  })()
+  pub && reversePubCache.set(mint, new WeakRef(pub))
+  pub && pubCache.set(pub, mint)
+  return pub
 }
 
 export function tryToPub<T>(v: T): T | PublicKey {

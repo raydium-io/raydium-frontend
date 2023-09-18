@@ -1,9 +1,6 @@
-import React, { CSSProperties, RefObject } from 'react'
-
-import { twMerge } from 'tailwind-merge'
-
 import { SplToken, Token } from '@/application/token/type'
-
+import { CSSProperties, RefObject } from 'react'
+import { twMerge } from 'tailwind-merge'
 import Image from './Image'
 import Row from './Row'
 
