@@ -109,8 +109,8 @@ export function AddConcentratedLiquidityDialog() {
     })
   }, [currentAmmPool, targetUserPositionAccount])
 
-  const tokenPriceBase: Price | undefined = tokenPrices[toPubString(coinBase?.mint)]
-  const tokenPriceQuote: Price | undefined = tokenPrices[toPubString(coinQuote?.mint)]
+  const tokenPriceBase: Price | undefined = coinBase && tokenPrices[coinBase?.mintString]
+  const tokenPriceQuote: Price | undefined = coinQuote && tokenPrices[coinQuote?.mintString]
   const baseVolume = mul(coinBaseAmount, tokenPriceBase)
   const quoteVolume = mul(coinQuoteAmount, tokenPriceQuote)
   const totalVolume = add(baseVolume, quoteVolume)
@@ -123,10 +123,10 @@ export function AddConcentratedLiquidityDialog() {
   ])
 
   const [token2022HasLoadDataBase, setToken2022HasLoadDataBase] = useState(false)
-  useEffect(() => () => setToken2022HasLoadDataBase(false), [toPubString(coinBase?.mint)])
+  useEffect(() => () => setToken2022HasLoadDataBase(false), [coinBase?.mintString])
 
   const [token2022HasLoadDataQuote, setToken2022HasLoadDataQuote] = useState(false)
-  useEffect(() => () => setToken2022HasLoadDataQuote(false), [toPubString(coinQuote?.mint)])
+  useEffect(() => () => setToken2022HasLoadDataQuote(false), [coinQuote?.mintString])
 
   return (
     <ResponsiveDialogDrawer
@@ -307,7 +307,7 @@ export function AddConcentratedLiquidityDialog() {
                       rawAmount: coinQuoteAmount
                     }
                   ].map(({ isToken2022, token, info, rawAmount, side }) => (
-                    <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={toPubString(token?.mint)}>
+                    <Grid className="grid-cols-[2.5fr,2fr,2fr] items-center" key={token?.mintString}>
                       <Row className="items-center gap-1 overflow-hidden">
                         <div className="font-medium text-white">{token?.symbol}</div>
                         <CoinAvatar size="sm" token={token} />

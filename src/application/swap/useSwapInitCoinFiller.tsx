@@ -21,17 +21,17 @@ export default function useSwapInitCoinFiller() {
     const hasInputCurrency = Object.keys(query).includes('inputCurrency')
     const hasOutputCurrency = Object.keys(query).includes('outputCurrency')
 
-    if (!coin1 && toPubString(coin2?.mint) !== toPubString(QuantumSOLVersionSOL.mint) && !hasInputCurrency) {
+    if (!coin1 && coin2?.mintString !== QuantumSOLVersionSOL.mintString && !hasInputCurrency) {
       useSwap.setState({ coin1: QuantumSOLVersionSOL })
     }
-    if (!coin2 && toPubString(coin1?.mint) !== toPubString(RAYMint) && !hasOutputCurrency) {
+    if (!coin2 && coin1?.mintString !== toPubString(RAYMint) && !hasOutputCurrency) {
       useSwap.setState({ coin2: getToken(RAYMint) })
     }
   }, [tokens, getToken, coin1, coin2])
 
   // update token if needed
   useEffect(() => {
-    const newCoin2Token = getToken(toPubString(coin2?.mint))
+    const newCoin2Token = getToken(coin2?.mintString)
     if (coin2 && getTokenSignature(coin2) !== getTokenSignature(newCoin2Token)) {
       useSwap.setState({ coin2: newCoin2Token })
     }

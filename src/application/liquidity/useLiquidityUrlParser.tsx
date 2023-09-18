@@ -101,10 +101,12 @@ export default function useLiquidityUrlParser() {
 
       // sync to zustand store
       if (
-        toPubString(liquidityCoin1?.mint) + toPubString(liquidityCoin2?.mint) !==
-          toPubString(coin1?.mint) + toPubString(coin2?.mint) &&
-        toPubString(liquidityCoin1?.mint) + toPubString(liquidityCoin2?.mint) !==
-          toPubString(coin2?.mint) + toPubString(coin1?.mint)
+        liquidityCoin1 &&
+        liquidityCoin2 &&
+        coin1 &&
+        coin2 &&
+        liquidityCoin1?.mintString + liquidityCoin2?.mintString !== coin1?.mintString + coin2?.mintString &&
+        liquidityCoin1?.mintString + liquidityCoin2?.mintString !== coin2?.mintString + coin1?.mintString
       ) {
         useLiquidity.setState(objectShakeFalsy({ coin1, coin2: coin1 === coin2 ? undefined : coin2 }))
       }

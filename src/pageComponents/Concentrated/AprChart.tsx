@@ -8,7 +8,9 @@ import { eq } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 
 import {
-  useConcentratedPoolAprCalc, useConcentratedPositionAprCalc, useConcentratedTickAprCalc
+  useConcentratedPoolAprCalc,
+  useConcentratedPositionAprCalc,
+  useConcentratedTickAprCalc
 } from './useConcentratedAprCalc'
 
 const aprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
@@ -88,7 +90,7 @@ export function AprChart(
         {aprInfo.rewards.map(({ token, apr }, idx) => {
           const dotColors = aprLineColors.slice(1)
           return (
-            <Row className="items-center gap-2" key={toPubString(token?.mint)}>
+            <Row className="items-center gap-2" key={token?.mintString}>
               {/* dot */}
               <div
                 className="h-2 w-2 rounded-full"

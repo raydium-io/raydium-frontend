@@ -112,11 +112,11 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
     useLocalStorageItem<HexAddress[] /* token mint  */>('USER_CONFIRMED_SWAP_TOKENS')
 
   const isDownCoinOfficial = Boolean(
-    downCoin && (raydiumTokenMints?.size === 0 || raydiumTokenMints?.has(toPubString(downCoin?.mint)))
+    downCoin && (raydiumTokenMints?.size === 0 || raydiumTokenMints?.has(downCoin?.mintString))
   )
 
   const hasUserPermanentConfirmed = Boolean(
-    downCoin && userPermanentConfirmedTokenMints?.includes(toPubString(downCoin?.mint))
+    downCoin && userPermanentConfirmedTokenMints?.includes(downCoin?.mintString)
   )
 
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
@@ -126,7 +126,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
     setHasUserTemporaryConfirmed(false)
   }, [downCoin])
 
-  const freezed = useMemo(() => downCoin && isFreezedToken(downCoin), [toPubString(downCoin?.mint)])
+  const freezed = useMemo(() => downCoin && isFreezedToken(downCoin), [downCoin?.mintString])
 
   const popNotOfficialTokenConfirm = () => {
     if (notOfficialTokenConfirmPanelOn) return
@@ -1368,7 +1368,7 @@ function KLineChart() {
         <KLineChartItem coin={coin1} onDataChange={(isReady) => setIsLine1BoxReady(isReady)} />
       </div>
       <div ref={kline2Box}>
-        {toPubString(coin2?.mint) !== toPubString(coin1?.mint) && (
+        {coin2?.mintString !== coin1?.mintString && (
           <KLineChartItem coin={coin2} onDataChange={(isReady) => setIsLine2BoxReady(isReady)} />
         )}
       </div>
@@ -1396,12 +1396,12 @@ function KLineChartItem({
 
   const startPrice = pricePoints?.[0]
   const endPrice = pricePoints?.[pricePoints.length - 1]
-  const tokenPrices = apiPrices[toPubString(coin?.mint)] ?? endPrice
+  const tokenPrices = (coin && apiPrices[coin?.mintString]) ?? endPrice
   const floatPercent = isMeaningfulNumber(startPrice) && endPrice ? (endPrice - startPrice) / startPrice : 0
   const isPositive = floatPercent > 0
   const isNegative = floatPercent < 0
 
-  const canShowKline = Boolean(coin && !blackListTokenMint.includes(toPubString(coin.mint)) && pricePoints?.length)
+  const canShowKline = Boolean(coin && !blackListTokenMint.includes(coin.mintString) && pricePoints?.length)
 
   // clean onDataChange
   useEffect(() => () => onDataChange?.(false), [])
@@ -1529,7 +1529,7 @@ function KLineChartItemThumbnail({
 // function UnwrapWSOL() {
 //   const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
 //   const wsolTokenAccounts = allTokenAccounts.filter(
-//     (tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint)
+//     (tokenAccount) => tokenAccount.mintString === toPubString(WSOLMint)
 //   )
 //   return (
 //     <div className="self-center">

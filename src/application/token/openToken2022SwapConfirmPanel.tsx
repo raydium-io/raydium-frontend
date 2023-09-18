@@ -221,7 +221,7 @@ function InfoItemHeader({ coin }: { coin?: SplToken }) {
           textClassName="text-[#abc4ff80] justify-start"
           iconClassName="text-[#abc4ff]"
         >
-          {toPubString(coin?.mint)}
+          {coin?.mintString}
         </AddressItem>
       </Row>
     </Row>

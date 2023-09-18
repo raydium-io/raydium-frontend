@@ -213,7 +213,7 @@ export default function CoinInputBox({
   const inputRef = useRef<HTMLInputElement>(null)
   const focusInput = () => inputRef.current?.focus()
 
-  const price = variousPrices[String(token?.mint)] ?? null
+  const price = variousPrices[toPubString(token?.mint)] ?? null
 
   const totalPrice = useMemo(() => {
     if (!price || !inputedAmount) return undefined

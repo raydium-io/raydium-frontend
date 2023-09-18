@@ -318,8 +318,8 @@ function hydrateUserPositionAccounnt(
       inRange,
       rewardInfos: positionRewardInfos,
       getLiquidityVolume: (tokenPrices: Record<string, Price>) => {
-        const aPrice = tokenPrices[toPubString(tokenA?.mint)]
-        const bPrice = tokenPrices[toPubString(tokenB?.mint)]
+        const aPrice = tokenPrices[tokenA?.mintString ?? '']
+        const bPrice = tokenPrices[tokenB?.mintString ?? '']
         const wholeLiquidity = add(mul(amountA, aPrice), mul(amountB, bPrice))
         return {
           wholeLiquidity,

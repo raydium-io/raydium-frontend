@@ -10,12 +10,12 @@ import Icon from '@/components/Icon'
 import LoadingCircle from '@/components/LoadingCircle'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import { unifyItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
 import parseDuration from '@/functions/date/parseDuration'
-import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import { isMeaningfulNumber, isMeaninglessNumber } from '@/functions/numberish/compare'
+import { isMeaninglessNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
@@ -26,8 +26,7 @@ import { twMerge } from 'tailwind-merge'
 import { AsyncAwait } from '../../components/AsyncAwait'
 import useConnection from '../connection/useConnection'
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
-import { parseMintInfo } from './parseMintInfo'
-import Tooltip from '@/components/Tooltip'
+import toPubString from '@/functions/format/toMintString'
 
 /**
  * not just data, also ui
@@ -43,12 +42,12 @@ export function useToken2022SwapConfirmPanel({
   onCancel?(): void
   onConfirm?(): void
 }) {
-  const mint = toPubString(token?.mint)
+  const mint = token?.mintString
   const tokenIsToken2022 = token && isToken2022(token)
 
   const [userConfirmedList, setUserConfirmedList] =
     useLocalStorageItem<HexAddress /* mints */[]>('USER_CONFIRMED_TOKEN_2022')
-  const isInPermanentConfirmedList = userConfirmedList?.includes(mint)
+  const isInPermanentConfirmedList = mint && userConfirmedList?.includes(mint)
 
   // permanent state
   const [hasUserPermanentConfirmed, setHasUserPermanentConfirmed] = useState(() =>
@@ -70,7 +69,7 @@ export function useToken2022SwapConfirmPanel({
     <ConfirmDialog
       onConfirm={() => {
         onConfirm?.()
-        if (hasUserPermanentConfirmed) setUserConfirmedList((list) => unifyItem([...(list ?? []), mint]))
+        if (hasUserPermanentConfirmed && mint) setUserConfirmedList((list) => unifyItem([...(list ?? []), mint]))
         setHasUserWatchDialog(true)
       }}
       onCancel={() => {

@@ -2213,7 +2213,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
                           textClassName="flex text-xs text-[#abc4ff] justify-start "
                           iconClassName="text-[#abc4ff]"
                         >
-                          {toPubString(token.mint)}
+                          {token.mintString}
                         </AddressItem>
                       </Row>
                     ) : null

@@ -619,7 +619,7 @@ function DetailPanel({
                   ({ token, userPendingReward, userHavedReward }) =>
                     userHavedReward &&
                     token && (
-                      <span key={toPubString(token?.mint)}>
+                      <span key={token?.mintString}>
                         <span>{toString(userPendingReward)}</span>{' '}
                         <span>{userPendingReward?.token.symbol ?? 'UNKNOWN'}</span>
                       </span>
@@ -770,7 +770,7 @@ function AprChartLine({
         {aprInfo?.rewards.map(({ token, apr }, idx) => {
           const dotColors = aprLineColors.slice(1)
           return (
-            <Row className="items-center gap-2" key={toPubString(token?.mint)}>
+            <Row className="items-center gap-2" key={token?.mintString}>
               {/* dot */}
               <div
                 className="h-2 w-2 rounded-full"
