@@ -16,6 +16,7 @@ export function mergeToken(
   if (!newTokenB) return oldTokenA
 
   return mergeObjectsWithConfigs([oldTokenA, newTokenB], ({ key, valueA, valueB }) => {
+    if (valueA === valueB) return valueB
     if (key === 'symbol' && valueA) {
       const isSystemDefaultValue = valueB === 'UNKNOWN'
       const isCustomizedDefaultValue = valueB.length >= 6 && toPubString(newTokenB['mint'])?.startsWith(valueB)

@@ -265,10 +265,10 @@ export const useToken = create<TokenStore>((set, get) => ({
     const result = useInputTokensOnly
       ? tokens.sort((tokenA, tokenB) => {
           const balanceA =
-            (isQuantumSOL(tokenA) ? balances[WSOLMint.toBase58()]?.raw : pureBalances[tokenA.mintString]?.raw) ||
+            (isQuantumSOL(tokenA) ? balances[toPubString(WSOLMint)]?.raw : pureBalances[tokenA.mintString]?.raw) ||
             new TokenAmount(tokenA, 0).raw
           const balanceB =
-            (isQuantumSOL(tokenB) ? balances[WSOLMint.toBase58()]?.raw : pureBalances[tokenB.mintString]?.raw) ||
+            (isQuantumSOL(tokenB) ? balances[toPubString(WSOLMint)]?.raw : pureBalances[tokenB.mintString]?.raw) ||
             new TokenAmount(tokenB, 0).raw
           return balanceA.lte(balanceB) ? 1 : -1
         })

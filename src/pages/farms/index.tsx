@@ -1694,7 +1694,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
                         textClassName="flex text-xs text-[#abc4ff] justify-start "
                         iconClassName="text-[#abc4ff]"
                       >
-                        {toPubString(token)}
+                        {token}
                       </AddressItem>
                     </Row>
                   ) : null

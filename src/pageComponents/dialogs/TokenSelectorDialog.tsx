@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -376,7 +376,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   const canFlaggedTokenMints = useToken((s) => s.canFlaggedTokenMints)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
   const tokens = useToken((s) => s.tokens)
-  const isUserAddedToken = Boolean(userAddedTokens[token.mintString] && !tokens[token.mintString])
+  const isUserAddedToken = Boolean(userAddedTokens[token.mintString])
   const toggleFlaggedToken = useToken((s) => s.toggleFlaggedToken)
   const deleteUserAddedToken = useToken((s) => s.deleteUserAddedToken)
   const editUserAddedToken = useToken((s) => s.editUserAddedToken)
@@ -403,7 +403,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 </div>
                 {isToken2022(token) && <Token2022Badge pale />}
               </Row>
-              {isUserAddedToken && !canFlaggedTokenMints.has(token.mintString) ? (
+              {isUserAddedToken ? (
                 <Row
                   onClick={(ev) => {
                     deleteUserAddedToken(token.mint)
