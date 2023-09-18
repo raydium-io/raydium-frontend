@@ -69,7 +69,7 @@ export function useToken2022SwapConfirmPanel({
     <ConfirmDialog
       onConfirm={() => {
         onConfirm?.()
-        if (hasUserPermanentConfirmed) setUserConfirmedList((list) => unifyItem([...(list ?? []), mint ?? '']))
+        if (hasUserPermanentConfirmed && mint) setUserConfirmedList((list) => unifyItem([...(list ?? []), mint]))
         setHasUserWatchDialog(true)
       }}
       onCancel={() => {
