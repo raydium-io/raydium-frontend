@@ -31,8 +31,6 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   assert(currentAmmPool, 'not seleted amm pool')
   assert(coin1, 'not set coin1')
   assert(coin2, 'not set coin2')
-  assert(coin1AmountMin, 'not set coin1AmountMin')
-  assert(coin2AmountMin, 'not set coin2AmountMin')
   assert(liquidity != null, 'not set liquidity')
   assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
 
@@ -42,25 +40,17 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   const tokenAmount2 = toTokenAmount(coin2, coin2AmountMin, { alreadyDecimaled: true })
   const feeInfo2 = isToken2022(coin2) ? getTransferFeeInfo({ amount: tokenAmount2 }) : undefined
 
-  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const [feeInfoA, feeInfoB] = await Promise.all([feeInfo1, feeInfo2])
     if (options?.closePosition) {
-      const { innerTransactions } = await Clmm.makeDecreaseLiquidityInstructionSimple({
+      const { innerTransactions } = await Clmm.makeCLosePositionInstructionSimple({
         connection: connection,
-        liquidity,
         poolInfo: currentAmmPool.state,
         ownerInfo: {
           feePayer: owner,
-          wallet: owner,
-          tokenAccounts: tokenAccountRawInfos,
-          useSOLBalance: true,
-          closePosition: eq(targetUserPositionAccount.sdkParsed.liquidity, liquidity)
+          wallet: owner
         },
         ownerPosition: targetUserPositionAccount.sdkParsed,
-        computeBudgetConfig: await getComputeBudgetConfig(),
-        checkCreateATAOwner: true,
-        amountMinA: toBN(feeInfoA?.pure ?? coin1AmountMin, coin1.decimals),
-        amountMinB: toBN(feeInfoB?.pure ?? coin2AmountMin, coin2.decimals),
         makeTxVersion: txVersion,
         lookupTableCache
       })
@@ -96,10 +86,11 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Liquidity Removed',
-          description: `Removed ${toString(feeInfoA?.pure ?? coin1AmountMin, { decimalLength: 6 })} ${coin1.symbol
-            } and ${toString(feeInfoB?.pure ?? coin2AmountMin, { decimalLength: 6 })} ${coin2.symbol} from ${toPubString(
-              targetUserPositionAccount.poolId
-            ).slice(0, 6)}`
+          description: `Removed ${toString(feeInfoA?.pure ?? coin1AmountMin, { decimalLength: 6 })} ${
+            coin1.symbol
+          } and ${toString(feeInfoB?.pure ?? coin2AmountMin, { decimalLength: 6 })} ${coin2.symbol} from ${toPubString(
+            targetUserPositionAccount.poolId
+          ).slice(0, 6)}`
         }
       })
     }

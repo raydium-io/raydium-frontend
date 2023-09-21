@@ -1951,7 +1951,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
           <Row
             className={`pl-8 ${
               isMobile ? 'pr-8 pt-5' : ''
-            }   gap-3 items-center self-center justify-center mobile:w-full`}
+            } gap-3 items-center self-center justify-center mobile:w-full`}
           >
             {isMobile ? (
               <Row className="gap-5 mobile:gap-4">
