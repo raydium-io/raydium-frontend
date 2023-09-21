@@ -1,25 +1,18 @@
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { TimeBasis } from '@/application/concentrated/useConcentrated'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
+import { eq } from '@/functions/numberish/compare'
 import { formatDecimal as _formatDecimal } from '@/functions/numberish/formatDecimal'
-import { shakeZero } from '@/functions/numberish/shakeZero'
-import { mul } from '@/functions/numberish/operations'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
+import { mul } from '@/functions/numberish/operations'
+import { shakeZero } from '@/functions/numberish/shakeZero'
 import { useEvent } from '@/hooks/useEvent'
-import {
-  forwardRef,
-  ReactNode,
-  use,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState
-} from 'react'
-import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Fraction } from '@raydium-io/raydium-sdk'
+import Decimal from 'decimal.js'
+import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import {
   AREA_CONFIG,
   boundaryColor,
@@ -30,16 +23,12 @@ import {
   getLabel,
   getStrokeFill,
   HIGHLIGHT_COLOR,
+  parseFirstDigit,
   Range,
   toFixedNumber,
-  unitColor,
-  parseFirstDigit
+  unitColor
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
-import Decimal from 'decimal.js'
-import { HydratedConcentratedInfo } from '@/application/concentrated/type'
-import { eq, lt } from '@/functions/numberish/compare'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 const maxDecimals = 15
 interface HighlightPoint extends ChartPoint {
