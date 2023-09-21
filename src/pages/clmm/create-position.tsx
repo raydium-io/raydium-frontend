@@ -813,6 +813,7 @@ function ConcentratedCard() {
             </div>
           )}
           <Chart
+            clmmPool={currentAmmPool}
             poolFocusKey={poolFocusKey}
             title={<div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>}
             ref={chartRef}

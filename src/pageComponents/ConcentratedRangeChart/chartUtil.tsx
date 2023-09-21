@@ -52,6 +52,8 @@ export const getConfig = (num: number, totalCount: number) => {
   return config
 }
 export const toFixedNumber = (num: number | string, digits = 6) => (num ? parseFloat(Number(num).toFixed(digits)) : 0)
+export const toFixedDecimalDigits = (num: number, decimal = 2) =>
+  (Math.round(num * 10 ** decimal) / 10 ** decimal).toFixed(decimal)
 export const getLabel =
   (labelProps: {
     side: Range
@@ -71,7 +73,7 @@ export const getLabel =
           x={props.viewBox.x - (side === Range.Min ? (changeSide ? -5 : 48) : changeSide ? 40 : -14)}
           y={props.viewBox.y}
           fill={'rgba(171, 196, 255, 0.15)'}
-          width={34}
+          width={46}
           height={21}
           rx="4"
         />
@@ -79,7 +81,7 @@ export const getLabel =
           className="break-words"
           fill="#ABC4FF"
           y={props.viewBox.y + 12}
-          x={props.viewBox.x - (side === Range.Min ? (changeSide ? -20 : 30) : changeSide ? 20 : -30)}
+          x={props.viewBox.x - (side === Range.Min ? (changeSide ? -26 : 28) : changeSide ? 22 : -32)}
           style={{
             fontWeight: '500',
             fontSize: 12,
@@ -89,7 +91,7 @@ export const getLabel =
           dominantBaseline="middle"
         >
           {percent && percent > 0 ? '+' : ''}
-          {percent ? `${Math.ceil(Number(percent.toFixed(2)))}%` : ''}
+          {percent ? `${toFixedDecimalDigits(percent, 1)}%` : ''}
         </text>
         <rect
           x={props.viewBox.x - (side === Range.Min ? 12 : 0)}

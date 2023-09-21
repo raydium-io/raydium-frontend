@@ -7,7 +7,17 @@ import { shakeZero } from '@/functions/numberish/shakeZero'
 import { mul } from '@/functions/numberish/operations'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { useEvent } from '@/hooks/useEvent'
-import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import {
+  forwardRef,
+  ReactNode,
+  use,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Fraction } from '@raydium-io/raydium-sdk'
 import {
@@ -27,6 +37,9 @@ import {
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
 import Decimal from 'decimal.js'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import { eq, lt } from '@/functions/numberish/compare'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 const maxDecimals = 15
 interface HighlightPoint extends ChartPoint {
@@ -40,6 +53,7 @@ interface PositionState {
 }
 
 interface Props {
+  clmmPool?: HydratedConcentratedInfo
   poolFocusKey?: string
   decimals: number
   className?: string
@@ -63,6 +77,7 @@ interface Props {
 
 export default forwardRef(function Chart(props: Props, ref) {
   const {
+    clmmPool,
     poolFocusKey,
     chartOptions,
     currentPrice,
@@ -101,7 +116,16 @@ export default forwardRef(function Chart(props: Props, ref) {
   )
   const { isMobile } = getPlatformInfo() || {}
   const [displayList, setDisplayList] = useState<HighlightPoint[]>(points)
-  const [rate, setRate] = useState(0.2)
+  const isLowFeeRatePool = useMemo(
+    () => clmmPool?.tradeFeeRate && eq(clmmPool.tradeFeeRate, 0.0001),
+    [clmmPool?.tradeFeeRate]
+  ) // there is special case for lowFeeRate Pool
+  const enableRates = useMemo(
+    () => (isLowFeeRatePool ? [0.001, 0.003, 0.005, 0.008, 0.01] : [0.01, 0.05, 0.1, 0.2, 0.5]),
+    [isLowFeeRatePool]
+  )
+  const defaultRate = useMemo(() => (isLowFeeRatePool ? 0.005 : 0.2), [isLowFeeRatePool])
+  const [rate, setRate] = useState(defaultRate)
   const [isMoving, setIsMoving] = useState(false)
   const [position, setPosition] = useState<PositionState>({
     [Range.Min]: Number(defaultMin?.toFixed(decimals)) || 0,
@@ -123,7 +147,6 @@ export default forwardRef(function Chart(props: Props, ref) {
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const currentPriceNum = currentPrice?.toFixed(maxLength)
-  const enableRates = [0.01, 0.05, 0.1, 0.2, 0.5]
 
   boundaryRef.current = xAxisDomain.length
     ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
@@ -154,8 +177,8 @@ export default forwardRef(function Chart(props: Props, ref) {
   )
 
   useEffect(() => {
-    const rate = chartOptions?.isStable ? 0.01 : 0.2
-    setRate(chartOptions?.isStable ? 0.01 : 0.2)
+    const rate = chartOptions?.isStable ? 0.005 : 0.2
+    setRate(chartOptions?.isStable ? 0.005 : 0.2)
     onClickPercent(rate)
   }, [chartOptions?.isStable, poolFocusKey])
 
