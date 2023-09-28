@@ -1247,10 +1247,25 @@ function CoinAvatarInfoItem({
                   <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
                   <Tooltip.Panel>
                     <div className="max-w-[300px] space-y-1.5">
+                      <div className="flex gap-2 text-sm">
+                        <span>Pool Id</span>
+                        <AddressItem
+                          className="grow"
+                          showDigitCount={5}
+                          addressType="account"
+                          canCopy
+                          canExternalLink
+                          textClassName="flex text-xs text-[#abc4ff] justify-start "
+                          iconClassName="text-[#abc4ff]"
+                        >
+                          {info?.ammId}
+                        </AddressItem>
+                      </div>
                       {[info?.base, info?.quote].map((token, idx) =>
                         token ? (
                           <Row key={idx} className="gap-2">
                             <CoinAvatar size={'xs'} token={token} />
+                            <span>{token.symbol}</span>
                             <AddressItem
                               className="grow"
                               showDigitCount={5}
