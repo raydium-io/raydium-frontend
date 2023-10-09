@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
-import { CurrencyAmount, ZERO } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, ZERO, isZero } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
@@ -69,7 +69,7 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
-import { add, div, sub } from '@/functions/numberish/operations'
+import { add, div, minus, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
@@ -1581,16 +1581,19 @@ function PoolCardDatabaseBodyCollapseItemContent({
       {info.userPositionAccount && (
         <>
           {info.userPositionAccount
-            .sort((a: UserPositionAccount, b: UserPositionAccount) =>
-              Number(
-                toString(
-                  sub(
-                    a.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
-                    b.getLiquidityVolume?.(tokenPrices).wholeLiquidity
-                  )
-                )
+            .sort((a: UserPositionAccount, b: UserPositionAccount) => {
+              const liquiditySub = sub(
+                b.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
+                a.getLiquidityVolume?.(tokenPrices).wholeLiquidity
               )
-            )
+              if (isMeaningfulNumber(liquiditySub)) {
+                return Number(toString(liquiditySub))
+              } else {
+                const dd = minus(a.tickLower, b.tickLower)
+                const v = eq(dd, 0) ? 0 : gt(dd, 0) ? 1 : -1 // sort position by tickLower
+                return v
+              }
+            })
             .map((p) => {
               let myPosition = '--'
               const amountA = toString(p.amountA, { decimalLength: 'auto 5' })

@@ -327,14 +327,13 @@ function hydrateUserPositionAccounnt(
           quoteLiquidity: mul(wholeLiquidity, positionPercentB)
         }
       },
-      getApr(args: Omit<GetAprPositionParameters, 'tickLower' | 'tickUpper' | 'ammPoolInfo' | 'poolRewardInfos'>) {
-        return getPositonAprCore({
+      getApr: (args: Omit<GetAprPositionParameters, 'tickLower' | 'tickUpper' | 'ammPoolInfo' | 'poolRewardInfos'>) =>
+        getPositonAprCore({
           ...args,
           ammPoolInfo,
           positionAccount: info,
           poolRewardTokens: poolRewardInfos.map((i) => i.tokenMint)
         })
-      }
     }
   })
 }
