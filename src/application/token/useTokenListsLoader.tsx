@@ -349,31 +349,36 @@ export function createSplToken(
   return new Proxy(
     {},
     {
-      get: (_target, key) => {
-        switch (key) {
-          case 'mint':
-            return toPub(info.mint)
-          case 'mintString':
-            return info.mint
-          case 'id':
-            return info.mint
-          case 'symbol':
-            return info.symbol
-          case 'name':
-            return info.name ?? info.symbol
-          case 'decimals':
-            return info.decimals
-          case 'isToken2022':
-            return tokenIsToken2022()
-          case 'extensions':
-            return tokenIsToken2022() ? { ...info.extensions, version: 'TOKEN2022' } : info.extensions
-          case 'programIds':
-            return tokenIsToken2022() ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
-          case 'icon':
-            return customTokenIcons?.[info.mint] ?? info.icon
-          default:
-            return info[key] ?? _target[key] ?? token()[key]
-        }
+      get: (target, key) => {
+        if (key in target) return Reflect.get(target, key)
+        const v = (() => {
+          switch (key) {
+            case 'mint':
+              return toPub(info.mint)
+            case 'mintString':
+              return info.mint
+            case 'id':
+              return info.mint
+            case 'symbol':
+              return info.symbol
+            case 'name':
+              return info.name ?? info.symbol
+            case 'decimals':
+              return info.decimals
+            case 'isToken2022':
+              return tokenIsToken2022()
+            case 'extensions':
+              return tokenIsToken2022() ? { ...info.extensions, version: 'TOKEN2022' } : info.extensions
+            case 'programIds':
+              return tokenIsToken2022() ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
+            case 'icon':
+              return customTokenIcons?.[info.mint] ?? info.icon
+            default:
+              return info[key] ?? target[key] ?? token()[key]
+          }
+        })()
+        Reflect.set(target, key, v)
+        return v
       },
       set: (target, p, newValue) => Reflect.set(target, p, newValue),
       has: (_target, key) => splTokenKeys.includes(key as string),
