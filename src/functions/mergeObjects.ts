@@ -21,21 +21,29 @@ export function mergeObjectsWithConfigs<T extends object>(
     return { s: keys, a: keysArray }
   }
 
-  return new Proxy(objs[0], {
-    get: (_target, key) => getValue(objs, key, transformer),
-    set: (_target, key, value) => Reflect.set(_target, key, value),
-    has: (_target, key) => getOwnKeys().s.has(key as string),
-    getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
-    ownKeys: () => getOwnKeys().a,
-    // for Object.keys to filter
-    getOwnPropertyDescriptor: (_target, prop) => {
-      for (const obj of objs) {
-        if (prop in obj) {
-          return Reflect.getOwnPropertyDescriptor(obj, prop)
+  return new Proxy(
+    {},
+    {
+      get: (target, key) => {
+        if (key in target) return target[key]
+        const v = getValue(objs, key, transformer)
+        Reflect.set(target, key, v)
+        return v
+      },
+      set: (target, key, value) => Reflect.set(target, key, value),
+      has: (_target, key) => getOwnKeys().s.has(key as string),
+      getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
+      ownKeys: () => getOwnKeys().a,
+      // for Object.keys to filter
+      getOwnPropertyDescriptor: (_target, prop) => {
+        for (const obj of objs) {
+          if (prop in obj) {
+            return Reflect.getOwnPropertyDescriptor(obj, prop)
+          }
         }
       }
     }
-  }) as T
+  ) as T
 }
 
 /**
