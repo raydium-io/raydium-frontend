@@ -18,7 +18,6 @@ interface BackEndVersion {
 }
 
 //#region ------------------- store -------------------
-
 export type AppVersionStore = {
   // backend (client)
   latest?: string // example: 'V2.1.0'
@@ -33,7 +32,6 @@ export type AppVersionStore = {
 export const useAppVersion = create<AppVersionStore>(() => ({
   currentVersion: APP_VERSION
 }))
-
 //#endregion
 
 //#region ------------------- hooks -------------------

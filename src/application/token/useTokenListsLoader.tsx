@@ -18,7 +18,7 @@ import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
 
-import { createCachedFunction, createCachedObject } from '@/functions/createCachedFunction'
+import { createCachedFunction } from '@/functions/createCachedFunction'
 import { makeAbortable } from '@/functions/makeAbortable'
 import { mergeObjects } from '@/functions/mergeObjects'
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'

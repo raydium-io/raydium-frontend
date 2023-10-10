@@ -71,23 +71,30 @@ export function mergeObjects<T extends object | undefined>(...objs: T[]): T {
     }
     return { s: keys, a: keysArray }
   }
+  function getValue(key: string | symbol) {
+    if (!reversedObjs) {
+      reversedObjs = [...objs].reverse()
+    }
+    for (const obj of reversedObjs) {
+      if (obj && key in obj) {
+        const v = obj[key]
+        if (v !== undefined) {
+          return v
+        }
+      }
+    }
+  }
   return new Proxy(
     {},
     {
-      get(_target, key) {
-        if (!reversedObjs) {
-          reversedObjs = [...objs].reverse()
-        }
-        for (const obj of reversedObjs) {
-          if (obj && key in obj) {
-            const v = obj[key]
-            if (v !== undefined) {
-              return v
-            }
-          }
-        }
+      get(target, key) {
+        if (!getOwnKeys().s.has(key)) return undefined
+        if (key in target) return target[key]
+        const v = getValue(key)
+        Reflect.set(target, key, v)
+        return v
       },
-      has: (_target, key) => getOwnKeys().s.has(key as string),
+      has: (_target, key) => getOwnKeys().s.has(key),
       set: (_target, key, value) => Reflect.set(_target, key, value),
       getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
       ownKeys: () => getOwnKeys().a,
