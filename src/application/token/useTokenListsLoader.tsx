@@ -58,12 +58,19 @@ export default function useTokenListsLoader() {
     clearTokenCache()
   }, [tokenInfoUrl])
   useEffect(() => {
-    const { abort } = makeAbortable((canContinue) => {
-      rawTokenListConfigs.forEach((config) => {
-        loadTokens([config], canContinue)
+    let abort: () => void
+    const timerId = setTimeout(() => {
+      const { abort: abortTask } = makeAbortable((canContinue) => {
+        rawTokenListConfigs.forEach((config) => {
+          loadTokens([config], canContinue)
+        })
       })
-    })
-    return abort
+      abort = abortTask
+    }, 100)
+    return () => {
+      clearTimeout(timerId)
+      abort?.()
+    }
   }, [
     walletRefreshCount,
     swapRefreshCount,
