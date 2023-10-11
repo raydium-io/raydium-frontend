@@ -764,64 +764,75 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedItems={filtered} searchedItemsLength={searched.length} />
+      <PoolCardDatabaseBody
+        sortedItems={filtered}
+        searchedItemsLength={searched.length}
+        sourceItemsLength={dataSource.length}
+        hasSearchText={Boolean(searchText)}
+      />
     </CyberpunkStyleCard>
   )
 }
 
 function PoolCardDatabaseBody({
   sortedItems,
+  sourceItemsLength,
+  hasSearchText,
   searchedItemsLength
 }: {
   sortedItems: (JsonPairItemInfo | HydratedPairItemInfo)[] | undefined
+  sourceItemsLength: number
+  hasSearchText: boolean
   searchedItemsLength: number
 }) {
   const jsonInfos = usePools((s) => s.jsonInfos)
   const jsonInfoMap = useMemo(() => listToMap(jsonInfos, (i) => i.ammId), [jsonInfos])
-  const hydratedInfos = usePools((s) => s.hydratedInfos)
-  const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolIds = usePools((s) => s.expandedPoolIds)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
-  return !loading && (searchedItemsLength === 0 || (searchedItemsLength !== 0 && sortedItems?.length === 0)) ? (
-    <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
-  ) : sortedItems && sortedItems.length ? (
-    <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-      {sortedItems.map((info) => (
-        <List.Item key={info.lpMint}>
-          <Collapse
-            open={expandedPoolIds.has(info.ammId)}
-            onToggle={() => {
-              usePools.setState((s) => ({ expandedPoolIds: toggleSetItem(s.expandedPoolIds, info.ammId) }))
-            }}
-          >
-            <Collapse.Face>
-              {({ isOpen }) => (
-                <PoolCardDatabaseBodyCollapseItemFace
-                  open={isOpen}
-                  info={info}
-                  correspondingJsonInfo={jsonInfoMap[info.ammId]}
-                  isFavourite={favouriteIds?.includes(info.ammId)}
-                  onUnFavorite={(ammId) => {
-                    setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
-                  }}
-                  onStartFavorite={(ammId) => {
-                    setFavouriteIds((ids) => addItem(ids ?? [], ammId))
-                  }}
-                />
-              )}
-            </Collapse.Face>
-            <Collapse.Body>
-              {isHydratedPoolItemInfo(info) && <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />}
-            </Collapse.Body>
-          </Collapse>
-        </List.Item>
-      ))}
-    </List>
-  ) : (
-    <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">
-      <LoadingCircle />
-    </div>
-  )
+  if (sortedItems?.length) {
+    return (
+      <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
+        {sortedItems.map((info) => (
+          <List.Item key={info.lpMint}>
+            <Collapse
+              open={expandedPoolIds.has(info.ammId)}
+              onToggle={() => {
+                usePools.setState((s) => ({ expandedPoolIds: toggleSetItem(s.expandedPoolIds, info.ammId) }))
+              }}
+            >
+              <Collapse.Face>
+                {({ isOpen }) => (
+                  <PoolCardDatabaseBodyCollapseItemFace
+                    open={isOpen}
+                    info={info}
+                    correspondingJsonInfo={jsonInfoMap[info.ammId]}
+                    isFavourite={favouriteIds?.includes(info.ammId)}
+                    onUnFavorite={(ammId) => {
+                      setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
+                    }}
+                    onStartFavorite={(ammId) => {
+                      setFavouriteIds((ids) => addItem(ids ?? [], ammId))
+                    }}
+                  />
+                )}
+              </Collapse.Face>
+              <Collapse.Body>
+                {isHydratedPoolItemInfo(info) && <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />}
+              </Collapse.Body>
+            </Collapse>
+          </List.Item>
+        ))}
+      </List>
+    )
+  } else if (hasSearchText && sourceItemsLength > 0 && searchedItemsLength === 0) {
+    return <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
+  } else {
+    return (
+      <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">
+        <LoadingCircle />
+      </div>
+    )
+  }
 }
 
 function PoolCardDatabaseBodyCollapseItemFace({
