@@ -1,8 +1,6 @@
+import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
-
-import { PublicKey } from '@solana/web3.js'
-
 import NextNProgress from 'nextjs-progressbar'
 
 import useAutoCleanSwapInfoCache from '@/application/ammV3PoolInfoAndLiquidity/useAutoCleanLiquidityInfoCache'
@@ -45,13 +43,12 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionDialog'
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
-
-import '../styles/index.css'
-import { useCLMMMigrationLoadInfo } from '@/application/clmmMigration/useCLMMMigrationLoadInfo'
-
 import { setAutoFreeze } from 'immer'
-setAutoFreeze(false)
 
+import { useCLMMMigrationLoadInfo } from '@/application/clmmMigration/useCLMMMigrationLoadInfo'
+import '../styles/index.css'
+
+setAutoFreeze(false)
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
 

@@ -4,19 +4,20 @@ import { Connection, PublicKey } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
 
-import useWallet from './useWallet'
 import { getWalletTokenAccounts } from './getWalletTokenAccounts'
+import useWallet from './useWallet'
 
-import { addWalletAccountChangeListener, removeWalletAccountChangeListener } from './useWalletAccountChangeListeners'
-import { eq } from '@/functions/numberish/compare'
-import { useSwap } from '@/application/swap/useSwap'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import useFarms from '@/application/farms/useFarms'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 import { usePools } from '@/application/pools/usePools'
+import { useSwap } from '@/application/swap/useSwap'
+import { shakeFalsyItem } from '@/functions/arrayMethods'
 import { listToJSMap } from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { shakeFalsyItem } from '@/functions/arrayMethods'
+import { makeAbortable } from '@/functions/makeAbortable'
+import { eq } from '@/functions/numberish/compare'
 import useConcentrated from '../concentrated/useConcentrated'
+import { addWalletAccountChangeListener, removeWalletAccountChangeListener } from './useWalletAccountChangeListeners'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -32,13 +33,30 @@ export default function useTokenAccountsRefresher(): void {
 
   useEffect(() => {
     if (!connection || !owner) return
-    const listenerId = addWalletAccountChangeListener(() => fetchTokenAccounts(connection, owner))
+    const listenerId = addWalletAccountChangeListener(() => loadTokenAccounts(connection, owner))
     return () => removeWalletAccountChangeListener(listenerId)
   }, [connection, owner])
 
   useEffect(() => {
     if (!connection || !owner) return
-    fetchTokenAccounts(connection, owner, { noSecondTry: true })
+    let abort: () => void
+    let stopPrevListener: () => void
+    const timerId = setTimeout(() => {
+      const { abort: abortTask } = makeAbortable((canContinue) => {
+        const promiseResult = loadTokenAccounts(connection, owner, canContinue, { noSecondTry: true })
+        promiseResult.then((result) => {
+          if (result) {
+            stopPrevListener = result.clear
+          }
+        })
+      })
+      abort = abortTask
+    }, 100)
+    return () => {
+      clearTimeout(timerId)
+      abort?.()
+      stopPrevListener?.()
+    }
   }, [
     connection,
     owner,
@@ -52,10 +70,15 @@ export default function useTokenAccountsRefresher(): void {
 }
 
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
-const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, options?: { noSecondTry?: boolean }) => {
+const loadTokenAccounts = async (
+  connection: Connection,
+  owner: PublicKey,
+  canContinue: () => boolean = () => true,
+  options?: { noSecondTry?: boolean }
+) => {
   const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
     await getRichWalletTokenAccounts({ connection, owner })
-
+  if (!canContinue()) return
   //#region ------------------- diff -------------------
   const pastTokenAccounts = listToJSMap(
     useWallet.getState().allTokenAccounts,
@@ -82,7 +105,7 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
     })
   } else {
     // try in 'finalized'
-    addWalletAccountChangeListener(
+    const listenerId = addWalletAccountChangeListener(
       async () => {
         const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
           await getRichWalletTokenAccounts({ connection, owner })
@@ -99,6 +122,7 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
         lifetime: 'finalized'
       }
     )
+    return { clear: () => removeWalletAccountChangeListener(listenerId) }
   }
 }
 

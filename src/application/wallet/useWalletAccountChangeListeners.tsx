@@ -54,7 +54,7 @@ export function addWalletAccountChangeListener(
     lifetime?: 'confirmed' | 'finalized'
     once?: boolean
   }
-) {
+): ListenerId {
   const listenerId = listenerIdCounter
   listenerIdCounter += 1
   walletAccountChangeListeners.push({

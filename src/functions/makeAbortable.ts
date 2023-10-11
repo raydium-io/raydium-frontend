@@ -1,4 +1,5 @@
 export function makeAbortable<T>(fn: (canContinue: () => boolean) => T): {
+  /** will change can continue to false */
   abort(): void
   result: Promise<Awaited<T | undefined>>
 } {
