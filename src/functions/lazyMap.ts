@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
 import { AnyFn } from '@/types/constants'
-import { addItem } from './arrayMethods'
 import { groupItems } from './groupItems'
 import { isNumber } from './judgers/dateType'
 
-const invokedRecord = new Map<string, (LazyMapSettings<any, any> & { idleId: number })[]>()
+const invokedRecordIdleId = new Map<string, number>()
 
 type LazyMapSettings<T, U> = {
   source: T[]
@@ -47,13 +46,10 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
     })
 
     // re-invoke will auto cancel the last idle callback, and record new setting
-    const lastIdleId = invokedRecord.get(setting.loopTaskName)?.at(-1)?.idleId
+    const lastIdleId = invokedRecordIdleId.get(setting.loopTaskName)
     if (lastIdleId) cancelIdleCallback(lastIdleId)
 
-    invokedRecord.set(
-      setting.loopTaskName,
-      addItem(invokedRecord.get(setting.loopTaskName) ?? [], { ...setting, idleId })
-    )
+    invokedRecordIdleId.set(setting.loopTaskName, idleId)
   })
 }
 
