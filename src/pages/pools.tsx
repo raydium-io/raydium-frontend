@@ -787,6 +787,8 @@ function PoolCardDatabaseBody({
 }) {
   const jsonInfos = usePools((s) => s.jsonInfos)
   const jsonInfoMap = useMemo(() => listToMap(jsonInfos, (i) => i.ammId), [jsonInfos])
+  const hydratedInfos = usePools((s) => s.hydratedInfos)
+  const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolIds = usePools((s) => s.expandedPoolIds)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   if (sortedItems?.length) {
@@ -824,7 +826,7 @@ function PoolCardDatabaseBody({
         ))}
       </List>
     )
-  } else if (hasSearchText && sourceItemsLength > 0 && searchedItemsLength === 0) {
+  } else if (!loading || (hasSearchText && sourceItemsLength > 0 && searchedItemsLength === 0)) {
     return <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   } else {
     return (

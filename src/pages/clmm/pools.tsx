@@ -992,6 +992,7 @@ function PoolCardDatabaseBody({
   hasSearchText: boolean
   searchedItemsLength: number
 }) {
+  const loading = useConcentrated((s) => s.loading)
   const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
   if (sortedItems?.length) {
@@ -1028,7 +1029,7 @@ function PoolCardDatabaseBody({
         ))}
       </List>
     )
-  } else if (hasSearchText && sourceItemsLength > 0 && searchedItemsLength === 0) {
+  } else if (!loading || (hasSearchText && sourceItemsLength > 0 && searchedItemsLength === 0)) {
     return <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   } else {
     return (
