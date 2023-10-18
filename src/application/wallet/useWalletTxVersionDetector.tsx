@@ -9,7 +9,8 @@ import useWallet from './useWallet'
  */
 const versionTxBlockWalletNames: string[] = [
   // seems all wallet support version tx
-  'SafePal'
+  'SafePal',
+  'TokenPocket'
 ]
 
 export function useWalletTxVersionDetector() {
