@@ -1,12 +1,15 @@
 import jFetch from '@/functions/dom/jFetch'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useEffect } from 'react'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConcentrated from '../concentrated/useConcentrated'
 import { CLMMMigrationJSON, useCLMMMigration } from './useCLMMMigration'
 
 export function useCLMMMigrationLoadInfo() {
+  const origin = useAppAdvancedSettings((s) => s.apiUrlOrigin)
+
   useAsyncEffect(async () => {
-    const json = await jFetch<{ data: CLMMMigrationJSON[] }>('https://api.raydium.io/v2/main/migrate-lp')
+    const json = await jFetch<{ data: CLMMMigrationJSON[] }>(`${origin}/v2/main/migrate-lp`)
     if (!json) return
     useCLMMMigration.setState({ jsonInfos: json.data })
     useCLMMMigration.setState({ shouldLoadedClmmIds: new Set(json.data.map((i) => i.clmmId)) })
@@ -35,5 +38,5 @@ export function useCLMMMigrationLoadInfo() {
       // TODO: load part of clmms, it loads all now
       useConcentrated.getState().refreshConcentrated()
     }
-  }, [shouldLoadedClmmIds, hydratedClmmInfos.length])
+  }, [origin, shouldLoadedClmmIds, hydratedClmmInfos.length])
 }

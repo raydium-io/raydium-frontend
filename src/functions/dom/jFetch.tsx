@@ -50,7 +50,7 @@ const maxCostTime = 2 * 1000
 
 // 💩
 function onCostLongerThanMaxTime(key: string) {
-  if (!key.includes('api.raydium.io')) return
+  if (!key.includes('uapi.raydium.io')) return
   console.error(`fetch ${key} cost too much time(>${maxCostTime}ms)`)
   // if (isInBonsaiTest || isInLocalhost) { // too noisy
   //   const { logError } = useNotification.getState()
@@ -59,7 +59,7 @@ function onCostLongerThanMaxTime(key: string) {
 }
 
 function onFetchError(key: string, response: Response) {
-  if (!key.includes('api.raydium.io')) return
+  if (!key.includes('uapi.raydium.io')) return
   const { logError } = useNotification.getState()
   if (response.status === 429) {
     logError(`HTTP error 429`, 'Too many requests.')
@@ -92,7 +92,7 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
 
       // fetch  core
       const response = (
-        key.includes('api.raydium.io') ? fetch(input, { ...options, headers: options?.headers }) : fetch(input, options)
+        key.includes('uapi.raydium.io') ? fetch(input, { ...options, headers: options?.headers }) : fetch(input, options)
       )
         // add version for debug
         .finally(() => {
