@@ -13,7 +13,7 @@ export function useCLMMMigrationLoadInfo() {
     if (!json) return
     useCLMMMigration.setState({ jsonInfos: json.data })
     useCLMMMigration.setState({ shouldLoadedClmmIds: new Set(json.data.map((i) => i.clmmId)) })
-  }, [])
+  }, [origin])
 
   const hydratedClmmInfos = useConcentrated((s) => s.hydratedAmmPools)
   const shouldLoadedClmmIds = useCLMMMigration((s) => s.shouldLoadedClmmIds)
@@ -38,5 +38,5 @@ export function useCLMMMigrationLoadInfo() {
       // TODO: load part of clmms, it loads all now
       useConcentrated.getState().refreshConcentrated()
     }
-  }, [origin, shouldLoadedClmmIds, hydratedClmmInfos.length])
+  }, [shouldLoadedClmmIds, hydratedClmmInfos.length])
 }
