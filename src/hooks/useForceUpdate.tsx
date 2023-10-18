@@ -3,7 +3,7 @@ import { useDocumentVisibility } from './useDocumentVisibility'
 
 /** refresh this component every 1000ms (by default) */
 export function useForceUpdate({
-  loop = 1000,
+  loop,
   disable,
   disableWhenDocumentInvisiable = true,
   onLoop

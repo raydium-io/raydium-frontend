@@ -383,8 +383,7 @@ function FaceButtonGroupClaim({ idoInfo }: { idoInfo: HydratedIdoInfo }) {
           isLoading={isApprovePanelShown}
           validators={[
             { should: !isQuoteClaimed },
-            { should: connected },
-            { should: eq(idoInfo.ledger?.quoteWithdrawn, 0) },
+            { should: idoInfo.ledger?.quoteWithdrawn && !eq(idoInfo.ledger?.quoteWithdrawn, 0) },
             { should: idoInfo.isClosed },
             {
               should: connected,
