@@ -267,7 +267,7 @@ function FarmSelfCreatedOnlyBlock({ className }: { className?: string }) {
       </span>
       <Switcher
         className="ml-2 "
-        defaultChecked={onlySelfCreatedFarms}
+        checked={onlySelfCreatedFarms}
         onToggle={(isOnly) => useFarms.setState({ onlySelfCreatedFarms: isOnly })}
       />
     </Row>
