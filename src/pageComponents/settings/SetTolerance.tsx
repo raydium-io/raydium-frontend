@@ -33,6 +33,16 @@ export default function SetTolerance() {
         </div>
         <div
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
+            eq(slippageTolerance, 0.003) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
+          } cursor-pointer`}
+          onClick={() => {
+            useAppSettings.setState({ slippageTolerance: '0.003' })
+          }}
+        >
+          0.3%
+        </div>
+        <div
+          className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
             eq(slippageTolerance, 0.005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
           } cursor-pointer`}
           onClick={() => {
@@ -43,17 +53,7 @@ export default function SetTolerance() {
         </div>
         <div
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            eq(slippageTolerance, 0.01) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer`}
-          onClick={() => {
-            useAppSettings.setState({ slippageTolerance: '0.01' })
-          }}
-        >
-          1%
-        </div>
-        <div
-          className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            !(eq(slippageTolerance, 0.001) || eq(slippageTolerance, 0.005) || eq(slippageTolerance, 0.01))
+            !(eq(slippageTolerance, 0.001) || eq(slippageTolerance, 0.003) || eq(slippageTolerance, 0.005))
               ? 'ring-1 ring-inset ring-[#39D0D8]'
               : ''
           }`}
@@ -65,9 +65,7 @@ export default function SetTolerance() {
               value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
               onUserInput={(value) => {
                 const n = div(parseFloat(value || '0'), 100)
-                if (n) {
-                  useAppSettings.setState({ slippageTolerance: n })
-                }
+                useAppSettings.setState({ slippageTolerance: n })
               }}
               pattern={/^\d*\.?\d*$/}
               maximum={100}
@@ -76,17 +74,23 @@ export default function SetTolerance() {
           </Row>
         </div>
       </Row>
-      {(slippageToleranceState === 'invalid' || slippageToleranceState === 'too small') && (
-        <div
-          className={`mt-4 mobile:mt-6 ${
-            slippageToleranceState === 'invalid' ? 'text-[#DA2EEF]' : 'text-[#D8CB39]'
-          } text-xs mobile:text-sm`}
-        >
-          {slippageToleranceState === 'invalid'
-            ? 'Please enter a valid slippage percentage'
-            : 'Your transaction may fail'}
-        </div>
-      )}
+      <Row>
+        {slippageToleranceState === 'invalid' && (
+          <div className={`flex-1 w-0 mt-2 mobile:mt-6 text-[#DA2EEF] text-xs mobile:text-sm`}>
+            Please enter a valid slippage percentage
+          </div>
+        )}
+        {slippageToleranceState === 'too small' && (
+          <div className={`flex-1 w-0 mt-2 mobile:mt-6 text-[#D8CB39] text-xs mobile:text-sm`}>
+            Your transaction may fail
+          </div>
+        )}
+        {slippageToleranceState === 'too large' && (
+          <div className={`flex-1 w-0 mt-2 mobile:mt-6 text-[#D8CB39] text-xs mobile:text-sm`}>
+            Your transaction may be frontrun and rusult in an unfavourable trade
+          </div>
+        )}
+      </Row>
     </>
   )
 }

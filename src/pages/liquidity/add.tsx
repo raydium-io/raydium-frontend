@@ -638,6 +638,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
   const coin1Amount = useLiquidity((s) => s.coin1Amount)
   const coin2Amount = useLiquidity((s) => s.coin2Amount)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const slippageToleranceState = useAppSettings((s) => s.slippageToleranceState)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const currentTime = Date.now() + (chainTimeOffset ?? 0)
 
@@ -741,6 +742,14 @@ function LiquidityCardInfo({ className }: { className?: string }) {
                   </Row>
                 }
               />
+              {slippageToleranceState === 'too small' && (
+                <div className={`text-[#D8CB39] text-xs mobile:text-sm`}>Your transaction may fail</div>
+              )}
+              {slippageToleranceState === 'too large' && (
+                <div className={`text-[#D8CB39] text-xs mobile:text-sm`}>
+                  Your transaction may be frontrun and rusult in an unfavourable trade
+                </div>
+              )}
             </Col>
           </Collapse.Body>
           <Collapse.Face>

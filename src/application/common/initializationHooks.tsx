@@ -68,8 +68,10 @@ function useSlippageTolerenceValidator() {
   useEffect(() => {
     if (lt(slippageTolerance, 0) || gt(slippageTolerance, 1)) {
       useAppSettings.setState({ slippageToleranceState: 'invalid' })
-    } else if (lt(slippageTolerance, 0.01)) {
+    } else if (lt(slippageTolerance, 0.001)) {
       useAppSettings.setState({ slippageToleranceState: 'too small' })
+    } else if (gt(slippageTolerance, 0.005)) {
+      useAppSettings.setState({ slippageToleranceState: 'too large' })
     } else {
       useAppSettings.setState({ slippageToleranceState: 'valid' })
     }
@@ -92,14 +94,14 @@ function useSlippageTolerenceSyncer() {
       const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage != null
       if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
         useAppSettings.setState({
-          slippageTolerance: localStoredSlippage ?? 0.01
+          slippageTolerance: localStoredSlippage ?? 0.003
         })
       } else if (slippageTolerance) {
         setLocalStoredSlippage(toString(slippageTolerance))
       } else {
         // cold start, set default value
         useAppSettings.setState({
-          slippageTolerance: 0.01
+          slippageTolerance: 0.003
         })
       }
     },

@@ -871,6 +871,7 @@ function SwapCardInfo({
   onExpirationTimeRunToZero?: () => void
 }) {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const slippageToleranceState = useAppSettings((s) => s.slippageToleranceState)
   const getToken = useToken((s) => s.getToken)
   const priceImpact = useSwap((s) => s.priceImpact)
   const coin1 = useSwap((s) => s.coin1)
@@ -1034,6 +1035,14 @@ function SwapCardInfo({
                 </Row>
               }
             />
+            {slippageToleranceState === 'too small' && (
+              <div className={`text-[#D8CB39] text-xs mobile:text-sm`}>Your transaction may fail</div>
+            )}
+            {slippageToleranceState === 'too large' && (
+              <div className={`text-[#D8CB39] text-xs mobile:text-sm`}>
+                Your transaction may be frontrun and rusult in an unfavourable trade
+              </div>
+            )}
             {selectedCalcResultPoolStartTimes?.map(({ ammId, poolInfo, startTime }) => (
               <SwapCardItem
                 key={ammId}
