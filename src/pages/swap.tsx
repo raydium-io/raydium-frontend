@@ -1040,7 +1040,7 @@ function SwapCardInfo({
             )}
             {slippageToleranceState === 'too large' && (
               <div className={`text-[#D8CB39] text-xs mobile:text-sm`}>
-                Your transaction may be frontrun and result in an unfavourable trade
+                Your transaction may be frontrun and result in an unfavorable trade
               </div>
             )}
             {selectedCalcResultPoolStartTimes?.map(({ ammId, poolInfo, startTime }) => (

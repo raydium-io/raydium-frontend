@@ -87,7 +87,7 @@ export default function SetTolerance() {
         )}
         {slippageToleranceState === 'too large' && (
           <div className={`flex-1 w-0 mt-2 mobile:mt-6 text-[#D8CB39] text-xs mobile:text-sm`}>
-            Your transaction may be frontrun and result in an unfavourable trade
+            Your transaction may be frontrun and result in an unfavorable trade
           </div>
         )}
       </Row>
