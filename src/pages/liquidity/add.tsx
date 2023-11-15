@@ -741,13 +741,36 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             <Row className="items-center gap-2">
               {isStable && <Badge className="self-center">Stable</Badge>}
               {/* {isOpenBook && <OpenBookTip></OpenBookTip>} */}
-              <div>
-                {currentHydratedInfo?.lpToken
-                  ? `${burnAmountPercent ? `(🔥 ${toPercentString(burnAmountPercent)}) ` : ''}${formatNumber(
-                      toString(toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply))
-                    )} LP`
-                  : '--'}
-              </div>
+              <Row className="gap-1">
+                <div>
+                  {currentHydratedInfo?.lpToken
+                    ? `${formatNumber(
+                        toString(toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply))
+                      )} LP`
+                    : '--'}
+                </div>
+                {burnAmountPercent && (
+                  <Row className="text-xs items-center">
+                    <div>({toPercentString(burnAmountPercent)} Burned</div>
+                    <Tooltip>
+                      <Icon
+                        iconClassName="ml-1"
+                        size="xs"
+                        className="text-[#abc4ff80]"
+                        heroIconName="question-mark-circle"
+                      />
+                      <Tooltip.Panel>
+                        <div className="max-w-[300px]">
+                          {toPercentString(burnAmountPercent)} of the LP token supply displayed has been burned and
+                          can’t be removed from the pool. This figure does not take into account the percent of token
+                          supply used to add liquidity.
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                    <div>)</div>
+                  </Row>
+                )}
+              </Row>
             </Row>
           }
         />
