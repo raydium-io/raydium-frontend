@@ -42,7 +42,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { gt, gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectShakeFalsy } from '@/functions/objectMethods'
@@ -749,9 +749,9 @@ function LiquidityCardInfo({ className }: { className?: string }) {
                       )} LP`
                     : '--'}
                 </div>
-                {burnAmountPercent && (
+                {gte(burnAmountPercent, 0.01) && (
                   <Row className="text-xs items-center">
-                    <div>({toPercentString(burnAmountPercent)} Burned</div>
+                    <div>({toPercentString(burnAmountPercent, { fixed: 1 })} Burned</div>
                     <Tooltip>
                       <Icon
                         iconClassName="ml-1"
@@ -761,9 +761,9 @@ function LiquidityCardInfo({ className }: { className?: string }) {
                       />
                       <Tooltip.Panel>
                         <div className="max-w-[300px]">
-                          {toPercentString(burnAmountPercent)} of the LP token supply displayed has been burned and
-                          can’t be removed from the pool. This figure does not take into account the percent of token
-                          supply used to add liquidity.
+                          {toPercentString(burnAmountPercent, { fixed: 1 })} of the LP token supply displayed has been
+                          burned and can’t be removed from the pool. This figure does not take into account the percent
+                          of token supply used to add liquidity.
                         </div>
                       </Tooltip.Panel>
                     </Tooltip>
