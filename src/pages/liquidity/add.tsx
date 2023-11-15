@@ -1,6 +1,6 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Percent } from '@raydium-io/raydium-sdk'
+import { Percent, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
@@ -39,18 +39,18 @@ import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, unifyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import { div, mul } from '@/functions/numberish/operations'
+import { div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import createContextStore from '@/functions/react/createContextStore'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
-import { HexAddress } from '@/types/constants'
+import { HexAddress, Numberish } from '@/types/constants'
 
 import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -62,6 +62,10 @@ import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigr
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
+import { MintLayout } from '@solana/spl-token'
+import { toPercent } from '@/functions/format/toPercent'
+import toPercentString from '@/functions/format/toPercentString'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -630,6 +634,29 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
   }
 }
 
+/**
+ * show burn percent
+ */
+function useLpBurnInfo({
+  lpToken,
+  allLpAmount
+}: {
+  lpToken: SplToken | undefined
+  allLpAmount: Numberish | undefined
+}) {
+  const connection = useConnection((s) => s.connection)
+  const lpMintInfo = useAsyncMemo(
+    () => lpToken && connection && connection.getAccountInfo(toPub(lpToken.mint)),
+    [connection, lpToken]
+  )
+  if (!lpToken) return {}
+  if (!allLpAmount) return {}
+  const realSupplyAmount: BN | undefined = lpMintInfo ? MintLayout.decode(lpMintInfo?.data).supply : undefined
+  const burnAmount = realSupplyAmount && minus(allLpAmount, realSupplyAmount)
+  const burnTokenAmount = burnAmount && toTokenAmount(lpToken, burnAmount)
+  return { burnTokenAmount, burnAmountPercent: div(burnAmount, allLpAmount) }
+}
+
 function LiquidityCardInfo({ className }: { className?: string }) {
   const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
   const coin1 = useLiquidity((s) => s.coin1)
@@ -657,6 +684,15 @@ function LiquidityCardInfo({ className }: { className?: string }) {
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
 
   const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
+
+  const { burnAmountPercent } = useLpBurnInfo({
+    lpToken: currentHydratedInfo?.lpToken,
+    allLpAmount: currentHydratedInfo?.lpSupply
+  })
+
+  // useEffect(() => {
+  //   console.log('burnAmountPercent: ', toString(burnAmountPercent))
+  // }, [burnAmountPercent])
   return (
     <Col
       className={twMerge(
@@ -707,7 +743,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
               {/* {isOpenBook && <OpenBookTip></OpenBookTip>} */}
               <div>
                 {currentHydratedInfo?.lpToken
-                  ? `${formatNumber(
+                  ? `${burnAmountPercent ? `(🔥 ${toPercentString(burnAmountPercent)}) ` : ''}${formatNumber(
                       toString(toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply))
                     )} LP`
                   : '--'}

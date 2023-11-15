@@ -56,6 +56,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
+import { MintLayout } from '@solana/spl-token'
 
 /**
  * store:
