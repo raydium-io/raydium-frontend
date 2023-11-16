@@ -27,7 +27,7 @@
   },
   "resolutions": {
     "@solana/spl-token": "^0.3.7",
-    "@solana/wallet-adapter-base": "^0.9.22",
+    "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/web3.js": "^1.75.0",
     "decimal.js": "^10.4.3",
     "bn.js": "^5.2.1"
@@ -40,12 +40,12 @@
     "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.0.1",
     "@solana-mobile/wallet-adapter-mobile": "^2.0.1",
     "@solana/spl-token": "^0.3.7",
-    "@solana/wallet-adapter-base": "^0.9.22",
+    "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.32",
     "@solana/wallet-adapter-react-ui": "^0.9.31",
-    "@solana/wallet-adapter-solflare": "^0.6.27",
     "@solana/wallet-adapter-wallets": "^0.19.17",
     "@solana/web3.js": "^1.75.0",
+    "@solflare-wallet/wallet-adapter": "^1.0.0",
     "@uiw/formatter": "^2.0.2",
     "@uiw/react-date-input": "^4.21.27",
     "@uiw/react-date-picker": "^4.21.27",
