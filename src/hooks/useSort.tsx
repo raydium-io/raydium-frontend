@@ -12,6 +12,7 @@ export type SortMode = 'decrease' | 'increase' | 'none'
 export type SortModeArr = SortMode[]
 
 export type SortConfigItem<D extends Record<string, any>[]> = {
+  /** key for compare old and new  */
   key: keyof D[number] | EnumStr
   mode: SortMode
   sortModeQueue: SortModeArr
@@ -21,12 +22,11 @@ export type SortConfigItem<D extends Record<string, any>[]> = {
    * if it's a array, means, if compare same in first rule(sortCompare), whatch the next one, and on, and on
    */
   sortCompare: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule,
-  useCurrentMode?: boolean
 }
 
 export type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<
   SortConfigItem<D>,
-  'mode' | 'sortModeQueue' | 'useCurrentMode'
+  'mode' | 'sortModeQueue' | 'key'
 >
 
 /**
@@ -37,20 +37,23 @@ export type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial
 export default function useSort<Items extends Record<string, any>[]>(
   sourceDataList: Items,
   options?: {
-    defaultSortConfig?: SimplifiedSortConfig<Items>
+    /** this config is always work, e.g. when sortBy i.xxx, this config is applied when a.xxx and b.xxx are the same */
+    backgroundSortConfig?: SimplifiedSortConfig<Items>
     /** for sourceDataList has been sorted, pass in the init sorting rule */
-    alreadySortedConfig?: SortConfigItem<Items>
-    // /** always at sort bottom */
-    // sortBottom?: MayArray<(item: D[number]) => any>
+    defaultSortedConfig?: SimplifiedSortConfig<Items>
   }
 ) {
+  const backgroundSortConfig = options?.backgroundSortConfig ? formatSortConfig(options.backgroundSortConfig) : []
+
+  /**
+   * SimplifiedSortConfig => SortConfigItem
+   */
   function formatSortConfig(
     simpleConfig: SimplifiedSortConfig<Items>,
     prevConfigs?: SortConfigItem<Items>[]
   ): SortConfigItem<Items>[] {
     const globalDefaultSortMode = 'decrease'
-    const prevIsSameKeyAsInput = prevConfigs?.[0]?.key === simpleConfig.key || simpleConfig.useCurrentMode
-
+    const prevIsSameKeyAsInput = prevConfigs?.[0]?.key === simpleConfig.key
     const sortModeQueue =
       simpleConfig.sortModeQueue ??
       (prevIsSameKeyAsInput && prevConfigs
@@ -58,29 +61,24 @@ export default function useSort<Items extends Record<string, any>[]>(
           ([globalDefaultSortMode, 'increase', 'none'] as SortModeArr)
         : ([globalDefaultSortMode, 'increase', 'none'] as SortModeArr))
     const defaultSortMode = sortModeQueue[0] ?? globalDefaultSortMode
-
     const userInputSortConfigMode = simpleConfig.mode
     const prevSortConfigMode = prevIsSameKeyAsInput ? prevConfigs?.[prevConfigs.length - 1]?.mode : undefined
     const fromQueued =
       prevSortConfigMode && sortModeQueue[(sortModeQueue.indexOf(prevSortConfigMode) + 1) % sortModeQueue.length]
-
     const mode = userInputSortConfigMode ?? (prevIsSameKeyAsInput ? fromQueued ?? defaultSortMode : defaultSortMode)
     return [
       {
-        ...simpleConfig,
+        key: 'anonymous',
         mode,
-        sortModeQueue
+        sortModeQueue,
+        ...simpleConfig
       }
     ]
   }
 
-  // currently only consider the first config item
-  const defaultSortConfigs = options?.alreadySortedConfig
-    ? [options?.alreadySortedConfig]
-    : options?.defaultSortConfig
-    ? formatSortConfig(options.defaultSortConfig)
-    : []
-  const [sortConfigs, setConfigs] = useState<SortConfigItem<Items>[]>(defaultSortConfigs)
+  const [sortConfigs, setConfigs] = useState<SortConfigItem<Items>[]>(
+    options?.defaultSortedConfig ? [formatSortConfig(options.defaultSortedConfig)].flat() : []
+  )
 
   const appendConfig = useCallback(
     // 🚧 not imply yet!!!
@@ -101,16 +99,13 @@ export default function useSort<Items extends Record<string, any>[]>(
   )
 
   const clearSortConfig = useCallback(() => {
-    setConfigs(options?.defaultSortConfig ? formatSortConfig(options.defaultSortConfig) : [])
+    setConfigs(options?.backgroundSortConfig ? formatSortConfig(options.backgroundSortConfig) : [])
   }, [setConfigs])
 
   const sortConfig = useMemo<SortConfigItem<Items> | undefined>(() => sortConfigs[0], [sortConfigs])
 
   const sortedData = useMemo(() => {
-    let configs = sortConfigs
-    if (!sortConfigs.length) configs = options?.defaultSortConfig ? formatSortConfig(options.defaultSortConfig) : []
-    if (sortConfigs[0]?.mode === 'none')
-      configs = options?.defaultSortConfig ? formatSortConfig(options.defaultSortConfig) : []
+    const configs = sortConfigs.filter((item) => item.mode !== 'none').concat(backgroundSortConfig)
     const firstConfig = configs[0] // temp only respect first sortConfigs in queue
     const { mode, sortCompare } = firstConfig ?? {} // temp only respect first sortConfigs in queue
     const pickFunctions = [sortCompare].flat()
@@ -134,7 +129,6 @@ export default function useSort<Items extends Record<string, any>[]>(
       const sortDirectionFactor = mode === 'decrease' ? -1 : 1
       return sortDirectionFactor * compareResult
     })
-
     return sorted
   }, [sortConfigs, sourceDataList])
 

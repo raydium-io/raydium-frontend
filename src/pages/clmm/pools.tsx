@@ -624,11 +624,6 @@ function PoolCard() {
           { text: toPubString(i.base?.mint), entirely: true },
           { text: toPubString(i.quote?.mint), entirely: true }
         ]
-      }).sort((a, b) => {
-        // TODO: should be searchItems's sort config.
-        if (!searchText) return 0
-        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
-        return a[key].gt(b[key]) ? -1 : a[key].lt(b[key]) ? 1 : 0
       }),
     [applyFiltersDataSource, searchText, timeBasis]
   )
@@ -646,12 +641,18 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSortConfig: {
-      key: 'defaultKey',
-      sortCompare: [
-        (i) => favouriteIdsRef.current?.includes(i.idString ?? toPubString(i.id)),
-        (i) => toFraction(i.volume24h)
-      ]
+    backgroundSortConfig: {
+      sortCompare: [(i) => favouriteIdsRef.current?.includes(i.idString ?? toPubString(i.id))]
+    },
+    defaultSortedConfig: {
+      get key() {
+        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+        return key
+      },
+      sortCompare: (i) => {
+        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+        return toFraction(i[key])
+      }
     }
   })
 

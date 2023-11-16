@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -57,6 +57,8 @@ import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 import { MintLayout } from '@solana/spl-token'
+import toFraction from '@/functions/numberish/toFraction'
+import { TimeBasis } from '@/application/concentrated/useConcentrated'
 
 /**
  * store:
@@ -476,17 +478,29 @@ function PoolCard() {
 
   const searched = useDeferredValue(originalSearch)
 
+  // use ref to compute in
+  const favouriteIdsRef = useRef<string[]>()
+  if (favouriteIds) {
+    favouriteIdsRef.current = favouriteIds
+  }
   const {
     sortedData: tempSortedData,
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    alreadySortedConfig: {
-      key: 'volume24h',
-      mode: 'decrease',
-      sortCompare: (i) => i['volume24h'],
-      sortModeQueue: ['decrease', 'increase', 'none']
+    backgroundSortConfig: {
+      sortCompare: (i) => favouriteIdsRef?.current?.includes(i.ammId)
+    },
+    defaultSortedConfig: {
+      get key() {
+        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+        return key
+      },
+      sortCompare: (i) => {
+        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+        return toFraction(i[key])
+      }
     }
   })
 

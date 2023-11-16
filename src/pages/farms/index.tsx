@@ -491,7 +491,7 @@ function FarmCard() {
     sortConfig,
     clearSortConfig
   } = useSort(applySearchedDataSource, {
-    defaultSortConfig: {
+    backgroundSortConfig: {
       key: 'defaultKey',
       sortCompare: [(i) => favouriteIds?.includes(toPubString(i.id))]
     }
