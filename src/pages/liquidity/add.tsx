@@ -651,8 +651,8 @@ function useLpBurnInfo({
   )
   if (!lpToken) return {}
   if (!allLpAmount) return {}
-  const realSupplyAmount: BN | undefined = lpMintInfo ? MintLayout.decode(lpMintInfo?.data).supply : undefined
-  const burnAmount = realSupplyAmount && minus(allLpAmount, realSupplyAmount)
+  const realSupplyAmount = lpMintInfo ? (MintLayout.decode(lpMintInfo?.data).supply as bigint) : undefined
+  const burnAmount = realSupplyAmount != null ? minus(allLpAmount, realSupplyAmount) : undefined
   const burnTokenAmount = burnAmount && toTokenAmount(lpToken, burnAmount)
   return { burnTokenAmount, burnAmountPercent: div(burnAmount, allLpAmount) }
 }
@@ -668,31 +668,22 @@ function LiquidityCardInfo({ className }: { className?: string }) {
   const slippageToleranceState = useAppSettings((s) => s.slippageToleranceState)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const currentTime = Date.now() + (chainTimeOffset ?? 0)
-
   const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
-
   const coinBase = isCoin1Base ? coin1 : coin2
   const coinQuote = isCoin1Base ? coin2 : coin1
-
   const pooledBaseTokenAmount = currentHydratedInfo?.baseToken
     ? toTokenAmount(currentHydratedInfo.baseToken, currentHydratedInfo.baseReserve)
     : undefined
   const pooledQuoteTokenAmount = currentHydratedInfo?.quoteToken
     ? toTokenAmount(currentHydratedInfo.quoteToken, currentHydratedInfo.quoteReserve)
     : undefined
-
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
-
   const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
-
   const { burnAmountPercent } = useLpBurnInfo({
     lpToken: currentHydratedInfo?.lpToken,
     allLpAmount: currentHydratedInfo?.lpSupply
   })
 
-  // useEffect(() => {
-  //   console.log('burnAmountPercent: ', toString(burnAmountPercent))
-  // }, [burnAmountPercent])
   return (
     <Col
       className={twMerge(
