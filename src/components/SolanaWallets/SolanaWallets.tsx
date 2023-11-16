@@ -27,7 +27,7 @@ import {
   TrustWalletAdapter,
   WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
-import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
+import { SolflareWalletAdapter } from '@solflare-wallet/wallet-adapter';
 import SquadsEmbeddedWalletAdapter, { detectEmbeddedInSquadsIframe } from './SquadsMultisig'
 import { clusterApiUrl } from '@solana/web3.js'
 import { OKXWalletAdapter } from './OKXAdapter'
