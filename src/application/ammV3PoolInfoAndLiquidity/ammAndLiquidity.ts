@@ -108,7 +108,7 @@ async function getParsedAmmV3PoolInfo({
     const sdkParsed = await Clmm.fetchMultiplePoolInfos({
       poolKeys: needRefetchApiAmmPools,
       connection,
-      batchRequest: !isInLocalhost && !isInBonsaiTest,
+      batchRequest: true,
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     Object.values(sdkParsed).forEach((sdk) => {
@@ -173,7 +173,7 @@ function getSDKCacheInfos({
     const tickCache = Clmm.fetchMultiplePoolTickArrays({
       connection,
       poolKeys: routes.needTickArray,
-      batchRequest: !isInLocalhost && !isInBonsaiTest
+      batchRequest: true
     }).catch((err) => {
       sdkCaches.delete(key)
       throw err
@@ -181,7 +181,7 @@ function getSDKCacheInfos({
     const poolInfosCache = TradeV2.fetchMultipleInfo({
       connection,
       pools: routes.needSimulate,
-      batchRequest: !isInLocalhost && !isInBonsaiTest
+      batchRequest: true
     }).catch((err) => {
       sdkCaches.delete(key)
       throw err
@@ -304,9 +304,9 @@ function getBestCalcResult(
   chainTime: number
 ):
   | {
-    bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
-    bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
-  }
+      bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
+      bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
+    }
   | undefined {
   if (!routeList.length) return undefined
   const readyRoutes = routeList.filter((i) => i.poolReady)

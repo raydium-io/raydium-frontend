@@ -73,7 +73,7 @@ export default function useConcentratedInfoLoader() {
       connection,
       ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
       chainTime: (Date.now() + chainTimeOffset) / 1000,
-      batchRequest: !isInLocalhost && !isInBonsaiTest
+      batchRequest: true
     })
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })

@@ -91,7 +91,7 @@ export default function useFarmInfoLoader() {
         connection,
         pools: jsonInfos.map(jsonInfo2PoolKeys),
         owner,
-        config: { commitment: 'confirmed', batchRequest: !isInLocalhost && !isInBonsaiTest },
+        config: { commitment: 'confirmed', batchRequest: true },
         chainTime: (Date.now() + chainTimeOffset) / 1000
       },
       { jsonInfos }

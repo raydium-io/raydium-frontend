@@ -114,9 +114,8 @@ export default function useSort<Items extends Record<string, any>[]>(
     const firstConfig = configs[0] // temp only respect first sortConfigs in queue
     const { mode, sortCompare } = firstConfig ?? {} // temp only respect first sortConfigs in queue
     const pickFunctions = [sortCompare].flat()
-    console.log('pickFunctions: ', pickFunctions)
     const sorted = [...sourceDataList].sort((a, b) => {
-      const getCompareFactor = pickFunctions.slice(1).reduce(
+      const getCompareFactor: (toCompareA: any, toCompareB: any) => number = pickFunctions.slice(1).reduce(
         (acc, item) =>
           acc(a, b) === 0
             ? (a, b) => {
