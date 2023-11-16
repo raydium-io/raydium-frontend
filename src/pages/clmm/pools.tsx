@@ -763,7 +763,7 @@ function PoolCard() {
         className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,1fr,auto]"
       >
         <Row
-          className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
+          className="group w-20 pl-9 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
             setSortConfig({
               key: 'favorite',
@@ -772,6 +772,13 @@ function PoolCard() {
             })
           }}
         >
+          <div className="w-6 scale-75 self-center">
+            {sortConfig?.key === 'favorite' && sortConfig.mode !== 'none' ? (
+              <Icon iconSrc="/icons/misc-star-empty.svg" className="opacity-100 transition m-auto" />
+            ) : (
+              <Icon iconSrc="/icons/misc-star-empty.svg" className="opacity-30 hover:opacity-80 transition m-auto" />
+            )}
+          </div>
           <Icon
             className={`ml-1 ${
               sortConfig?.key === 'favorite' && sortConfig.mode !== 'none'
