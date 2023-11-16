@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
 import { CurrencyAmount, ZERO, isZero } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -85,6 +85,7 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
+import toFraction from '@/functions/numberish/toFraction'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -612,28 +613,32 @@ function PoolCard() {
 
   const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
 
-  const searched = useDeferredValue(
-    useMemo(
-      () =>
-        searchItems(applyFiltersDataSource, {
-          text: searchText,
-          matchConfigs: (i) => [
-            i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
-            i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
-            { text: i.idString, entirely: true },
-            { text: toPubString(i.base?.mint), entirely: true },
-            { text: toPubString(i.quote?.mint), entirely: true }
-          ]
-        }).sort((a, b) => {
-          // TODO: should be searchItems's sort config.
-          if (!searchText) return 0
-          const key =
-            timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
-          return a[key].gt(b[key]) ? -1 : a[key].lt(b[key]) ? 1 : 0
-        }),
-      [applyFiltersDataSource, searchText, timeBasis]
-    )
+  const _searched = useMemo(
+    () =>
+      searchItems(applyFiltersDataSource, {
+        text: searchText,
+        matchConfigs: (i) => [
+          i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
+          i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
+          { text: i.idString, entirely: true },
+          { text: toPubString(i.base?.mint), entirely: true },
+          { text: toPubString(i.quote?.mint), entirely: true }
+        ]
+      }).sort((a, b) => {
+        // TODO: should be searchItems's sort config.
+        if (!searchText) return 0
+        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+        return a[key].gt(b[key]) ? -1 : a[key].lt(b[key]) ? 1 : 0
+      }),
+    [applyFiltersDataSource, searchText, timeBasis]
   )
+
+  const searched = useDeferredValue(_searched)
+
+  const favouriteIdsRef = useRef<string[]>()
+  if (favouriteIds) {
+    favouriteIdsRef.current = favouriteIds
+  }
 
   const {
     sortedData: tempSortedData,
@@ -641,7 +646,13 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
+    defaultSortConfig: {
+      key: 'defaultKey',
+      sortCompare: [
+        (i) => favouriteIdsRef.current?.includes(i.idString ?? toPubString(i.id)),
+        (i) => toFraction(i.volume24h)
+      ]
+    }
   })
 
   // re-sort when favourite have loaded
@@ -651,7 +662,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(i.idString)],
+          sortCompare: [(i) => favouriteIds.includes(i.idString)],
           mode: 'decrease'
         })
         runed()

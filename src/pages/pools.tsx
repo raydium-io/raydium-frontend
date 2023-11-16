@@ -482,7 +482,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    initConfig: {
+    alreadySortedConfig: {
       key: 'volume24h',
       mode: 'decrease',
       sortCompare: (i) => i['volume24h'],
