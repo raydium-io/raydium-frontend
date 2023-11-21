@@ -103,6 +103,7 @@ export default async function txCreateConcentratedPosotion({
         if (checkPositionSlippageError(signatureResult)) {
           changeHistoryInfo?.({
             title: 'Deposit failed due to slippage',
+            forceErrorTitle: 'Deposit failed due to slippage',
             description: 'Slippage has exceeded user settings. Try again or adjust slippage tolerance.'
           })
         }
