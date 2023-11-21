@@ -104,7 +104,8 @@ export function TxNotificationItemCard({
     componentRef,
     () =>
       ({
-        changeItemInfo(newInfo, { transaction: targetTransaction }) {
+        changeItemInfo(newInfo, options) {
+          const targetTransaction = options.transaction
           const mutated = produce(innerTxInfosSignal(), (txInfos) => {
             const targetIdx = txInfos.findIndex(
               ({ transaction: candidateTransaction }) => candidateTransaction === targetTransaction
