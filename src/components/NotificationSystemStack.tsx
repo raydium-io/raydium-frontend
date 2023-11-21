@@ -102,8 +102,10 @@ export default function NotificationSystemStack() {
           zIndex: 9999
         }}
       >
-        {notificationItemInfos.map((itemInfo, idx) =>
-          itemInfo.is === 'txItem(s)' ? (
+        {notificationItemInfos.map((itemInfo, idx, total) => {
+          const idxFromLast = total.length - idx
+          if (idxFromLast > 3) return null // only 3 items may exist at the same time
+          return itemInfo.is === 'txItem(s)' ? (
             <NotificationItem
               key={idx}
               info={itemInfo.info}
@@ -113,7 +115,7 @@ export default function NotificationSystemStack() {
           ) : (
             <NotificationItem key={idx} info={itemInfo.info} is={itemInfo.is} />
           )
-        )}
+        })}
       </Col>
       {confirmDialogInfos.map(({ info }, idx) => (
         <ConfirmDialog key={idx} {...info} />
