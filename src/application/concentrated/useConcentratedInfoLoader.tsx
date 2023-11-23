@@ -6,7 +6,6 @@ import { Clmm, ApiClmmPoolsItem } from '@raydium-io/raydium-sdk'
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
-import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { lazyMap } from '@/functions/lazyMap'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
@@ -23,6 +22,7 @@ import useConcentrated from './useConcentrated'
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
  * @todo just register hooks in specific component
  */
+let timerId = 0
 export default function useConcentratedInfoLoader() {
   const apiAmmPools = useConcentrated((s) => s.apiAmmPools)
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
@@ -65,19 +65,27 @@ export default function useConcentratedInfoLoader() {
 
   /**  api json info list ➡ SDK info list */
   useTransitionedEffect(async () => {
+    clearTimeout(timerId)
     if (!connection) return
     if (chainTimeOffset == null) return
     if (!apiAmmPools || apiAmmPools.length === 0) return
-    const sdkParsed = await Clmm.fetchMultiplePoolInfos({
-      poolKeys: apiAmmPools,
-      connection,
-      ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
-      chainTime: (Date.now() + chainTimeOffset) / 1000,
-      batchRequest: true
-    })
-    if (sdkParsed) {
-      useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
-    }
+    const isWaitingTokenAcc = !!owner && !tokenAccounts.length
+    timerId = window.setTimeout(
+      async () => {
+        const sdkParsed = await Clmm.fetchMultiplePoolInfos({
+          poolKeys: apiAmmPools,
+          connection,
+          ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
+          chainTime: (Date.now() + chainTimeOffset) / 1000,
+          batchRequest: true
+        })
+        if (sdkParsed) {
+          useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
+        }
+      },
+      // if is waiting token acc, wait longer, if it's refresh wait 500ms, if it's firs time loading set to 0
+      isWaitingTokenAcc ? 1000 : useConcentrated.getState().sdkParsedAmmPools.length > 0 ? 500 : 0
+    )
   }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), chainTimeOffset, tokenAccounts])
 
   /** SDK info list ➡ hydrated info list */

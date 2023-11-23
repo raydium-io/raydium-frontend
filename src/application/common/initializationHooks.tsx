@@ -223,16 +223,17 @@ function useRpcPerformance() {
 }
 
 function useGetSlotCountForSecond() {
+  const { pathname } = useRouter()
   const currentEndPoint = useConnection((s) => s.currentEndPoint)
 
   useEffect(() => {
-    if (!currentEndPoint) return
+    if (!currentEndPoint || !pathname.startsWith('/farms')) return
     getSlotCountForSecond(currentEndPoint)
     const timeoutId = setInterval(() => getSlotCountForSecond(currentEndPoint), 1000 * 60)
     return () => {
       clearTimeout(timeoutId)
     }
-  }, [currentEndPoint])
+  }, [currentEndPoint, pathname])
 }
 
 function useHandleWindowTopError() {

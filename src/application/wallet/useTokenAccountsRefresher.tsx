@@ -41,17 +41,20 @@ export default function useTokenAccountsRefresher(): void {
     if (!connection || !owner) return
     let abort: () => void
     let stopPrevListener: () => void
-    const timerId = setTimeout(() => {
-      const { abort: abortTask } = makeAbortable((canContinue) => {
-        const promiseResult = loadTokenAccounts(connection, owner, canContinue, { noSecondTry: true })
-        promiseResult.then((result) => {
-          if (result) {
-            stopPrevListener = result.clear
-          }
+    const timerId = window.setTimeout(
+      () => {
+        const { abort: abortTask } = makeAbortable((canContinue) => {
+          const promiseResult = loadTokenAccounts(connection, owner, canContinue, { noSecondTry: true })
+          promiseResult.then((result) => {
+            if (result) {
+              stopPrevListener = result.clear
+            }
+          })
         })
-      })
-      abort = abortTask
-    }, 100)
+        abort = abortTask
+      },
+      useWallet.getState().tokenAccountRawInfos.length > 0 ? 400 : 100
+    )
     return () => {
       clearTimeout(timerId)
       abort?.()

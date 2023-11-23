@@ -21,6 +21,7 @@ import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { fetchFarmAprJsonInfos, fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
 
+let farmTimerId = 0
 export default function useFarmInfoLoader() {
   const { pathname } = useRouter()
 
@@ -86,17 +87,23 @@ export default function useFarmInfoLoader() {
   useTransitionedEffect(async () => {
     if (!jsonInfos || !connection) return
     if (!jsonInfos?.length) return
-    const sdkParsedInfos = await mergeSdkFarmInfo(
-      {
-        connection,
-        pools: jsonInfos.map(jsonInfo2PoolKeys),
-        owner,
-        config: { commitment: 'confirmed', batchRequest: true },
-        chainTime: (Date.now() + chainTimeOffset) / 1000
+    clearTimeout(farmTimerId)
+    farmTimerId = window.setTimeout(
+      async () => {
+        const sdkParsedInfos = await mergeSdkFarmInfo(
+          {
+            connection,
+            pools: jsonInfos.map(jsonInfo2PoolKeys),
+            owner,
+            config: { commitment: 'confirmed', batchRequest: true },
+            chainTime: (Date.now() + chainTimeOffset) / 1000
+          },
+          { jsonInfos }
+        )
+        useFarms.setState({ sdkParsedInfos })
       },
-      { jsonInfos }
+      useFarms.getState().sdkParsedInfos.length > 0 ? 400 : 100
     )
-    useFarms.setState({ sdkParsedInfos })
   }, [jsonInfos, connection, owner, programIds])
 
   // auto hydrate
