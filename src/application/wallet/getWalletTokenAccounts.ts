@@ -8,6 +8,7 @@ import {
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import toBN from '@/functions/numberish/toBN'
+import useWallet from './useWallet'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
@@ -25,7 +26,6 @@ export async function getWalletTokenAccounts({
 }): Promise<{ accounts: ITokenAccount[]; rawInfos: TokenAccountRawInfo[] }> {
   const defaultConfig = {}
   const customConfig = { ...defaultConfig, ...config }
-
   const solReq = connection.getAccountInfo(owner, customConfig.commitment)
   const tokenReq = connection.getTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID }, customConfig.commitment)
   const token2022Req = connection.getTokenAccountsByOwner(
@@ -33,6 +33,7 @@ export async function getWalletTokenAccounts({
     { programId: TOKEN_2022_PROGRAM_ID },
     customConfig.commitment
   )
+  useWallet.getState().refreshIntervalTag()
 
   const [solRes, tokenRes, token2022Res] = await Promise.all([solReq, tokenReq, token2022Req])
 

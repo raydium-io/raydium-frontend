@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -31,45 +31,56 @@ export default function useTokenAccountsRefresher(): void {
   const poolRefreshCount = usePools((s) => s.refreshCount)
   const concentratedRefreshCount = useConcentrated((s) => s.refreshCount)
 
+  const walletIntervalTag = useWallet((s) => s.walletIntervalTag)
+
   useEffect(() => {
     if (!connection || !owner) return
-    const listenerId = addWalletAccountChangeListener(() => loadTokenAccounts(connection, owner))
+    const listenerId = addWalletAccountChangeListener(() => {
+      loadTokenAccounts(connection, owner)
+    })
+    loadTokenAccounts(connection, owner)
     return () => removeWalletAccountChangeListener(listenerId)
   }, [connection, owner])
 
   useEffect(() => {
     if (!connection || !owner) return
-    let abort: () => void
-    let stopPrevListener: () => void
-    const timerId = window.setTimeout(
-      () => {
-        const { abort: abortTask } = makeAbortable((canContinue) => {
-          const promiseResult = loadTokenAccounts(connection, owner, canContinue, { noSecondTry: true })
-          promiseResult.then((result) => {
-            if (result) {
-              stopPrevListener = result.clear
-            }
-          })
-        })
-        abort = abortTask
-      },
-      useWallet.getState().tokenAccountRawInfos.length > 0 ? 400 : 100
-    )
-    return () => {
-      clearTimeout(timerId)
-      abort?.()
-      stopPrevListener?.()
-    }
-  }, [
-    connection,
-    owner,
-    walletRefreshCount,
-    swapRefreshCount,
-    liquidityRefreshCount,
-    farmRefreshCount,
-    poolRefreshCount,
-    concentratedRefreshCount
-  ])
+    const intervalId = window.setInterval(() => {
+      loadTokenAccounts(connection, owner)
+    }, 1000 * 60 * 2)
+
+    return () => clearInterval(intervalId)
+  }, [connection, owner, walletIntervalTag])
+
+  // useEffect(() => {
+  //   if (!connection || !owner) return
+  //   let abort: () => void
+  //   let stopPrevListener: () => void
+  //   const timerId = setTimeout(() => {
+  //     const { abort: abortTask } = makeAbortable((canContinue) => {
+  //       const promiseResult = loadTokenAccounts(connection, owner, canContinue, { noSecondTry: true })
+  //       promiseResult.then((result) => {
+  //         if (result) {
+  //           stopPrevListener = result.clear
+  //         }
+  //       })
+  //     })
+  //     abort = abortTask
+  //   }, 100)
+  //   return () => {
+  //     clearTimeout(timerId)
+  //     abort?.()
+  //     stopPrevListener?.()
+  //   }
+  // }, [
+  //   connection,
+  //   owner,
+  //   walletRefreshCount,
+  //   swapRefreshCount,
+  //   liquidityRefreshCount,
+  //   farmRefreshCount,
+  //   poolRefreshCount,
+  //   concentratedRefreshCount
+  // ])
 }
 
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
