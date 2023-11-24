@@ -19,6 +19,35 @@ const mockRPCConfig: Omit<Config, 'success'> = {
   strategy: 'speed'
 }
 
+export const rewriteConnection = (connection: Connection) => {
+  const newConnection = connection as Connection & {
+    disableTime: number
+    checkDisabled: () => void
+    _rpcRequest: any
+    _rpcBatchRequest: any
+  }
+  const [oldRpcRequest, oldRpcBatchRequest] = [newConnection._rpcRequest, newConnection._rpcBatchRequest]
+  newConnection._rpcRequest = async (...props) => {
+    newConnection.checkDisabled()
+    return oldRpcRequest.call(newConnection, ...props).catch((e) => {
+      if (e.message.includes('429')) newConnection.disableTime = Date.now() + 1000 * 30
+    })
+  }
+  newConnection._rpcBatchRequest = async (...props) => {
+    newConnection.checkDisabled()
+    return oldRpcBatchRequest.call(newConnection, ...props).catch((e) => {
+      if (e.message.includes('429')) newConnection.disableTime = Date.now() + 1000 * 30
+    })
+  }
+  newConnection.disableTime = Date.now() + 30 * 1000
+  newConnection.checkDisabled = () => {
+    if (Date.now() < newConnection.disableTime)
+      throw new Error(`rate limit reached, disabled until: ${new Date(newConnection.disableTime).toLocaleTimeString()}`)
+  }
+
+  return newConnection
+}
+
 /**
  * **only in `_app.tsx`**
  *

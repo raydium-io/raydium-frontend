@@ -72,6 +72,8 @@ export default function useTokenAccountsRefresher(): void {
   ])
 }
 
+let lastFetchTokenAccountTime = 0
+export const resetFetchTokenAccount = () => (lastFetchTokenAccountTime = 0)
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
 const loadTokenAccounts = async (
   connection: Connection,
@@ -79,8 +81,10 @@ const loadTokenAccounts = async (
   canContinue: () => boolean = () => true,
   options?: { noSecondTry?: boolean }
 ) => {
+  if (Date.now() - lastFetchTokenAccountTime < 1000 * 5) return
   const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
     await getRichWalletTokenAccounts({ connection, owner })
+  lastFetchTokenAccountTime = Date.now()
   if (!canContinue()) return
   //#region ------------------- diff -------------------
   const pastTokenAccounts = listToJSMap(
