@@ -33,7 +33,13 @@ export default function useTokenAccountsRefresher(): void {
 
   useEffect(() => {
     if (!connection || !owner) return
-    const listenerId = addWalletAccountChangeListener(() => loadTokenAccounts(connection, owner))
+    let timerId = -1
+    const listenerId = addWalletAccountChangeListener(() => {
+      clearTimeout(timerId)
+      timerId = window.setTimeout(() => {
+        loadTokenAccounts(connection, owner, undefined, { noSecondTry: true })
+      }, 500)
+    })
     return () => removeWalletAccountChangeListener(listenerId)
   }, [connection, owner])
 
@@ -73,7 +79,11 @@ export default function useTokenAccountsRefresher(): void {
 }
 
 let lastFetchTokenAccountTime = 0
-export const resetFetchTokenAccount = () => (lastFetchTokenAccountTime = 0)
+let isLoading = false
+export const resetFetchTokenAccount = () => {
+  lastFetchTokenAccountTime = 0
+  isLoading = false
+}
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
 const loadTokenAccounts = async (
   connection: Connection,
@@ -81,55 +91,64 @@ const loadTokenAccounts = async (
   canContinue: () => boolean = () => true,
   options?: { noSecondTry?: boolean }
 ) => {
-  if (Date.now() - lastFetchTokenAccountTime < 1000 * 5) return
-  const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
-    await getRichWalletTokenAccounts({ connection, owner })
-  lastFetchTokenAccountTime = Date.now()
-  if (!canContinue()) return
-  //#region ------------------- diff -------------------
-  const pastTokenAccounts = listToJSMap(
-    useWallet.getState().allTokenAccounts,
-    (a) => toPubString(a.publicKey) ?? 'native'
-  )
-  const newTokenAccounts = listToJSMap(allTokenAccounts, (a) => toPubString(a.publicKey) ?? 'native')
-  const diffAccounts = shakeFalsyItem(
-    [...newTokenAccounts].filter(([accountPub, { amount: newAmount }]) => {
-      const pastAmount = pastTokenAccounts.get(accountPub)?.amount
-      return !eq(newAmount, pastAmount)
-    })
-  )
-  const diffCount = diffAccounts.length
-  const hasWalletTokenAccountChanged = diffCount >= 2
-  //#endregion
+  if (Date.now() - lastFetchTokenAccountTime < 1000 * 5 || isLoading) return
+  isLoading = true
 
-  if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
-    useWallet.setState({
-      tokenAccountsOwner: owner,
-      tokenAccountRawInfos,
-      nativeTokenAccount,
-      tokenAccounts,
-      allTokenAccounts
-    })
-  } else {
-    // try in 'finalized'
-    const listenerId = addWalletAccountChangeListener(
-      async () => {
-        const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
-          await getRichWalletTokenAccounts({ connection, owner })
-        useWallet.setState({
-          tokenAccountsOwner: owner,
-          tokenAccountRawInfos,
-          nativeTokenAccount,
-          tokenAccounts,
-          allTokenAccounts
-        })
-      },
-      {
-        once: true,
-        lifetime: 'finalized'
-      }
+  try {
+    const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
+      await getRichWalletTokenAccounts({ connection, owner })
+
+    lastFetchTokenAccountTime = Date.now()
+    isLoading = false
+
+    if (!canContinue()) return
+    //#region ------------------- diff -------------------
+    const pastTokenAccounts = listToJSMap(
+      useWallet.getState().allTokenAccounts,
+      (a) => toPubString(a.publicKey) ?? 'native'
     )
-    return { clear: () => removeWalletAccountChangeListener(listenerId) }
+    const newTokenAccounts = listToJSMap(allTokenAccounts, (a) => toPubString(a.publicKey) ?? 'native')
+    const diffAccounts = shakeFalsyItem(
+      [...newTokenAccounts].filter(([accountPub, { amount: newAmount }]) => {
+        const pastAmount = pastTokenAccounts.get(accountPub)?.amount
+        return !eq(newAmount, pastAmount)
+      })
+    )
+    const diffCount = diffAccounts.length
+    const hasWalletTokenAccountChanged = diffCount >= 2
+    //#endregion
+
+    if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
+      useWallet.setState({
+        tokenAccountsOwner: owner,
+        tokenAccountRawInfos,
+        nativeTokenAccount,
+        tokenAccounts,
+        allTokenAccounts
+      })
+    } else {
+      // try in 'finalized'
+      const listenerId = addWalletAccountChangeListener(
+        async () => {
+          const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
+            await getRichWalletTokenAccounts({ connection, owner })
+          useWallet.setState({
+            tokenAccountsOwner: owner,
+            tokenAccountRawInfos,
+            nativeTokenAccount,
+            tokenAccounts,
+            allTokenAccounts
+          })
+        },
+        {
+          once: true,
+          lifetime: 'finalized'
+        }
+      )
+      return { clear: () => removeWalletAccountChangeListener(listenerId) }
+    }
+  } catch {
+    isLoading = false
   }
 }
 
