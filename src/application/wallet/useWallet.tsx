@@ -108,9 +108,6 @@ export type WalletStore = {
   // just for trigger refresh
   refreshCount: number
   refreshWallet(): void
-
-  walletIntervalTag: number
-  refreshIntervalTag(): void
 }
 
 const useWallet = create<WalletStore>((set, get) => ({
@@ -186,9 +183,7 @@ const useWallet = create<WalletStore>((set, get) => ({
     // set((s) => ({
     //   refreshCount: s.refreshCount + 1
     // }))
-  },
-  walletIntervalTag: 0,
-  refreshIntervalTag: () => set({ walletIntervalTag: get().walletIntervalTag + 1 })
+  }
 }))
 
 export default useWallet
