@@ -17,7 +17,11 @@ import toPubString from '@/functions/format/toMintString'
 import { makeAbortable } from '@/functions/makeAbortable'
 import { eq } from '@/functions/numberish/compare'
 import useConcentrated from '../concentrated/useConcentrated'
-import { addWalletAccountChangeListener, removeWalletAccountChangeListener } from './useWalletAccountChangeListeners'
+import {
+  addWalletAccountChangeListener,
+  removeWalletAccountChangeListener,
+  updateAccountInfoData
+} from './useWalletAccountChangeListeners'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -31,17 +35,17 @@ export default function useTokenAccountsRefresher(): void {
   const poolRefreshCount = usePools((s) => s.refreshCount)
   const concentratedRefreshCount = useConcentrated((s) => s.refreshCount)
 
-  useEffect(() => {
-    if (!connection || !owner) return
-    let timerId = -1
-    const listenerId = addWalletAccountChangeListener(() => {
-      clearTimeout(timerId)
-      timerId = window.setTimeout(() => {
-        loadTokenAccounts(connection, owner, undefined, { noSecondTry: true })
-      }, 500)
-    })
-    return () => removeWalletAccountChangeListener(listenerId)
-  }, [connection, owner])
+  // useEffect(() => {
+  //   if (!connection || !owner) return
+  //   let timerId = -1
+  //   const listenerId = addWalletAccountChangeListener(() => {
+  //     clearTimeout(timerId)
+  //     timerId = window.setTimeout(() => {
+  //       loadTokenAccounts(connection, owner, undefined, { noSecondTry: true })
+  //     }, 500)
+  //   })
+  //   return () => removeWalletAccountChangeListener(listenerId)
+  // }, [connection, owner])
 
   useEffect(() => {
     if (!connection || !owner) return
@@ -119,6 +123,8 @@ const loadTokenAccounts = async (
     //#endregion
 
     if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
+      updateAccountInfoData.nativeAccount = undefined
+      updateAccountInfoData.tokenAccounts.clear()
       useWallet.setState({
         tokenAccountsOwner: owner,
         tokenAccountRawInfos,
@@ -128,10 +134,13 @@ const loadTokenAccounts = async (
       })
     } else {
       // try in 'finalized'
+      /*
       const listenerId = addWalletAccountChangeListener(
         async () => {
           const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
             await getRichWalletTokenAccounts({ connection, owner })
+          updateAccountInfoData.nativeAccount = undefined
+          updateAccountInfoData.tokenAccounts.clear()
           useWallet.setState({
             tokenAccountsOwner: owner,
             tokenAccountRawInfos,
@@ -146,6 +155,8 @@ const loadTokenAccounts = async (
         }
       )
       return { clear: () => removeWalletAccountChangeListener(listenerId) }
+      */
+      return { clear: () => {} }
     }
   } catch {
     isLoading = false
