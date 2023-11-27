@@ -10,6 +10,8 @@ import useWallet from './useWallet'
 import { ITokenAccount } from './type'
 import toBN from '@/functions/numberish/toBN'
 import { throttle } from '@/functions/debounce'
+import { WSOLMint } from '../token/quantumSOL'
+import BN from 'bn.js'
 
 type WalletAccountChangeListener = () => void
 
@@ -28,12 +30,15 @@ let listenerIdCounter = 1
 export const updateAccountInfoData: {
   tokenAccounts: Map<string, KeyedAccountInfo>
   nativeAccount?: ITokenAccount
+  deleteAccount: Set<string>
 } = {
-  tokenAccounts: new Map()
+  tokenAccounts: new Map(),
+  deleteAccount: new Set()
 }
 
 export const clearUpdateTokenAccData = () => {
   updateAccountInfoData.nativeAccount = undefined
+  updateAccountInfoData.deleteAccount.clear()
   updateAccountInfoData.tokenAccounts.clear()
 }
 
@@ -42,8 +47,7 @@ const throttleUpdate = throttle(
   (programId?: PublicKey) => {
     const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, owner } = useWallet.getState()
     if (!owner) return
-
-    if (updateAccountInfoData.tokenAccounts.size) {
+    if (updateAccountInfoData.tokenAccounts.size || updateAccountInfoData.deleteAccount.size) {
       const readyUpdateDataMap: Map<string, ITokenAccount> = Array.from(
         updateAccountInfoData.tokenAccounts.entries()
       ).reduce((acc, cur) => {
@@ -73,6 +77,9 @@ const throttleUpdate = throttle(
           allTokenAccounts[idx] = readyUpdateDataMap.get(tokenAcc.publicKey.toString()) || allTokenAccounts[idx]
           updatedSet.add(tokenAcc.publicKey.toString())
         }
+        if (updateAccountInfoData.deleteAccount.has(tokenAcc.publicKey?.toString() || '')) {
+          allTokenAccounts[idx].amount = new BN(0)
+        }
         if (tokenAcc.isNative && updateAccountInfoData.nativeAccount) {
           allTokenAccounts[idx] = updateAccountInfoData.nativeAccount
         }
@@ -92,6 +99,9 @@ const throttleUpdate = throttle(
           tokenAccounts[idx] = readyUpdateDataMap.get(tokenAcc.publicKey.toString()) || allTokenAccounts[idx]
           updatedSet.add(tokenAcc.publicKey.toString())
         }
+        if (updateAccountInfoData.deleteAccount.has(tokenAcc.publicKey?.toString() || '')) {
+          tokenAccounts[idx].amount = new BN(0)
+        }
       })
 
       // check new ata
@@ -110,6 +120,9 @@ const throttleUpdate = throttle(
             pubkey: updateData.accountId,
             accountInfo: SPL_ACCOUNT_LAYOUT.decode(updateData.accountInfo.data),
             programId: readyUpdateDataMap.get(updateData.accountId.toString())!.programId!
+          }
+          if (updateAccountInfoData.deleteAccount.has(updateData.accountId.toString() || '')) {
+            tokenAccountRawInfos[idx].accountInfo.amount = new BN(0)
           }
           updatedSet.add(updateData.accountId.toString())
         }
@@ -155,6 +168,35 @@ const throttleUpdate = throttle(
 export function useWalletAccountChangeListeners() {
   const connection = useConnection((s) => s.connection)
   const owner = useWallet((s) => s.owner)
+  const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
+
+  useEffect(() => {
+    if (!connection || !owner) return
+    const allWSolAcc = allTokenAccounts.filter((acc) => acc.mint?.equals(WSOLMint) && acc.amount.gt(new BN(0)))
+    const allListenerId: number[] = []
+
+    allWSolAcc.forEach((acc) => {
+      if (!acc.publicKey) return
+      allListenerId.push(
+        connection.onAccountChange(
+          acc.publicKey,
+          (info) => {
+            const pub = acc.publicKey
+            if (pub && info.lamports === 0) {
+              updateAccountInfoData.deleteAccount.add(pub.toString())
+              throttleUpdate()
+            }
+          },
+          'confirmed'
+        )
+      )
+    })
+
+    return () => {
+      allListenerId.forEach((id) => connection.removeAccountChangeListener(id))
+    }
+  }, [connection, owner, allTokenAccounts])
+
   useEffect(() => {
     if (!connection || !owner) return
 
@@ -175,6 +217,7 @@ export function useWalletAccountChangeListeners() {
       TOKEN_PROGRAM_ID,
       (info) => {
         updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), info)
+        updateAccountInfoData.deleteAccount.delete(info.accountId.toString())
         throttleUpdate()
       },
       'confirmed',
@@ -193,6 +236,7 @@ export function useWalletAccountChangeListeners() {
       TOKEN_2022_PROGRAM_ID,
       (info) => {
         updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), info)
+        updateAccountInfoData.deleteAccount.delete(info.accountId.toString())
         throttleUpdate(TOKEN_2022_PROGRAM_ID)
       },
       'confirmed',
