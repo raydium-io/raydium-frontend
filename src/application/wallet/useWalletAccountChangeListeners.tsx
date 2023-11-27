@@ -66,21 +66,42 @@ const throttleUpdate = throttle(
         acc.set(cur[0].toString(), updateTokenAccount)
         return new Map(Array.from(acc.entries()))
       }, new Map())
+      const updatedSet = new Set()
 
       allTokenAccounts.forEach((tokenAcc, idx) => {
         if (tokenAcc.mint && tokenAcc.publicKey) {
           allTokenAccounts[idx] = readyUpdateDataMap.get(tokenAcc.publicKey.toString()) || allTokenAccounts[idx]
+          updatedSet.add(tokenAcc.publicKey.toString())
         }
         if (tokenAcc.isNative && updateAccountInfoData.nativeAccount) {
           allTokenAccounts[idx] = updateAccountInfoData.nativeAccount
         }
       })
 
+      // check new ata
+      if (updatedSet.size !== readyUpdateDataMap.size) {
+        const newAtaList = Array.from(readyUpdateDataMap.values()).filter(
+          (tokenAcc) => !updatedSet.has(tokenAcc.publicKey?.toString())
+        )
+        if (newAtaList.length) newAtaList.forEach((data) => allTokenAccounts.push(data))
+      }
+      updatedSet.clear()
+
       tokenAccounts.forEach((tokenAcc, idx) => {
         if (tokenAcc.mint && tokenAcc.publicKey) {
           tokenAccounts[idx] = readyUpdateDataMap.get(tokenAcc.publicKey.toString()) || allTokenAccounts[idx]
+          updatedSet.add(tokenAcc.publicKey.toString())
         }
       })
+
+      // check new ata
+      if (updatedSet.size !== readyUpdateDataMap.size) {
+        const newAtaList = Array.from(readyUpdateDataMap.values()).filter(
+          (tokenAcc) => !updatedSet.has(tokenAcc.publicKey?.toString())
+        )
+        if (newAtaList.length) newAtaList.forEach((data) => tokenAccounts.push(data))
+      }
+      updatedSet.clear()
 
       tokenAccountRawInfos.forEach((tokenAcc, idx) => {
         const updateData = updateAccountInfoData.tokenAccounts.get(tokenAcc.pubkey.toString())
@@ -90,8 +111,24 @@ const throttleUpdate = throttle(
             accountInfo: SPL_ACCOUNT_LAYOUT.decode(updateData.accountInfo.data),
             programId: readyUpdateDataMap.get(updateData.accountId.toString())!.programId!
           }
+          updatedSet.add(updateData.accountId.toString())
         }
       })
+
+      // check new ata
+      if (updatedSet.size !== readyUpdateDataMap.size) {
+        const newAtaList = Array.from(updateAccountInfoData.tokenAccounts.values()).filter(
+          (tokenAcc) => !updatedSet.has(tokenAcc.accountId.toString())
+        )
+        if (newAtaList.length)
+          newAtaList.forEach((data) =>
+            tokenAccountRawInfos.push({
+              pubkey: data.accountId,
+              accountInfo: SPL_ACCOUNT_LAYOUT.decode(data.accountInfo.data),
+              programId: readyUpdateDataMap.get(data.accountId.toString())!.programId!
+            })
+          )
+      }
 
       useWallet.setState({
         allTokenAccounts: [...allTokenAccounts],
