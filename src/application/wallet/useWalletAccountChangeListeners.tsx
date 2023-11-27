@@ -59,7 +59,6 @@ const throttleUpdate = throttle(
           programId: programId || TOKEN_PROGRAM_ID
         })
         const pubkey = cur[1].accountId
-
         const updateTokenAccount: ITokenAccount = {
           publicKey: pubkey,
           mint,
@@ -173,9 +172,11 @@ export function useWalletAccountChangeListeners() {
   useEffect(() => {
     if (!connection || !owner) return
     const allWSolAcc = allTokenAccounts.filter((acc) => acc.mint?.equals(WSOLMint) && acc.amount.gt(new BN(0)))
+    const allClmmNftAcc = allTokenAccounts.filter((acc) => acc.amount.eq(new BN(1)))
     const allListenerId: number[] = []
 
-    allWSolAcc.forEach((acc) => {
+    const allAcc = [...allWSolAcc, ...allClmmNftAcc]
+    allAcc.forEach((acc) => {
       if (!acc.publicKey) return
       allListenerId.push(
         connection.onAccountChange(
