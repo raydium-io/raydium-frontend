@@ -1576,7 +1576,7 @@ function PoolCardDatabaseBodyCollapseItemContent({
       const aHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(a.nftMint)])
       const bHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(b.nftMint)])
       if ((!aHasLiqudity && bHasLiqudity) || (aHasLiqudity && !bHasLiqudity))
-        return aHasLiqudity ? 1 : bHasLiqudity ? -1 : 0
+        return aHasLiqudity ? -1 : bHasLiqudity ? 1 : 0
       return b.tickLower - a.tickLower // sort position by tickLower
     })
     return sortedUserPositionAccounts
