@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 import { PublicKey, KeyedAccountInfo } from '@solana/web3.js'
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
 import { SPL_ACCOUNT_LAYOUT, Spl } from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
@@ -37,12 +37,9 @@ export const clearUpdateTokenAccData = () => {
   updateAccountInfoData.tokenAccounts.clear()
 }
 
-// if invoke frequently, batch call after 3 seconds
-const throttleInvoke = throttle(() => invokeWalletAccountChangeListeners('confirmed'), { delay: 3000 })
-
 // if update frequently, batch update after 1 seconds
 const throttleUpdate = throttle(
-  () => {
+  (programId?: PublicKey) => {
     const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, owner } = useWallet.getState()
     if (!owner) return
 
@@ -55,7 +52,7 @@ const throttleUpdate = throttle(
         const associatedTokenAddress = Spl.getAssociatedTokenAccount({
           mint,
           owner,
-          programId: cur[1].accountId
+          programId: programId || TOKEN_PROGRAM_ID
         })
         const pubkey = cur[1].accountId
 
@@ -113,9 +110,9 @@ const throttleUpdate = throttle(
         nativeTokenAccount: updateAccountInfoData.nativeAccount
       })
     }
-    throttleInvoke()
+    invokeWalletAccountChangeListeners('confirmed')
   },
-  { delay: 1000 }
+  { delay: 3000 }
 )
 
 export function useWalletAccountChangeListeners() {
@@ -123,6 +120,7 @@ export function useWalletAccountChangeListeners() {
   const owner = useWallet((s) => s.owner)
   useEffect(() => {
     if (!connection || !owner) return
+
     const listenerId = connection.onAccountChange(
       new PublicKey(owner),
       (info) => {
@@ -130,7 +128,6 @@ export function useWalletAccountChangeListeners() {
           amount: toBN(String(info.lamports ?? 0)),
           isNative: true
         }
-
         updateAccountInfoData.nativeAccount = solTokenAcc
         throttleUpdate()
       },
@@ -142,6 +139,24 @@ export function useWalletAccountChangeListeners() {
       (info) => {
         updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), info)
         throttleUpdate()
+      },
+      'confirmed',
+      [
+        { dataSize: SPL_ACCOUNT_LAYOUT.span },
+        {
+          memcmp: {
+            offset: 32, // number of bytes
+            bytes: owner.toBase58() // base58 encoded string
+          }
+        }
+      ]
+    )
+
+    const token2022ProgramSubId = connection.onProgramAccountChange(
+      TOKEN_2022_PROGRAM_ID,
+      (info) => {
+        updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), info)
+        throttleUpdate(TOKEN_2022_PROGRAM_ID)
       },
       'confirmed',
       [
@@ -167,6 +182,7 @@ export function useWalletAccountChangeListeners() {
       connection.removeAccountChangeListener(listenerId)
       // connection.removeAccountChangeListener(listenerId2)
       connection.removeProgramAccountChangeListener(tokenProgramSubId)
+      connection.removeProgramAccountChangeListener(token2022ProgramSubId)
     }
   }, [connection, owner])
 }
