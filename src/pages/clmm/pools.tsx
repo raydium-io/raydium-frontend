@@ -1416,7 +1416,6 @@ function PoolCardDatabaseBodyCollapseItemContent({
   const isMobile = useAppSettings((s) => s.isMobile)
   const openNewPosition = useMemo(() => {
     const hasRewardInfos = info.rewardInfos.length > 0
-
     return (
       <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div className="mb-3 text-xs">
@@ -1562,6 +1561,25 @@ function PoolCardDatabaseBodyCollapseItemContent({
       </Col>
     )
   }, [openNewPosition, isMobile, info])
+
+  const userPositionAccounts = useMemo(() => {
+    if (!info.userPositionAccount) return []
+    const userPositionAccountLiquidities = Object.fromEntries(
+      info.userPositionAccount.map((p) => [toPubString(p.poolId), p.getLiquidityVolume?.(tokenPrices).wholeLiquidity])
+    )
+    const sortedUserPositionAccounts = info.userPositionAccount.sort((a, b) => {
+      const aHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(a.poolId)])
+      const bHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(b.poolId)])
+      if (!aHasLiqudity || !bHasLiqudity) {
+        return aHasLiqudity ? -1 : bHasLiqudity ? 1 : 0
+      } else {
+        const dd = minus(a.tickLower, b.tickLower)
+        const v = eq(dd, 0) ? 0 : gt(dd, 0) ? -1 : 1 // sort position by tickLower
+        return v
+      }
+    })
+    return sortedUserPositionAccounts
+  }, [info.userPositionAccount, tokenPrices])
   return (
     <AutoBox
       is={'Col'}
@@ -1570,78 +1588,58 @@ function PoolCardDatabaseBodyCollapseItemContent({
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      {info.userPositionAccount && (
+      {userPositionAccounts && (
         <>
-          {info.userPositionAccount
-            .sort((a: UserPositionAccount, b: UserPositionAccount) => {
-              const liquiditySub = sub(
-                b.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
-                a.getLiquidityVolume?.(tokenPrices).wholeLiquidity
-              )
-              if (isMeaningfulNumber(liquiditySub)) {
-                return Number(toString(liquiditySub))
-              } else {
-                const dd = minus(a.tickLower, b.tickLower)
-                const v = eq(dd, 0) ? 0 : gt(dd, 0) ? 1 : -1 // sort position by tickLower
-                return v
+          {userPositionAccounts.map((p) => {
+            let myPosition = '--'
+            const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
+            const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
+            const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+            const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+
+            if (lower && upper) {
+              myPosition = lower + ' - ' + upper
+            }
+
+            const coinAPrice = toTotalPrice(p.amountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
+            const coinBPrice = toTotalPrice(p.amountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
+
+            const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
+
+            const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
+            const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
+            const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
+            const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
+
+            const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
+            p.rewardInfos.forEach((rInfo) => {
+              if (rInfo.token) {
+                rewardInfoPrice.set(
+                  rInfo.token,
+                  toTotalPrice(rInfo.penddingReward, variousPrices[toPubString(rInfo.token.mint)] ?? null)
+                )
               }
             })
-            .map((p) => {
-              let myPosition = '--'
-              const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
-              const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
-              const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
-              const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
 
-              if (lower && upper) {
-                myPosition = lower + ' - ' + upper
-              }
-
-              const coinAPrice = toTotalPrice(p.amountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
-              const coinBPrice = toTotalPrice(p.amountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
-
-              const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
-
-              const coinARewardPrice = toTotalPrice(
-                p.tokenFeeAmountA,
-                variousPrices[toPubString(p.tokenA?.mint)] ?? null
-              )
-              const coinBRewardPrice = toTotalPrice(
-                p.tokenFeeAmountB,
-                variousPrices[toPubString(p.tokenB?.mint)] ?? null
-              )
-              const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
-              const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
-
-              const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
-              p.rewardInfos.forEach((rInfo) => {
-                if (rInfo.token) {
-                  rewardInfoPrice.set(
-                    rInfo.token,
-                    toTotalPrice(rInfo.penddingReward, variousPrices[toPubString(rInfo.token.mint)] ?? null)
-                  )
-                }
-              })
-
-              return (
-                <PoolCardDatabaseBodyCollapsePositionContent
-                  open={open}
-                  key={p.nftMint.toString()}
-                  poolInfo={info}
-                  userPositionAccount={p}
-                  myPosition={myPosition}
-                  amountA={amountA}
-                  amountB={amountB}
-                  myPositionVolume={toUsdVolume(wholeLiquidity)}
-                  coinAPrice={coinAPrice}
-                  coinBPrice={coinBPrice}
-                  inRange={p.inRange}
-                  rewardAPrice={coinARewardPrice}
-                  rewardBPrice={coinBRewardPrice}
-                  rewardInfoPrice={rewardInfoPrice}
-                />
-              )
-            })}
+            return (
+              <PoolCardDatabaseBodyCollapsePositionContent
+                open={open}
+                key={p.nftMint.toString()}
+                poolInfo={info}
+                userPositionAccount={p}
+                myPosition={myPosition}
+                amountA={amountA}
+                amountB={amountB}
+                myPositionVolume={toUsdVolume(wholeLiquidity)}
+                coinAPrice={coinAPrice}
+                coinBPrice={coinBPrice}
+                inRange={p.inRange}
+                rewardAPrice={coinARewardPrice}
+                rewardBPrice={coinBRewardPrice}
+                rewardInfoPrice={rewardInfoPrice}
+              />
+            )
+          })}
         </>
       )}
       {info.rewardInfos.length > 0 && owner && info.rewardInfos.find((i) => i.creator.equals(owner)) ? (
@@ -2093,7 +2091,7 @@ function PositionAprIllustrator({
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const tokenPrices = useToken((s) => s.tokenPrices)
   const token = useToken((s) => s.tokens)
-  const tokenDecimals = objectMap(token, (i) => i.decimals)
+  const tokenDecimals = useToken((s) => s.tokenDecimals)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const aprCalcMethod = useConcentrated((s) => s.aprCalcMode)
   const positionApr = useMemo(
