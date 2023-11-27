@@ -1255,14 +1255,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
           <CoinAvatarInfoItem info={info} />
 
-          <TextInfoItem
-            name="Liquidity"
-            value={
-              isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 1 })
-                : undefined
-            }
-          />
           <TextInfoItem name="Rewards" value={rewardsBadge} />
           <TextInfoItem name={`APR(${timeBasis})`} value={toPercentString(apr?.total)} />
 
@@ -1278,27 +1270,38 @@ function PoolCardDatabaseBodyCollapseItemFace({
           className="py-4 px-5 pl-12 relative items-center gap-2 grid-cols-[1.5fr,1fr,1fr,auto]  bg-[#141041]"
         >
           <div className="absolute top-0 left-5 right-5 border-[rgba(171,196,255,.2)] border-t-1.5"></div>
+
           <TextInfoItem
-            name="Volume(7d)"
+            name="Liquidity"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.volume7d, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 1 })
                 : undefined
             }
           />
+
           <TextInfoItem
-            name="Volume(24h)"
+            name={`Volume(${timeBasis})`}
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.volume24h, { autoSuffix: true, decimalPlace: 0 })
+                ? timeBasis === TimeBasis.DAY
+                  ? toUsdVolume(info.volume24h, { autoSuffix: isTablet, decimalPlace: 0 })
+                  : timeBasis === TimeBasis.WEEK
+                  ? toUsdVolume(info.volume7d, { autoSuffix: isTablet, decimalPlace: 0 })
+                  : toUsdVolume(info.volume30d, { autoSuffix: isTablet, decimalPlace: 0 })
                 : undefined
             }
           />
+
           <TextInfoItem
-            name="Fees(7d)"
+            name={`Fees(${timeBasis})`}
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.volumeFee7d, { autoSuffix: true, decimalPlace: 0 })
+                ? timeBasis === TimeBasis.DAY
+                  ? toUsdVolume(info.volumeFee24h, { autoSuffix: isTablet, decimalPlace: 0 })
+                  : timeBasis === TimeBasis.WEEK
+                  ? toUsdVolume(info.volumeFee7d, { autoSuffix: isTablet, decimalPlace: 0 })
+                  : toUsdVolume(info.volumeFee30d, { autoSuffix: isTablet, decimalPlace: 0 })
                 : undefined
             }
           />
