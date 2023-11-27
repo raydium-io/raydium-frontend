@@ -86,6 +86,7 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
 import toFraction from '@/functions/numberish/toFraction'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -1566,23 +1567,20 @@ function PoolCardDatabaseBodyCollapseItemContent({
   }, [openNewPosition, isMobile, info])
 
   const userPositionAccounts = useMemo(() => {
-    if (!info.userPositionAccount) return []
+    if (!owner) return
+    if (!info.userPositionAccount) return
     const userPositionAccountLiquidities = Object.fromEntries(
-      info.userPositionAccount.map((p) => [toPubString(p.poolId), p.getLiquidityVolume?.(tokenPrices).wholeLiquidity])
+      info.userPositionAccount.map((p) => [toPubString(p.nftMint), p.getLiquidityVolume?.(tokenPrices).wholeLiquidity])
     )
-    const sortedUserPositionAccounts = info.userPositionAccount.sort((a, b) => {
-      const aHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(a.poolId)])
-      const bHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(b.poolId)])
-      if (!aHasLiqudity || !bHasLiqudity) {
-        return aHasLiqudity ? -1 : bHasLiqudity ? 1 : 0
-      } else {
-        const dd = minus(a.tickLower, b.tickLower)
-        const v = eq(dd, 0) ? 0 : gt(dd, 0) ? -1 : 1 // sort position by tickLower
-        return v
-      }
+    const sortedUserPositionAccounts = [...info.userPositionAccount].sort((a, b) => {
+      const aHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(a.nftMint)])
+      const bHasLiqudity = isMeaningfulNumber(userPositionAccountLiquidities[toPubString(b.nftMint)])
+      if ((!aHasLiqudity && bHasLiqudity) || (aHasLiqudity && !bHasLiqudity))
+        return aHasLiqudity ? 1 : bHasLiqudity ? -1 : 0
+      return b.tickLower - a.tickLower // sort position by tickLower
     })
     return sortedUserPositionAccounts
-  }, [info.userPositionAccount, tokenPrices])
+  }, [info.userPositionAccount, owner, tokenPrices])
   return (
     <AutoBox
       is={'Col'}
