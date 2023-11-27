@@ -32,6 +32,11 @@ export const updateAccountInfoData: {
   tokenAccounts: new Map()
 }
 
+export const clearUpdateTokenAccData = () => {
+  updateAccountInfoData.nativeAccount = undefined
+  updateAccountInfoData.tokenAccounts.clear()
+}
+
 // if invoke frequently, batch call after 3 seconds
 const throttleInvoke = throttle(() => invokeWalletAccountChangeListeners('confirmed'), { delay: 3000 })
 
