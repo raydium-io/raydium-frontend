@@ -102,15 +102,13 @@ export default async function txCreateConcentratedPosotion({
       onTxError({ signatureResult, changeHistoryInfo }) {
         if (checkPositionSlippageError(signatureResult)) {
           changeHistoryInfo?.({
-            title: 'Deposit failed due to slippage',
-            forceErrorTitle: 'Deposit failed due to slippage',
-            description: 'Slippage has exceeded user settings. Try again or adjust slippage tolerance.'
+            forceErrorTitle: 'Deposit failed due to slippage error!',
+            description: 'Slippage has exceeded user settings. \nTry again or adjust your slippage tolerance.'
           })
         }
       },
       txHistoryInfo: {
-        title: 'Position Created',
-        forceErrorTitle: 'Error creating position',
+        title: 'Deposited',
         description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
           coin2?.symbol ?? '--'
         }`

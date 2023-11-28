@@ -112,8 +112,8 @@ export default async function txSwap() {
         onTxError({ signatureResult, changeHistoryInfo }) {
           if (checkSwapSlippageError(signatureResult)) {
             changeHistoryInfo?.({
-              title: 'Swap failed due to slippage',
-              description: 'Slippage has exceeded user settings. Try again or adjust slippage tolerance.'
+              forceErrorTitle: 'Swap failed due to slippage error!',
+              description: 'Slippage has exceeded user settings.\nTry again or adjust your slippage tolerance.'
             })
           }
         },
