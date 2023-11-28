@@ -86,6 +86,7 @@ export type TokenStore = {
 
   /** it does't contain lp tokens' price  */
   tokenPrices: Record<HexAddress, Price>
+  tokenDecimals: Record<HexAddress, number>
 
   // TODO token mint in blacklist means it can't be selected or add by user Added
   blacklist: Set<string>
@@ -191,6 +192,7 @@ export const useToken = create<TokenStore>((set, get) => ({
   isLpToken: () => false,
 
   tokenPrices: {},
+  tokenDecimals: {},
   blacklist: new Set(),
 
   userAddedTokens: {},

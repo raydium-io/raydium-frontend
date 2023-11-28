@@ -486,6 +486,7 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[], can
       blacklist: blacklist,
       tokenListSettings: newSettings,
       tokenJsonInfos: allTokens,
+      tokenDecimals: objectMap(allTokens, (token) => token.decimals),
       tokens: tokens,
       pureTokens: pureTokens,
       verboseTokens: verboseTokens
@@ -522,6 +523,7 @@ function clearTokenCache() {
       }
     },
     tokenJsonInfos: {},
+    tokenDecimals: {},
     tokens: {},
     pureTokens: {},
     verboseTokens: []
