@@ -149,7 +149,7 @@ exports.glassStyle = plugin(({ addUtilities }) => {
         '--bg-board-color-2': 'hsl(0, 0%, 100%, 0)',
 
         position: 'relative',
-        backdropFilter: 'blur(calc(var(--blur-size) * (-1 * var(--is-scrolling, 0) + 1)))',
+
         color: 'var(--text-color)',
         background:
           'linear-gradient(162deg, var(--bg-board-color) 28.7%, var(--bg-board-color-2, var(--bg-board-color)))',
@@ -198,13 +198,16 @@ exports.glassStyle = plugin(({ addUtilities }) => {
       '--text-color': 'hsl(0, 0%, 100%)'
     },
     '.forsted-blur-lg': {
-      '--blur-size': '6px'
+      '--blur-size': '6px',
+      backdropFilter: 'blur(calc(var(--blur-size) * (-1 * var(--is-scrolling, 0) + 1)))'
     },
     '.forsted-blur': {
-      '--blur-size': '3px'
+      '--blur-size': '3px',
+      backdropFilter: 'blur(calc(var(--blur-size) * (-1 * var(--is-scrolling, 0) + 1)))'
     },
     '.forsted-blur-sm': {
-      '--blur-size': '2px'
+      '--blur-size': '2px',
+      backdropFilter: 'blur(calc(var(--blur-size) * (-1 * var(--is-scrolling, 0) + 1)))'
     },
     '.frosted-blur-none': {
       '--blur-size': '0'

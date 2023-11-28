@@ -17,6 +17,7 @@ import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { getEphemeralSigners } from '../txTools/getEphemeralSigners'
 
 import useConcentrated, { ConcentratedStore } from './useConcentrated'
+import { SignatureResult } from '@solana/web3.js'
 
 export default async function txCreateConcentratedPosotion({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -60,10 +61,10 @@ export default async function txCreateConcentratedPosotion({
       groupInfo:
         currentAmmPool && priceLower && priceUpper
           ? {
-            ammPool: currentAmmPool,
-            priceLower,
-            priceUpper
-          }
+              ammPool: currentAmmPool,
+              priceLower,
+              priceUpper
+            }
           : undefined,
       caseName: 'openPosition'
     })
@@ -98,11 +99,19 @@ export default async function txCreateConcentratedPosotion({
       onTxAllSuccess() {
         onSuccess?.({ nftAddress })
       },
+      onTxError({ signatureResult, changeHistoryInfo }) {
+        if (checkPositionSlippageError(signatureResult)) {
+          changeHistoryInfo?.({
+            forceErrorTitle: 'Deposit failed due to slippage error!',
+            description: 'Slippage has exceeded user settings. \nTry again or adjust your slippage tolerance.'
+          })
+        }
+      },
       txHistoryInfo: {
-        title: 'Position Created',
-        forceErrorTitle: 'Error creating position',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${coin2?.symbol ?? '--'
-          }`
+        title: 'Deposited',
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
+          coin2?.symbol ?? '--'
+        }`
       }
     })
   })
@@ -181,7 +190,24 @@ export async function generateCreateClmmPositionTx(
     checkCreateATAOwner: true,
     makeTxVersion: txVersion,
     lookupTableCache,
-    getEphemeralSigners: await getEphemeralSigners(),
+    getEphemeralSigners: await getEphemeralSigners()
   })
   return { innerTransactions, nftAddress: String(address.nftMint) }
+}
+
+/**
+ * @author RUDY
+ */
+function checkPositionSlippageError(err: SignatureResult): boolean {
+  try {
+    // @ts-expect-error force
+    const coustom = err.err?.InstructionError[1].Custom
+    if ([6021].includes(coustom)) {
+      return true
+    } else {
+      return false
+    }
+  } catch {
+    return false
+  }
 }
