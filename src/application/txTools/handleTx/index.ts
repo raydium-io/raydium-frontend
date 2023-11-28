@@ -1,19 +1,26 @@
 import { CacheLTA, InnerSimpleTransaction, TxVersion } from '@raydium-io/raydium-sdk'
 import {
-  Connection, Context, Keypair, PublicKey, SignaturePubkeyPair, SignatureResult, Transaction, TransactionError,
+  Connection,
+  Context,
+  Keypair,
+  PublicKey,
+  SignaturePubkeyPair,
+  SignatureResult,
+  Transaction,
+  TransactionError,
   VersionedTransaction
 } from '@solana/web3.js'
 
 import { produce } from 'immer'
 
-import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
+import { TxNotificationController, TxNotificationItemInfo } from '@/components/NotificationItem/type'
 import assert from '@/functions/assert'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { isArray, isObject } from '@/functions/judgers/dateType'
 import { mergeFunction, mergeObject } from '@/functions/merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import tryCatch from '@/functions/tryCatch'
-import { MayPromise } from '@/types/constants'
+import { MayFunction, MayPromise } from '@/types/constants'
 
 import { noTailingPeriod } from '../../../functions/format/noTailingPeriod'
 import useAppSettings from '../../common/useAppSettings'
@@ -50,37 +57,39 @@ export type MultiTxExtraInfo = {
 export type TxSuccessInfo = {
   signatureResult: SignatureResult
   context: Context
+  changeHistoryInfo?: (newInfo: Partial<TxHistoryInfo>) => void
 } & (TxInfo & MultiTxExtraInfo)
 
-export type TxSentSuccessInfo = TxInfo & MultiTxExtraInfo
+export type TxSentSuccessInfo = {
+  changeHistoryInfo?: (newInfo: Partial<TxHistoryInfo>) => void
+} & TxInfo &
+  MultiTxExtraInfo
 
 export type TxFinalBatchSuccessInfo = {
   allSuccess: true
   txids: string[]
+  changeHistoryInfo?: (newInfo: Partial<TxHistoryInfo>) => void
 }
 
 export type TxErrorInfo = {
   signatureResult: SignatureResult
   context: Context
   error?: TransactionError
+  changeHistoryInfo?: (newInfo: Partial<TxHistoryInfo>) => void
 } & (TxInfo & MultiTxExtraInfo)
 
 export type TxSentErrorInfo = {
   err: unknown
+  changeHistoryInfo?: (newInfo: Partial<TxHistoryInfo>) => void
 }
 
-export type TxFinalInfo =
-  | ({
-    type: 'success'
-  } & TxSuccessInfo)
-  | ({
-    type: 'error'
-  } & TxErrorInfo)
+export type TxFinalInfo = ({ type: 'success' } & TxSuccessInfo) | ({ type: 'error' } & TxErrorInfo)
 
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
   errorAt: number
   txids: string[] // before absort
+  changeHistoryInfo?: (newInfo: Partial<TxHistoryInfo>) => void
 }
 
 //#endregion
@@ -115,6 +124,7 @@ type TxKeypairDetective = {
 
 export type SingleTxOption = {
   txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description' | 'forceConfirmedTitle' | 'forceErrorTitle'>
+
   /** if provided, error notification should respect this config */
   txErrorNotificationDescription?: string | ((error: Error) => string)
 
@@ -149,10 +159,10 @@ export type MultiTxsOption = {
    * send all at once
    */
   sendMode?:
-  | 'queue'
-  | 'queue(all-settle)'
-  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-  | 'parallel(batch-transactions)' /* it will in order */
+    | 'queue'
+    | 'queue(all-settle)'
+    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+    | 'parallel(batch-transactions)' /* it will in order */
 } & MultiTxCallbacks
 
 export type MultiTxCallbacks = {
@@ -438,11 +448,11 @@ async function dealWithMultiTxOptions({
       try {
         const builded = transactions.every(isInnerTransaction)
           ? await buildTransactionsFromSDKInnerTransactions({
-            connection: payload.connection,
-            wallet: payload.owner,
-            txVersion: payload.txVersion,
-            transactions
-          })
+              connection: payload.connection,
+              wallet: payload.owner,
+              txVersion: payload.txVersion,
+              transactions
+            })
           : (transactions as Transaction[])
 
         try {
@@ -477,7 +487,7 @@ async function dealWithMultiTxOptions({
         })
 
         // pop tx notification
-        const { mutatedSingleOptions } = recordTxNotification({
+        const { mutatedSingleOptions, txLoggerControllers } = recordTxNotification({
           transactions: allSignedTransactions,
           singleOptions: parseMultiOptionsInSingleOptions,
           multiOption
@@ -487,7 +497,8 @@ async function dealWithMultiTxOptions({
           transactions: allSignedTransactions,
           sendMode: multiOption.sendMode,
           singleOptions: mutatedSingleOptions,
-          payload
+          payload,
+          txLoggerControllers
         })
         combinedTxFn()
       } catch (err) {
@@ -505,7 +516,7 @@ function recordTxNotification({
   transactions: (Transaction | VersionedTransaction)[]
   singleOptions: SingleTxOption[]
   multiOption: MultiTxsOption
-}): { mutatedSingleOptions: SingleTxOption[] } {
+}): { mutatedSingleOptions: SingleTxOption[]; txLoggerControllers: Partial<TxNotificationController>[] } {
   // log Tx Notification
   const txInfos = singleOptions.map(({ txHistoryInfo, ...restSingleOptions }, idx) => ({
     transaction: transactions[idx],
@@ -562,19 +573,26 @@ function recordTxNotification({
     })
   })
 
-  return { mutatedSingleOptions: mutated2 }
+  return {
+    mutatedSingleOptions: mutated2,
+    txLoggerControllers: Array.from({ length: transactions.length }).fill(
+      txLoggerController
+    ) as Partial<TxNotificationController>[]
+  }
 }
 
 function composeWithDifferentSendMode({
   transactions,
   sendMode,
   singleOptions,
-  payload
+  payload,
+  txLoggerControllers
 }: {
   transactions: (Transaction | VersionedTransaction)[]
   sendMode: MultiTxsOption['sendMode']
   singleOptions: SingleTxOption[]
   payload: SendTransactionPayload
+  txLoggerControllers: Partial<TxNotificationController>[]
 }): () => void {
   const wholeTxidInfo: Omit<MultiTxExtraInfo, 'currentIndex'> = {
     isMulti: transactions.length > 1,
@@ -590,7 +608,8 @@ function composeWithDifferentSendMode({
           wholeTxidInfo,
           payload,
           isBatched: sendMode === 'parallel(batch-transactions)',
-          singleOption: singleOptions[idx]
+          singleOption: singleOptions[idx],
+          txLoggerController: txLoggerControllers[idx]
         })
       )
     }
@@ -613,12 +632,13 @@ function composeWithDifferentSendMode({
                 } else if (method === 'success') {
                   draft.onTxSuccess = mergeFunction(fn, draft.onTxSuccess)
                 }
-              })
+              }),
+              txLoggerController: txLoggerControllers[idx]
             }),
           method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue(all-settle)' ? 'finally' : 'success')
         }
       },
-      { fn: () => { }, method: 'success' }
+      { fn: () => {}, method: 'success' }
     )
     return queued.fn
   }
@@ -637,13 +657,15 @@ async function dealWithSingleTxOptions({
   wholeTxidInfo,
   singleOption,
   payload,
-  isBatched
+  isBatched,
+  txLoggerController
 }: {
   transaction: Transaction | VersionedTransaction
   wholeTxidInfo: Omit<MultiTxExtraInfo, 'currentIndex'>
   singleOption?: SingleTxOption
   payload: SendTransactionPayload
   isBatched?: boolean
+  txLoggerController?: Partial<TxNotificationController>
 }) {
   const currentIndex = wholeTxidInfo.transactions.indexOf(transaction)
   const extraTxidInfo: MultiTxExtraInfo = {
@@ -658,7 +680,26 @@ async function dealWithSingleTxOptions({
       cache: Boolean(singleOption?.cacheTransaction)
     })
     assert(txid, 'something went wrong in sending transaction')
-    singleOption?.onTxSentSuccess?.({ transaction, txid, ...extraTxidInfo })
+    const changeHistoryInfo = (
+      newPartialInfo: Partial<TxHistoryInfo>,
+      status: 'success' | 'droped' | 'pending' | 'fail'
+    ) => {
+      if (txid) {
+        txLoggerController?.changeItemInfo?.(
+          {
+            txid,
+            historyInfo: { ...singleOption?.txHistoryInfo, ...newPartialInfo, txid, status, time: Date.now() }
+          },
+          { transaction }
+        )
+      }
+    }
+    singleOption?.onTxSentSuccess?.({
+      transaction,
+      txid,
+      ...extraTxidInfo,
+      changeHistoryInfo: (newPartialInfo) => changeHistoryInfo(newPartialInfo, 'pending')
+    })
     wholeTxidInfo.passedMultiTxid[currentIndex] = txid //! 💩 bad method! it's mutate method!
     subscribeTx({
       txid,
@@ -666,11 +707,19 @@ async function dealWithSingleTxOptions({
       extraTxidInfo,
       callbacks: {
         onTxSuccess(callbackParams) {
-          singleOption?.onTxSuccess?.({ ...callbackParams, ...extraTxidInfo })
+          singleOption?.onTxSuccess?.({
+            ...callbackParams,
+            ...extraTxidInfo,
+            changeHistoryInfo: (newPartialInfo) => changeHistoryInfo(newPartialInfo, 'success')
+          })
         },
         onTxError(callbackParams) {
           console.error('tx error: ', callbackParams.error)
-          singleOption?.onTxError?.({ ...callbackParams, ...extraTxidInfo })
+          singleOption?.onTxError?.({
+            ...callbackParams,
+            ...extraTxidInfo,
+            changeHistoryInfo: (newPartialInfo) => changeHistoryInfo(newPartialInfo, 'fail')
+          })
         },
         onTxFinally(callbackParams) {
           singleOption?.onTxFinally?.({

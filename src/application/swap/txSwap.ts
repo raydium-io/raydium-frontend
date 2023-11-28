@@ -1,5 +1,5 @@
 import { forecastTransactionSize, InnerSimpleTransaction, InstructionType, TradeV2 } from '@raydium-io/raydium-sdk'
-import { ComputeBudgetProgram, TransactionInstruction } from '@solana/web3.js'
+import { ComputeBudgetProgram, SignatureResult, TransactionInstruction } from '@solana/web3.js'
 
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -109,10 +109,19 @@ export default async function txSwap() {
     const queue = innerTransactions.map((tx, idx, allTxs) => [
       tx,
       {
+        onTxError({ signatureResult, changeHistoryInfo }) {
+          if (checkSwapSlippageError(signatureResult)) {
+            changeHistoryInfo?.({
+              forceErrorTitle: 'Swap failed due to slippage error!',
+              description: 'Slippage has exceeded user settings.\nTry again or adjust your slippage tolerance.'
+            })
+          }
+        },
         txHistoryInfo: {
           title: 'Swap',
-          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
-            }`,
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+            downCoin.symbol
+          }`,
           subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
         } as TxHistoryInfo
       }
@@ -140,4 +149,21 @@ function isSwapTransaction(tx: InnerSimpleTransaction): boolean {
     tx.instructionTypes.includes(InstructionType.routeSwap2) ||
     tx.instructionTypes.includes(InstructionType.routeSwap)
   )
+}
+
+/**
+ * @author RUDY
+ */
+function checkSwapSlippageError(err: SignatureResult): boolean {
+  try {
+    // @ts-expect-error force
+    const coustom = err.err?.InstructionError[1].Custom
+    if ([38, 6022].includes(coustom)) {
+      return true
+    } else {
+      return false
+    }
+  } catch {
+    return false
+  }
 }
