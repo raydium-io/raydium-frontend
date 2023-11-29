@@ -81,7 +81,7 @@ export default function useConcentratedLiquidityUrlParser() {
           coin2: getToken(USDCMint)
         })
         // may be just haven't load liquidityPoolJsonInfos yet
-        if (hydratedAmmPools.length > 0) logWarning(`can't find Liquidity pool with url ammId`)
+        if (hydratedAmmPools.length > 0) logWarning(`Pool not found. Check the URL link or search manually.`)
       }
     }
 

@@ -119,7 +119,7 @@ export default function useSwapUrlParser(): void {
       } else {
         // may be just haven't load liquidityPoolJsonInfos yet
         if (liquidityPoolJsonInfos.length > 0 && Object.keys(tokens || {}).length > 0) {
-          logWarning(`can't find Liquidity pool with url ammId`)
+          logWarning(`Pool not found. Check the URL link or search manually.`)
         }
       }
     } else if (urlCoin1Mint || urlCoin2Mint) {

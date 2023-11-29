@@ -118,7 +118,7 @@ export default function useLiquidityUrlParser() {
         })
       } else if (urlAmmId) {
         // may be just haven't load liquidityPoolJsonInfos yet
-        if (liquidityPoolJsonInfos.length > 0) logWarning(`can't find Liquidity pool with url ammId`)
+        if (liquidityPoolJsonInfos.length > 0) logWarning(`Pool not found. Check the URL link or search manually.`)
       }
     }
 
