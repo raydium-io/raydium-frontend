@@ -975,10 +975,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
             value={
               isHydratedPoolItemInfo(info)
                 ? timeBasis === '24H'
-                  ? toPercentString((correspondingJsonInfo ?? info).apr24h, { alreadyPercented: true })
+                  ? formatApr((correspondingJsonInfo ?? info).apr24h, { alreadyPercented: true })
                   : timeBasis === '7D'
-                  ? toPercentString((correspondingJsonInfo ?? info).apr7d, { alreadyPercented: true })
-                  : toPercentString((correspondingJsonInfo ?? info).apr30d, { alreadyPercented: true })
+                  ? formatApr((correspondingJsonInfo ?? info).apr7d, { alreadyPercented: true })
+                  : formatApr((correspondingJsonInfo ?? info).apr30d, { alreadyPercented: true })
                 : undefined
             }
           />

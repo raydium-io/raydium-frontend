@@ -19,7 +19,7 @@ export function formatApr(
   }
 
   if (gt(fractionN, MAX_APR)) {
-    return '> 9,999.99%'
+    return '>9,999.99%'
   }
 
   return toPercentString(fractionN, { alreadyPercented: true })

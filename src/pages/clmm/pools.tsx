@@ -1257,7 +1257,8 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <CoinAvatarInfoItem info={info} />
 
           <TextInfoItem name="Rewards" value={rewardsBadge} />
-          <TextInfoItem name={`APR(${timeBasis})`} value={toPercentString(apr?.total)} />
+
+          <TextInfoItem name={`APR(${timeBasis})`} value={formatApr(apr?.total)} />
 
           <Grid className="w-6 h-6 place-items-center">
             <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
