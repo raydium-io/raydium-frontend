@@ -113,26 +113,12 @@ function collectToken(
 }
 
 async function fetchMainToken(response: RaydiumTokenListJsonFile, collector: TokenInfoCollector): Promise<void> {
-  if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
+  if (!response.official || !response.unOfficial || !response.blacklist) return
   const withoutNativeSolToken = deleteFetchedNativeSOLToken(response.official)
   withoutNativeSolToken.forEach(({ mint }) => collector.officialMints.add(mint))
   response.unOfficial.forEach(({ mint }) => collector.unOfficialMints.add(mint))
-  response.unNamed.forEach(({ mint }) => collector.unNamedMints.add(mint))
   collectToken(collector, withoutNativeSolToken)
   collectToken(collector, response.unOfficial)
-  collectToken(
-    collector,
-    response.unNamed.map((originalTokenJson) => {
-      const tokenJson: TokenJson = {
-        ...originalTokenJson,
-        symbol: originalTokenJson.mint.slice(0, 6),
-        name: originalTokenJson.mint.slice(0, 12),
-        hasFreeze: Boolean(originalTokenJson.hasFreeze)
-      }
-      return tokenJson
-    }),
-    { lowPriority: true }
-  )
   const blackListTokenMints = response.blacklist
   blackListTokenMints.forEach((mint) => collector.blacklist.add(mint))
 }
@@ -156,11 +142,14 @@ async function fetchNormalLiquidityPoolToken(
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         // const verified = await verifyToken(pool[target.mint], { noLog: true }) // if clmm/liquidity is faster than token list , it will cause rpc error
-        const token = {
+        const token: TokenJson = {
           symbol: pool[target.mint]?.slice(0, 6),
           name: pool[target.mint]?.slice(0, 12),
           mint: pool[target.mint],
-          decimals: pool[target.decimal]
+          decimals: pool[target.decimal],
+          extensions: {
+            version: undefined
+          }
         }
         collectToken(collector, [token], { lowPriority: true })
       }
@@ -176,22 +165,29 @@ async function fetchClmmLiquidityPoolToken(
   const targets = [
     {
       mint: 'mintA',
-      decimal: 'mintDecimalsA'
+      decimal: 'mintDecimalsA',
+      tokenProgramID: 'mintProgramIdA'
     },
     {
       mint: 'mintB',
-      decimal: 'mintDecimalsB'
+      decimal: 'mintDecimalsB',
+      tokenProgramID: 'mintProgramIdB'
     }
   ]
+  const token2022ProgramId = toPubString(TOKEN_2022_PROGRAM_ID)
   response.data.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         // const verified = await verifyToken(pool[target.mint], { noLog: true }) // if clmm/liquidity is faster than token list , it will cause rpc error
-        const token = {
+        const isToken2022 = pool[target.tokenProgramID] === token2022ProgramId
+        const token: TokenJson = {
           symbol: pool[target.mint]?.slice(0, 6),
           name: pool[target.mint]?.slice(0, 12),
           mint: pool[target.mint],
-          decimals: pool[target.decimal]
+          decimals: pool[target.decimal],
+          extensions: {
+            version: isToken2022 ? 'TOKEN2022' : undefined
+          }
           // hasFreeze: verified != null ? !verified : undefined
         }
         collectToken(collector, [token], { lowPriority: true })
