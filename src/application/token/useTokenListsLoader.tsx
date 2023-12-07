@@ -1,4 +1,4 @@
-import { ApiClmmPoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
+import { ApiClmmPoolsItem, LiquidityPoolsJsonFile, Token, WSOL, ApiPoolInfo } from '@raydium-io/raydium-sdk'
 
 import { addItems, mergeWithOld, shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
@@ -14,6 +14,7 @@ import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConcentrated from '../concentrated/useConcentrated'
 import useFarms from '../farms/useFarms'
 import useLiquidity from '../liquidity/useLiquidity'
+import { parseAndSetPoolList, fetchUpdatePoolInfo } from '../liquidity/useLiquidityInfoLoader'
 import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
@@ -215,9 +216,26 @@ async function fetchTokenList(
   return Promise.all(
     configs.map((raw) => {
       const task = async () => {
+        const apiCacheInfo = useLiquidity.getState().apiCacheInfo
+        if (
+          raw.type === TokenListConfigType.LIQUIDITY_V2 &&
+          apiCacheInfo?.data &&
+          new Date().getDate() - new Date(apiCacheInfo.fetchTime).getDate() <= 0
+        ) {
+          const updateInfo = await fetchUpdatePoolInfo()
+          const response = {
+            official: apiCacheInfo.data.official.map((pool) => updateInfo.get(pool.id) || pool),
+            unOfficial: apiCacheInfo.data.unOfficial.map((pool) => updateInfo.get(pool.id) || pool)
+          }
+          parseAndSetPoolList(response, apiCacheInfo.fetchTime)
+          await fetchNormalLiquidityPoolToken(response as unknown as LiquidityPoolsJsonFile, tokenCollector)
+          return
+        }
+
         const response = await jFetch<
           RaydiumTokenListJsonFile | RaydiumDevTokenListJsonFile | LiquidityPoolsJsonFile | { data: ApiClmmPoolsItem[] }
         >(raw.url())
+
         if (response) {
           switch (raw.type) {
             case TokenListConfigType.RAYDIUM_MAIN: {
@@ -234,6 +252,7 @@ async function fetchTokenList(
               break
             }
             case TokenListConfigType.LIQUIDITY_V2:
+              parseAndSetPoolList(response as unknown as ApiPoolInfo)
               await fetchNormalLiquidityPoolToken(response as LiquidityPoolsJsonFile, tokenCollector)
               break
             case TokenListConfigType.LIQUIDITY_V3:

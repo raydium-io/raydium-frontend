@@ -1,4 +1,4 @@
-import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfoItem, ApiPoolInfo } from '@raydium-io/raydium-sdk'
 import { create } from 'zustand'
 
 import { SplToken } from '../token/type'
@@ -20,6 +20,10 @@ export type LiquidityStore = {
   jsonInfos: ApiPoolInfoItem[]
   officialIds: Set<ApiPoolInfoItem['id']>
   unOfficialIds: Set<ApiPoolInfoItem['id']>
+  apiCacheInfo?: {
+    fetchTime: number
+    data: ApiPoolInfo
+  }
 
   /**
    *  additionally add 'SDK parsed data' (BN, PublicKey, etc.)
@@ -79,6 +83,7 @@ const useLiquidity = create<LiquidityStore>((set, get) => ({
   jsonInfos: [],
   officialIds: new Set(),
   unOfficialIds: new Set(),
+  apiCacheInfo: undefined,
   /**
    *  additionally add 'SDK parsed data' (BN, PublicKey, etc.)
    */

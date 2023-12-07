@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { clearApiCache, clearSdkCache } from '../ammV3PoolInfoAndLiquidity/ammAndLiquidity'
 import { useAppAdvancedSettings } from './useAppAdvancedSettings'
+import useLiquidity from '../liquidity/useLiquidity'
 
 /**
  * reflect api change
@@ -13,5 +14,6 @@ export function useApiUrlChange() {
   useEffect(() => {
     clearApiCache()
     clearSdkCache()
+    useLiquidity.setState({ apiCacheInfo: undefined })
   }, [ammPoolsUrl, liquidityPoolsUrl, programIds])
 }

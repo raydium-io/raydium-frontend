@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { ApiPoolInfo, LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfo, ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
@@ -12,15 +12,45 @@ import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
-import { HexAddress } from '@/types/constants'
 
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
-import { getLiquidityMainnetListUrl } from '../token/rawTokenLists.config'
 
 import hydrateLiquidityInfo from './hydrateLiquidityInfo'
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import useLiquidity from './useLiquidity'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+
+export const parseAndSetPoolList = (response?: ApiPoolInfo, fetchTime?: number) => {
+  // const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
+  const liquidityInfoList = [...(response?.official ?? []), ...(response?.unOfficial ?? [])]
+  // no raydium blacklist amm
+  // .filter((info) => !(blacklist ?? []).includes(info.id))
+  const officialIds = new Set(response?.official?.map((i) => i.id))
+  const unOfficialIds = new Set(response?.unOfficial?.map((i) => i.id))
+  if (liquidityInfoList)
+    useLiquidity.setState({
+      ...(response ? { apiCacheInfo: { fetchTime: fetchTime || Date.now(), data: response } } : {}),
+      jsonInfos: liquidityInfoList,
+      officialIds,
+      unOfficialIds
+    })
+}
+
+export const fetchUpdatePoolInfo = async () => {
+  const now = new Date()
+  const checkPrefix = (val: number) => (val < 10 ? `0${val}` : val.toString())
+  const [year, month, day] = [now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate()]
+  const dailyPoolInfo = useAppAdvancedSettings.getState().apiUrls.dailyPoolInfo
+  const response = await jFetch<ApiPoolInfo>(dailyPoolInfo + `/${year}-${checkPrefix(month)}-${checkPrefix(day)}`)
+  const data: Map<string, ApiPoolInfoItem> = new Map()
+  response?.official.forEach((pool) => {
+    data.set(pool.id, pool)
+  })
+  response?.unOfficial.forEach((pool) => {
+    data.set(pool.id, pool)
+  })
+  return data
+}
 
 /**
  * will load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -50,14 +80,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     const response = await jFetch<ApiPoolInfo>(poolInfoUrl, {
       cacheFreshTime: 1000 * 30
     })
-
-    // const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
-    const liquidityInfoList = [...(response?.official ?? []), ...(response?.unOfficial ?? [])]
-    // no raydium blacklist amm
-    // .filter((info) => !(blacklist ?? []).includes(info.id))
-    const officialIds = new Set(response?.official?.map((i) => i.id))
-    const unOfficialIds = new Set(response?.unOfficial?.map((i) => i.id))
-    if (liquidityInfoList) useLiquidity.setState({ jsonInfos: liquidityInfoList, officialIds, unOfficialIds })
+    parseAndSetPoolList(response)
   }, [disabled, poolInfoUrl])
 
   /** get userExhibitionLiquidityIds */
