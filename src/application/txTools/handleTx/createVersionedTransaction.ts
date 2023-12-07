@@ -1,4 +1,4 @@
-import { buildSimpleTransaction, InnerSimpleTransaction, TxVersion } from '@raydium-io/raydium-sdk'
+import { buildSimpleTransaction, InnerSimpleTransaction, LOOKUP_TABLE_CACHE, TxVersion } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 
 export async function buildTransactionsFromSDKInnerTransactions({
@@ -16,7 +16,8 @@ export async function buildTransactionsFromSDKInnerTransactions({
     connection,
     payer: wallet,
     innerTransactions: transactions,
-    makeTxVersion: txVersion
+    makeTxVersion: txVersion,
+    addLookupTableInfo: LOOKUP_TABLE_CACHE,
   })
   return spawnedTransactions
 }
