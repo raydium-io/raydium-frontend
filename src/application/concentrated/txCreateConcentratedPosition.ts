@@ -61,10 +61,10 @@ export default async function txCreateConcentratedPosotion({
       groupInfo:
         currentAmmPool && priceLower && priceUpper
           ? {
-              ammPool: currentAmmPool,
-              priceLower,
-              priceUpper
-            }
+            ammPool: currentAmmPool,
+            priceLower,
+            priceUpper
+          }
           : undefined,
       caseName: 'openPosition'
     })
@@ -109,9 +109,8 @@ export default async function txCreateConcentratedPosotion({
       },
       txHistoryInfo: {
         title: 'Deposited',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
-          coin2?.symbol ?? '--'
-        }`
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${coin2?.symbol ?? '--'
+          }`
       }
     })
   })
@@ -131,6 +130,7 @@ export type GenerateCreateClmmPositionTxFnParams = Pick<
   | 'priceLowerTick'
   | 'priceUpperTick'
   | 'currentAmmPool'
+  | 'liquidityMin'
 >
 
 export async function generateCreateClmmPositionTx(
@@ -144,6 +144,7 @@ export async function generateCreateClmmPositionTx(
     coin1SlippageAmount = useConcentrated.getState().coin1SlippageAmount,
     coin2SlippageAmount = useConcentrated.getState().coin2SlippageAmount,
     liquidity = useConcentrated.getState().liquidity,
+    liquidityMin = useConcentrated.getState().liquidityMin,
     priceLowerTick = useConcentrated.getState().priceLowerTick,
     priceUpperTick = useConcentrated.getState().priceUpperTick,
     currentAmmPool = useConcentrated.getState().currentAmmPool
@@ -165,6 +166,7 @@ export async function generateCreateClmmPositionTx(
   assert(coin2SlippageAmount, 'not set coin2Amount')
 
   assert(liquidity, 'not set liquidity')
+  assert(liquidityMin, 'not set liquidity')
   const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
 
   const coin1IsMintA = currentAmmPool.state.mintA.mint.equals(coin1.mint)
@@ -174,7 +176,7 @@ export async function generateCreateClmmPositionTx(
 
   const { innerTransactions, address } = await Clmm.makeOpenPositionFromLiquidityInstructionSimple({
     connection: connection,
-    liquidity,
+    liquidity: liquidityMin,
     poolInfo: currentAmmPool.state,
     ownerInfo: {
       feePayer: owner,

@@ -69,6 +69,7 @@ export type ConcentratedStore = {
   lazyLoadChart: boolean
   loadChartPointsAct: (poolId: string, options?: { force?: boolean }) => void
   liquidity?: BN // from SDK, just store in UI
+  liquidityMin?: BN // from SDK, just store in UI
 
   coin1?: SplToken
   coin1Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount

@@ -24,7 +24,7 @@ export default async function txIncreaseConcentrated({
   currentAmmPool?: HydratedConcentratedInfo
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
-  const { coin1, coin2, coin1Amount, coin2Amount, coin1SlippageAmount, coin2SlippageAmount, liquidity } =
+  const { coin1, coin2, coin1Amount, coin2Amount, coin1SlippageAmount, coin2SlippageAmount, liquidity, liquidityMin } =
     useConcentrated.getState()
   // check token 2022
   const needConfirm = [
@@ -61,14 +61,14 @@ export default async function txIncreaseConcentrated({
     const { tokenAccountRawInfos, txVersion } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(coin1, 'not set coin1')
-    assert(coin1SlippageAmount, 'not set coin1Amount')
+    assert(coin1Amount, 'not set coin1Amount')
     assert(coin2, 'not set coin2')
-    assert(coin2SlippageAmount, 'not set coin2Amount')
-    assert(isMeaningfulNumber(liquidity), 'not set liquidity')
+    assert(coin2Amount, 'not set coin2Amount')
+    assert(isMeaningfulNumber(liquidityMin), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
     const { innerTransactions } = await Clmm.makeIncreasePositionFromLiquidityInstructionSimple({
       connection: connection,
-      liquidity,
+      liquidity: liquidityMin,
       poolInfo: currentAmmPool.state,
       ownerInfo: {
         feePayer: owner,
@@ -79,8 +79,8 @@ export default async function txIncreaseConcentrated({
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true,
-      amountMaxA: toBN(coin1SlippageAmount, coin1.decimals, 'up'),
-      amountMaxB: toBN(coin2SlippageAmount, coin2.decimals, 'up'),
+      amountMaxA: toBN(coin1Amount, coin1.decimals, 'up'),
+      amountMaxB: toBN(coin2Amount, coin2.decimals, 'up'),
       makeTxVersion: txVersion,
       lookupTableCache
     })

@@ -8,14 +8,13 @@ import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import { div, mul } from '@/functions/numberish/operations'
+import { add, div, mul, sub } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
 import { isToken2022 } from '../token/isToken2022'
-import { MANUAL_ADJUST } from './txDecreaseConcentrated'
 
 /**
  * will auto fresh  concentrated's coin1Amount and coin2Amount with concentrated's jsonInfos and coin1 and coin2
@@ -126,16 +125,16 @@ export default function useConcentratedAmountCalculator() {
       const params = {
         coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1CalcedAmount : undefined,
         coin1SlippageAmount: isFocus1
-          ? div(coin1CalcedAmount, MANUAL_ADJUST)
+          ? mul(coin1CalcedAmount, add(1, slippageToleranceByConfig))
           : hasInput
-          ? div(coin1CalcedAmount, MANUAL_ADJUST)
+          ? mul(coin1CalcedAmount, add(1, slippageToleranceByConfig))
           : undefined,
         coin2Amount: isFocus1 ? (hasInput ? coin2CalcedAmount : undefined) : coin2Amount,
         coin2SlippageAmount: isFocus1
           ? hasInput
-            ? div(coin2CalcedAmount, MANUAL_ADJUST)
+            ? mul(coin2CalcedAmount, add(1, slippageToleranceByConfig))
             : undefined
-          : div(coin2CalcedAmount, MANUAL_ADJUST),
+          : mul(coin2CalcedAmount, add(1, slippageToleranceByConfig)),
 
         coin1AmountFee,
         coin1ExpirationTime: hasInput ? coin1ExpirationTime : undefined,
@@ -143,7 +142,8 @@ export default function useConcentratedAmountCalculator() {
         coin2AmountFee,
         coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined,
 
-        liquidity
+        liquidity,
+        liquidityMin: new BN(mul(liquidity, sub(1, slippageToleranceByConfig)).toFixed(0))
       }
       useConcentrated.setState(params)
       // eslint-disable-next-line no-empty

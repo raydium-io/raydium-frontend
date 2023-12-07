@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge'
 import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
 import useAppSettings from '@/application/common/useAppSettings'
-import txDecreaseConcentrated, { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { getTransferFeeInfo } from '@/application/token/getTransferFeeInfos'
 import { isToken2022 } from '@/application/token/isToken2022'
@@ -63,6 +63,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const originalCoin2 = useConcentrated((s) => s.coin2)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
+  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   const originalCoin1AmountMin = useConcentrated((s) => s.coin1AmountMin)
   const originalCoin2AmountMin = useConcentrated((s) => s.coin2AmountMin)
@@ -96,12 +97,12 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
   useEffect(() => {
     useConcentrated.setState({
-      coin1AmountMin: mul(originalCoin1Amount, MANUAL_ADJUST)
+      coin1AmountMin: mul(originalCoin1Amount, slippageTolerance)
     })
   }, [originalCoin1Amount])
   useEffect(() => {
     useConcentrated.setState({
-      coin2AmountMin: mul(originalCoin2Amount, MANUAL_ADJUST)
+      coin2AmountMin: mul(originalCoin2Amount, slippageTolerance)
     })
   }, [originalCoin2Amount])
 

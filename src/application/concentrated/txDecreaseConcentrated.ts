@@ -13,8 +13,6 @@ import txHandler, { lookupTableCache } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import useConcentrated from './useConcentrated'
 
-export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
-
 export default async function txDecreaseConcentrated(options?: { closePosition?: boolean }) {
   const {
     coin1,
@@ -86,11 +84,10 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Liquidity Removed',
-          description: `Removed ${toString(feeInfoA?.pure ?? coin1AmountMin, { decimalLength: 6 })} ${
-            coin1.symbol
-          } and ${toString(feeInfoB?.pure ?? coin2AmountMin, { decimalLength: 6 })} ${coin2.symbol} from ${toPubString(
-            targetUserPositionAccount.poolId
-          ).slice(0, 6)}`
+          description: `Removed ${toString(feeInfoA?.pure ?? coin1AmountMin, { decimalLength: 6 })} ${coin1.symbol
+            } and ${toString(feeInfoB?.pure ?? coin2AmountMin, { decimalLength: 6 })} ${coin2.symbol} from ${toPubString(
+              targetUserPositionAccount.poolId
+            ).slice(0, 6)}`
         }
       })
     }
