@@ -108,6 +108,7 @@ const throttleUpdate = throttle(
         const newAtaList = Array.from(readyUpdateDataMap.values()).filter(
           (tokenAcc) => !updatedSet.has(tokenAcc.publicKey?.toString())
         )
+
         if (newAtaList.length) newAtaList.forEach((data) => tokenAccounts.push(data))
       }
       updatedSet.clear()
@@ -123,23 +124,30 @@ const throttleUpdate = throttle(
           if (updateAccountInfoData.deleteAccount.has(updateData.accountId.toString() || '')) {
             tokenAccountRawInfos[idx].accountInfo.amount = new BN(0)
           }
-          updatedSet.add(updateData.accountId.toString())
+          updatedSet.add(tokenAcc.pubkey.toString())
         }
       })
 
       // check new ata
       if (updatedSet.size !== readyUpdateDataMap.size) {
-        const newAtaList = Array.from(updateAccountInfoData.tokenAccounts.values()).filter(
-          (tokenAcc) => !updatedSet.has(tokenAcc.accountId.toString())
-        )
-        if (newAtaList.length)
-          newAtaList.forEach((data) =>
+        Array.from(updateAccountInfoData.tokenAccounts.values()).forEach((tokenAcc) => {
+          if (!tokenAccountRawInfos.find((acc) => acc.pubkey.equals(tokenAcc.accountId))) {
             tokenAccountRawInfos.push({
-              pubkey: data.accountId,
-              accountInfo: SPL_ACCOUNT_LAYOUT.decode(data.accountInfo.data),
-              programId: readyUpdateDataMap.get(data.accountId.toString())!.programId!
+              pubkey: tokenAcc.accountId,
+              accountInfo: SPL_ACCOUNT_LAYOUT.decode(tokenAcc.accountInfo.data),
+              programId: readyUpdateDataMap.get(tokenAcc.accountId.toString())!.programId!
             })
-          )
+          }
+        })
+
+        // if (newAtaList.length)
+        //   newAtaList.forEach((data) =>
+        //     tokenAccountRawInfos.push({
+        //       pubkey: data.accountId,
+        //       accountInfo: SPL_ACCOUNT_LAYOUT.decode(data.accountInfo.data),
+        //       programId: readyUpdateDataMap.get(data.accountId.toString())!.programId!
+        //     })
+        //   )
       }
 
       useWallet.setState({
