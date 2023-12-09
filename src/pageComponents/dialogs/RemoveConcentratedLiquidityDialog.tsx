@@ -29,7 +29,7 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { minus, mul } from '@/functions/numberish/operations'
+import { minus, mul, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useEvent } from '@/hooks/useEvent'
@@ -97,12 +97,12 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
   useEffect(() => {
     useConcentrated.setState({
-      coin1AmountMin: mul(originalCoin1Amount, slippageTolerance)
+      coin1AmountMin: mul(originalCoin1Amount, sub(1, slippageTolerance))
     })
   }, [originalCoin1Amount])
   useEffect(() => {
     useConcentrated.setState({
-      coin2AmountMin: mul(originalCoin2Amount, slippageTolerance)
+      coin2AmountMin: mul(originalCoin2Amount, sub(1, slippageTolerance))
     })
   }, [originalCoin2Amount])
 
