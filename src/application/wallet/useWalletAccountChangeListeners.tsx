@@ -28,7 +28,13 @@ let walletAccountChangeListeners: InnerWalletAccountChangeListenerSettings[] = [
 let listenerIdCounter = 1
 
 export const updateAccountInfoData: {
-  tokenAccounts: Map<string, KeyedAccountInfo>
+  tokenAccounts: Map<
+    string,
+    {
+      data: KeyedAccountInfo
+      programId: PublicKey
+    }
+  >
   nativeAccount?: ITokenAccount
   deleteAccount: Set<string>
 } = {
@@ -44,27 +50,28 @@ export const clearUpdateTokenAccData = () => {
 
 // if update frequently, batch update after 1 seconds
 const throttleUpdate = throttle(
-  (programId?: PublicKey) => {
+  () => {
     const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, owner } = useWallet.getState()
     if (!owner) return
     if (updateAccountInfoData.tokenAccounts.size || updateAccountInfoData.deleteAccount.size) {
       const readyUpdateDataMap: Map<string, ITokenAccount> = Array.from(
         updateAccountInfoData.tokenAccounts.entries()
       ).reduce((acc, cur) => {
-        const rawResult = SPL_ACCOUNT_LAYOUT.decode(cur[1].accountInfo.data)
+        const rawResult = SPL_ACCOUNT_LAYOUT.decode(cur[1].data.accountInfo.data)
         const { mint, amount, owner } = rawResult
         const associatedTokenAddress = Spl.getAssociatedTokenAccount({
           mint,
           owner,
-          programId: programId || TOKEN_PROGRAM_ID
+          programId: cur[1].programId || TOKEN_PROGRAM_ID
         })
-        const pubkey = cur[1].accountId
+        const pubkey = cur[1].data.accountId
         const updateTokenAccount: ITokenAccount = {
           publicKey: pubkey,
           mint,
           isAssociated: associatedTokenAddress.equals(pubkey),
           amount,
-          isNative: false
+          isNative: false,
+          programId: cur[1].programId || TOKEN_PROGRAM_ID
         }
         acc.set(cur[0].toString(), updateTokenAccount)
         return new Map(Array.from(acc.entries()))
@@ -117,38 +124,31 @@ const throttleUpdate = throttle(
         const updateData = updateAccountInfoData.tokenAccounts.get(tokenAcc.pubkey.toString())
         if (tokenAcc.accountInfo.mint && tokenAcc.programId && updateData) {
           tokenAccountRawInfos[idx] = {
-            pubkey: updateData.accountId,
-            accountInfo: SPL_ACCOUNT_LAYOUT.decode(updateData.accountInfo.data),
-            programId: readyUpdateDataMap.get(updateData.accountId.toString())!.programId!
+            pubkey: updateData.data.accountId,
+            accountInfo: SPL_ACCOUNT_LAYOUT.decode(updateData.data.accountInfo.data),
+            programId: readyUpdateDataMap.get(updateData.data.accountId.toString())!.programId!
           }
-          if (updateAccountInfoData.deleteAccount.has(updateData.accountId.toString() || '')) {
+          if (updateAccountInfoData.deleteAccount.has(updateData.data.accountId.toString() || '')) {
             tokenAccountRawInfos[idx].accountInfo.amount = new BN(0)
           }
           updatedSet.add(tokenAcc.pubkey.toString())
         }
       })
 
-      // check new ata
-      if (updatedSet.size !== readyUpdateDataMap.size) {
-        Array.from(updateAccountInfoData.tokenAccounts.values()).forEach((tokenAcc) => {
-          if (!tokenAccountRawInfos.find((acc) => acc.pubkey.equals(tokenAcc.accountId))) {
-            tokenAccountRawInfos.push({
-              pubkey: tokenAcc.accountId,
-              accountInfo: SPL_ACCOUNT_LAYOUT.decode(tokenAcc.accountInfo.data),
-              programId: readyUpdateDataMap.get(tokenAcc.accountId.toString())!.programId!
-            })
-          }
-        })
+      const newAtaList = Array.from(updateAccountInfoData.tokenAccounts.values()).filter(
+        (tokenAcc) => !updatedSet.has(tokenAcc.data.accountId.toString())
+      )
 
-        // if (newAtaList.length)
-        //   newAtaList.forEach((data) =>
-        //     tokenAccountRawInfos.push({
-        //       pubkey: data.accountId,
-        //       accountInfo: SPL_ACCOUNT_LAYOUT.decode(data.accountInfo.data),
-        //       programId: readyUpdateDataMap.get(data.accountId.toString())!.programId!
-        //     })
-        //   )
-      }
+      // check new ata
+
+      if (newAtaList.length)
+        newAtaList.forEach((data) =>
+          tokenAccountRawInfos.push({
+            pubkey: data.data.accountId,
+            accountInfo: SPL_ACCOUNT_LAYOUT.decode(data.data.accountInfo.data),
+            programId: data.programId
+          })
+        )
 
       useWallet.setState({
         allTokenAccounts: [...allTokenAccounts],
@@ -179,6 +179,7 @@ export function useWalletAccountChangeListeners() {
 
   useEffect(() => {
     if (!connection || !owner) return
+
     const allWSolAcc = allTokenAccounts.filter((acc) => acc.mint?.equals(WSOLMint))
     const allClmmNftAcc = allTokenAccounts.filter((acc) => acc.amount.eq(new BN(1)))
     const allListenerId: number[] = []
@@ -225,7 +226,10 @@ export function useWalletAccountChangeListeners() {
     const tokenProgramSubId = connection.onProgramAccountChange(
       TOKEN_PROGRAM_ID,
       (info) => {
-        updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), info)
+        updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), {
+          data: info,
+          programId: TOKEN_PROGRAM_ID
+        })
         updateAccountInfoData.deleteAccount.delete(info.accountId.toString())
         throttleUpdate()
       },
@@ -244,9 +248,12 @@ export function useWalletAccountChangeListeners() {
     const token2022ProgramSubId = connection.onProgramAccountChange(
       TOKEN_2022_PROGRAM_ID,
       (info) => {
-        updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), info)
+        updateAccountInfoData.tokenAccounts.set(info.accountId.toString(), {
+          data: info,
+          programId: TOKEN_2022_PROGRAM_ID
+        })
         updateAccountInfoData.deleteAccount.delete(info.accountId.toString())
-        throttleUpdate(TOKEN_2022_PROGRAM_ID)
+        throttleUpdate()
       },
       'confirmed',
       [
