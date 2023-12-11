@@ -290,6 +290,7 @@ function StakingCardCollapseItemContent({ info }: { info: HydratedFarmInfo | Far
   const prices = useToken((s) => s.tokenPrices)
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
+  const connecting = useWallet((s) => s.connecting)
   const hasPendingReward = useMemo(
     () =>
       isHydratedFarmInfo(info) &&
@@ -365,11 +366,11 @@ function StakingCardCollapseItemContent({ info }: { info: HydratedFarmInfo | Far
                     stakeDialogMode: 'deposit'
                   })
                 } else {
-                  useAppSettings.setState({ isWalletSelectorShown: true })
+                  useAppSettings.setState({ isWalletSelectorShown: !connecting })
                 }
               }}
             >
-              {connected ? 'Start Staking' : 'Connect Wallet'}
+              {connected ? 'Start Staking' : connecting ? 'Connecting...' : 'Connect Wallet'}
             </Button>
           )}
         </Row>
@@ -426,7 +427,7 @@ function StakingCardCollapseItemContent({ info }: { info: HydratedFarmInfo | Far
               forceActive: true,
               fallbackProps: {
                 onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                children: 'Connect Wallet'
+                children: connecting ? 'Connecting...' : 'Connect Wallet'
               }
             },
             { should: hasPendingReward }

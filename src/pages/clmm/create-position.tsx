@@ -144,6 +144,7 @@ function ConcentratedCard() {
     s.lazyLoadChart
   ])
   const connected = useWallet((s) => s.connected)
+  const connecting = useWallet((s) => s.connecting)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
@@ -749,8 +750,8 @@ function ConcentratedCard() {
                 should: connected,
                 forceActive: true,
                 fallbackProps: {
-                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                  children: 'Connect Wallet'
+                  onClick: connecting ? undefined : () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                  children: connecting ? 'Connecting' : 'Connect Wallet'
                 }
               },
               {

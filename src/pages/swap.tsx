@@ -239,7 +239,7 @@ function AllUnwrapSOLToSol() {
 }
 
 function SwapCard() {
-  const { connected: walletConnected } = useWallet()
+  const { connected: walletConnected, connecting } = useWallet()
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
   const coin1Amount = useSwap((s) => s.coin1Amount)
@@ -516,7 +516,7 @@ function SwapCard() {
             forceActive: true,
             fallbackProps: {
               onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-              children: 'Connect Wallet'
+              children: connecting ? 'Connecting...' : 'Connect Wallet'
             }
           },
           {

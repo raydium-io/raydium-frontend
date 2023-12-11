@@ -228,7 +228,7 @@ function ConfirmRiskPanel({
 }
 
 function LiquidityCard() {
-  const { connected, owner } = useWallet()
+  const { connected, connecting } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
@@ -457,8 +457,8 @@ function LiquidityCard() {
             should: connected,
             forceActive: true,
             fallbackProps: {
-              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-              children: 'Connect Wallet'
+              onClick: connecting ? undefined : () => useAppSettings.setState({ isWalletSelectorShown: true }),
+              children: connecting ? 'Connecting' : 'Connect Wallet'
             }
           },
           {

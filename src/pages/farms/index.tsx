@@ -1164,6 +1164,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const isMobile = useAppSettings((s) => s.isMobile)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
   const connected = useWallet((s) => s.connected)
+  const connecting = useWallet((s) => s.connecting)
   const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
@@ -1233,8 +1234,10 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                           should: connected,
                           forceActive: true,
                           fallbackProps: {
-                            children: 'Connect Wallet',
-                            onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                            children: connecting ? 'Connecting' : 'Connect Wallet',
+                            onClick: connecting
+                              ? undefined
+                              : () => useAppSettings.setState({ isWalletSelectorShown: true })
                           }
                         },
                         {
@@ -1290,8 +1293,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                       should: connected,
                       forceActive: true,
                       fallbackProps: {
-                        children: 'Connect Wallet',
-                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                        children: connecting ? 'Connecting' : 'Connect Wallet',
+                        onClick: connecting ? undefined : () => useAppSettings.setState({ isWalletSelectorShown: true })
                       }
                     },
                     {
@@ -1378,7 +1381,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   forceActive: true,
                   fallbackProps: {
                     onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                    children: 'Connect Wallet'
+                    children: connecting ? 'Connecting...' : 'Connect Wallet'
                   }
                 },
                 { should: hasPendingReward }

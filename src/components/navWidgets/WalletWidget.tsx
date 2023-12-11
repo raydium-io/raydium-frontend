@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-
 import useAppSettings from '@/application/common/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
 import useToggle from '@/hooks/useToggle'
@@ -16,14 +15,14 @@ import { isInLocalhost } from '@/functions/judgers/isSSR'
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const txVersion = useWallet((s) => s.txVersion)
+  const isWalletSelectorShown = useAppSettings((s) => s.isWalletSelectorShown)
   const [isCopied, { delayOff, on }] = useToggle()
 
   useEffect(() => {
     if (isCopied) delayOff()
   }, [isCopied])
 
-  const { owner: publicKey, disconnect, connected } = useWallet()
+  const { owner: publicKey, disconnect, connected, connecting } = useWallet()
 
   return (
     <PageLayoutPopoverDrawer
@@ -86,16 +85,20 @@ export default function WalletWidget() {
     >
       {isMobile ? (
         <Button
-          className="frosted-glass frosted-glass-teal rounded-lg p-2"
+          className={`frosted-glass frosted-glass-teal rounded-lg p-2${connecting ? ' text-xs' : ''}`}
           onClick={() => {
             if (!publicKey) useAppSettings.setState({ isWalletSelectorShown: true })
           }}
         >
-          <Icon
-            className="w-4 h-4"
-            iconClassName="w-4 h-4"
-            iconSrc={connected ? '/icons/msic-wallet-connected.svg' : '/icons/msic-wallet.svg'}
-          />
+          {connecting ? (
+            'Connecting...'
+          ) : (
+            <Icon
+              className="w-4 h-4"
+              iconClassName="w-4 h-4"
+              iconSrc={connected ? '/icons/msic-wallet-connected.svg' : '/icons/msic-wallet.svg'}
+            />
+          )}
         </Button>
       ) : (
         <Button
@@ -114,7 +117,9 @@ export default function WalletWidget() {
           ) : (
             <Row className="items-center gap-3 my-0.5">
               <Icon size="sm" iconSrc="/icons/msic-wallet.svg" />
-              <div className="text-sm font-medium text-[#39D0D8]">Connect Wallet</div>
+              <div className="text-sm font-medium text-[#39D0D8]">
+                {connecting ? 'Connecting...' : 'Connect Wallet'}
+              </div>
             </Row>
           )}
         </Button>
