@@ -18,6 +18,7 @@ import { createTimeoutMap } from '@/functions/createTimeoutMap'
 const verifyWhiteList = [
   { mint: 'Fishy64jCaa3ooqXw7BHtKvYD8BTkSyAPh6RNE3xZpcN', decimals: 6, is2022Token: false },
   { mint: 'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof', decimals: 8, is2022Token: false },
+  { mint: '33eWALS9GkzSMS3EsKSdYCsrUiMdQDgX2QzGx4vA9wE8', decimals: 8, is2022Token: false },
 ] // Temporary force white list
 
 export async function verifyToken(
