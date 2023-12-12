@@ -37,6 +37,7 @@ import { AprChart } from './AprChart'
 import { ConcentratedModifyTooltipIcon } from './ConcentratedModifyTooltipIcon'
 import { ConcentratedTimeBasisSwitcher } from './ConcentratedTimeBasisSwitcher'
 import { useConcentratedPositionAprCalc } from './useConcentratedAprCalc'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 
 function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -347,6 +348,9 @@ function MyPositionCardHeader({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const isEmptyPosition = targetUserPositionAccount?.liquidity.isZero()
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+
   return (
     <Row className={twMerge('justify-between gap-2 flex-wrap', className)}>
       <Row className="items-center gap-2">
@@ -372,21 +376,48 @@ function MyPositionCardHeader({ className }: { className?: string }) {
         >
           Add Liquidity
         </Button>
-        <Button
-          className="frosted-glass-teal ghost mobile:grow"
-          size={isMobile ? 'sm' : undefined}
-          onClick={() => {
-            useConcentrated.setState({
-              isRemoveDialogOpen: true,
-              currentAmmPool,
-              targetUserPositionAccount,
-              coin1: currentAmmPool?.base,
-              coin2: currentAmmPool?.quote
-            })
-          }}
-        >
-          Remove Liquidity
-        </Button>
+        {isEmptyPosition ? (
+          <Button
+            className="frosted-glass-teal ghost mobile:grow"
+            size={isMobile ? 'sm' : undefined}
+            onClick={() => {
+              useConcentrated.setState({
+                liquidity: targetUserPositionAccount?.liquidity,
+                currentAmmPool,
+                targetUserPositionAccount
+              })
+              setTimeout(() => {
+                txDecreaseConcentrated({ closePosition: true }).then((res) => {
+                  if (res?.allSuccess) {
+                    refreshConcentrated()
+                    useConcentrated.setState({
+                      coin1Amount: undefined,
+                      coin2Amount: undefined
+                    })
+                  }
+                })
+              }, 10)
+            }}
+          >
+            Close Position
+          </Button>
+        ) : (
+          <Button
+            className="frosted-glass-teal ghost mobile:grow"
+            size={isMobile ? 'sm' : undefined}
+            onClick={() => {
+              useConcentrated.setState({
+                isRemoveDialogOpen: true,
+                currentAmmPool,
+                targetUserPositionAccount,
+                coin1: currentAmmPool?.base,
+                coin2: currentAmmPool?.quote
+              })
+            }}
+          >
+            Remove Liquidity
+          </Button>
+        )}
       </Row>
     </Row>
   )

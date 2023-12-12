@@ -1688,7 +1688,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const logInfo = useNotification((s) => s.logInfo)
   const walletConnected = useWallet((s) => s.connected)
-  const isEmptyPosition = p?.amountA?.isZero() && p?.amountB?.isZero()
+  const isEmptyPosition = p?.liquidity.isZero()
   const pendingTotalVolume = useAsyncMemo(() => (open ? getPendingTotal?.() : undefined), [open, getPendingTotal])
   const position = useMemo(() => {
     if (info && p) {

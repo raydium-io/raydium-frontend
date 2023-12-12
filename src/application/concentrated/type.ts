@@ -180,7 +180,7 @@ export interface UserPositionAccount {
     rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
     apr: Percent
   }
-  // liquidity: BN__default; // currently useless
+  liquidity: BN // currently useless
   // feeGrowthInsideLastX64A: BN__default; // currently useless
   // feeGrowthInsideLastX64B: BN__default; // currently useless
   // tokenFeesOwedA: BN__default; // currently useless
