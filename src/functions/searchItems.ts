@@ -222,7 +222,7 @@ function sortMatchedInfos<T>(
       calcMatchedPriorityValue(matchedInfoB, sortConfigs.priorityMergeMode) -
       calcMatchedPriorityValue(matchedInfoA, sortConfigs.priorityMergeMode)
     if (priorityDiff === 0 && sortConfigs.sortBetweenSamePriority) {
-      return Number(sortConfigs.sortBetweenSamePriority(matchedInfoA, matchedInfoB))
+      return -1 * Number(sortConfigs.sortBetweenSamePriority(matchedInfoA, matchedInfoB))
     }
     return priorityDiff
   })
