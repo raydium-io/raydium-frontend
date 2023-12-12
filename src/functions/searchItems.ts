@@ -25,7 +25,27 @@ export type SearchOptions<T> = {
    */
   searchMode?: 'eagle' | 'fuzzy' | 'greedy'
   matchConfigs?: MayFunction<MayArray<MatchRule>, [item: T]>
-  canSort?: boolean
+  /**
+   * when setting this, the result will be sorted by match status (entirely > partial)
+   * @default true */
+  shouldSortResultAfterSearch?: boolean
+
+  /**
+   * sort config
+   *
+   * if user input 2 keywords, and both keywords has different match priority (2, 1)
+   * - priorityMergeMode: 'add' => 2 + 1 = 3 (whole item priority)
+   * - priorityMergeMode: 'max' => Math.max(2, 1) => 2 (whole item priority)
+   * - priorityMergeMode: 'with-order' => 2 * 3**1(first one, 3^1) + 1 * 1(second one, 3^0) = 7 (whole item priority)
+   *    this will make every different item, may have different priority for match order
+   * @default 'max'
+   */
+  priorityMergeMode?: 'max' | 'add' | 'with-order'
+
+  /**
+   * sort config
+   */
+  sortBetweenSamePriority?: (matchInfoA: MatchInfo<T>, matchInfoB: MatchInfo<T>) => number | boolean
 }
 
 type MatchInfo<T> = {
@@ -49,7 +69,14 @@ type MatchInfo<T> = {
  */
 export function searchItems<T>(
   items: T[],
-  { text, canSort = true, matchConfigs, searchMode }: SearchOptions<T> = {}
+  {
+    text,
+    shouldSortResultAfterSearch = true,
+    matchConfigs,
+    searchMode,
+    sortBetweenSamePriority,
+    priorityMergeMode
+  }: SearchOptions<T> = {}
 ): T[] {
   if (!text) return items
 
@@ -62,7 +89,9 @@ export function searchItems<T>(
     })
   )
   const meaningfulMatchedInfos = allMatchedInfos.filter((m) => m?.matched) as MatchInfo<T>[]
-  const sortedMatchedInfos = canSort ? sortByMatchedInfos<T>(meaningfulMatchedInfos) : meaningfulMatchedInfos
+  const sortedMatchedInfos = shouldSortResultAfterSearch
+    ? sortMatchedInfos<T>(meaningfulMatchedInfos, { priorityMergeMode, sortBetweenSamePriority })
+    : meaningfulMatchedInfos
   const shaked = shakeUndifindedItem(sortedMatchedInfos.map((m) => m.item))
   return shaked
 }
@@ -181,17 +210,32 @@ function patchSearchInfos<T>(options: {
   return returnedMatchInfo
 }
 
-function sortByMatchedInfos<T>(matchedInfos: MatchInfo<T>[]) {
-  return [...matchedInfos].sort(
-    (matchedInfoA, matchedInfoB) => getMatchStatusSignature(matchedInfoB) - getMatchStatusSignature(matchedInfoA)
-  )
+function sortMatchedInfos<T>(
+  matchedInfos: MatchInfo<T>[],
+  sortConfigs: {
+    priorityMergeMode: SearchOptions<T>['priorityMergeMode']
+    sortBetweenSamePriority: SearchOptions<T>['sortBetweenSamePriority']
+  }
+): MatchInfo<T>[] {
+  return [...matchedInfos].sort((matchedInfoA, matchedInfoB) => {
+    const priorityDiff =
+      calcMatchedPriorityValue(matchedInfoB, sortConfigs.priorityMergeMode) -
+      calcMatchedPriorityValue(matchedInfoA, sortConfigs.priorityMergeMode)
+    if (priorityDiff === 0 && sortConfigs.sortBetweenSamePriority) {
+      return Number(sortConfigs.sortBetweenSamePriority(matchedInfoA, matchedInfoB))
+    }
+    return priorityDiff
+  })
 }
 
 // TODO: move to object cache fn
 const weakMap = new WeakMap<MatchInfo<any>, number>()
-function getMatchStatusSignature<T>(matchedInfo: MatchInfo<T>) {
+function calcMatchedPriorityValue<T>(
+  matchedInfo: MatchInfo<T>,
+  priorityMergeMode: SearchOptions<T>['priorityMergeMode']
+) {
   if (weakMap.has(matchedInfo)) return weakMap.get(matchedInfo)!
-  const signature = toMatchedStatusSignature(matchedInfo)
+  const signature = toMatchedPriorityValue(matchedInfo, priorityMergeMode)
   weakMap.set(matchedInfo, signature)
   return signature
 }
@@ -206,29 +250,24 @@ function getMatchStatusSignature<T>(matchedInfo: MatchInfo<T>) {
  *
  * @returns item's weight number
  */
-function toMatchedStatusSignature<T>(matchedInfo: MatchInfo<T>): number {
+function toMatchedPriorityValue<T>(
+  matchedInfo: MatchInfo<T>,
+  priorityMergeMode: SearchOptions<T>['priorityMergeMode'] = 'max'
+): number {
   const originalConfigs = matchedInfo.allConfigs
-  const entriesSequence = Array.from({ length: originalConfigs.length }, () => 0)
-  const partialSequence = Array.from({ length: originalConfigs.length }, () => 0)
-
-  matchedInfo.matchedConfigs.forEach(({ configIdx, isEntirelyMatched }) => {
-    if (isEntirelyMatched) {
-      entriesSequence[configIdx] = 2 // [0, 0, 2, 0, 2, 0]
-    } else {
-      partialSequence[configIdx] = 1 // [0, 1, 0, 0, 2, 1]
-    }
-  })
-
-  const calcCharateristicN = (sequence: number[]) => {
-    const max = Math.max(...sequence)
-    return sequence.reduce(
-      (acc, currentValue, currentIdx) => acc + currentValue * (max + 1) ** (sequence.length - currentIdx),
-      0
-    )
+  const sequence = Array.from({ length: originalConfigs.length }, () => 0)
+  for (const { configIdx, isEntirelyMatched } of matchedInfo.matchedConfigs) {
+    sequence[configIdx] = isEntirelyMatched ? 2 : 1 // [0, 1, 0, 0, 2, 1]
   }
-  const characteristicSequence = calcCharateristicN([
-    calcCharateristicN(entriesSequence),
-    calcCharateristicN(partialSequence) //  1 * 5 + 1 * 1
-  ])
-  return characteristicSequence
+
+  return {
+    max: () => Math.max(...sequence),
+    add: () => sequence.reduce((acc, currentValue) => acc + currentValue, 0),
+    'with-order': () =>
+      sequence.reduce(
+        (acc, currentValue, currentIdx) =>
+          acc + currentValue * (2 /* hightestPriorityN */ + 1) ** (sequence.length - currentIdx),
+        0
+      )
+  }[priorityMergeMode]()
 }

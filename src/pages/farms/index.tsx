@@ -76,6 +76,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
+import { useDebounceValue } from '@/hooks/useDebounce'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -406,6 +407,7 @@ function FarmCard() {
   const tokenType = useFarms((s) => s.tokenType)
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   const searchText = useFarms((s) => s.searchText)
+  const debouncedSearchText = useDebounceValue(searchText, { debouncedOptions: { delay: 100 } })
   const [favouriteIds] = useFarmFavoriteIds()
   const isMobile = useAppSettings((s) => s.isMobile)
   const owner = useWallet((s) => s.owner)
@@ -454,7 +456,7 @@ function FarmCard() {
               : true
             : true
         ), // token type (for option token)
-    [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
+    [onlySelfFarms, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
   const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
@@ -462,7 +464,7 @@ function FarmCard() {
     useMemo(
       () =>
         searchItems(applyFiltersDataSource, {
-          text: searchText,
+          text: debouncedSearchText,
           matchConfigs: (i) =>
             isHydratedFarmInfo(i)
               ? [
@@ -481,7 +483,7 @@ function FarmCard() {
                   { text: toPubString(i.lpMint), entirely: true }
                 ]
         }),
-      [applyFiltersDataSource, searchText]
+      [applyFiltersDataSource, debouncedSearchText]
     )
   )
 

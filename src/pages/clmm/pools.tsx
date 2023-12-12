@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
-import { CurrencyAmount, ZERO, isZero } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, ZERO } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
@@ -69,14 +69,14 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
-import { add, div, minus, sub } from '@/functions/numberish/operations'
+import { add, div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { objectFilter, objectMap } from '@/functions/objectMethods'
+import { objectFilter } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
-import { useDebounce } from '@/hooks/useDebounce'
+import { useDebounce, useDebounceValue } from '@/hooks/useDebounce'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AprChart } from '@/pageComponents/Concentrated/AprChart'
@@ -85,8 +85,6 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
-import toFraction from '@/functions/numberish/toFraction'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -584,6 +582,7 @@ function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: strin
 function PoolCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
+  const debouncedSearchText = useDebounceValue(searchText, { debouncedOptions: { delay: 200 } })
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -605,7 +604,7 @@ function PoolCard() {
         }
         return true
       }),
-    [searchText, hydratedAmmPools, currentTab]
+    [hydratedAmmPools, currentTab]
   )
 
   const applyFiltersDataSource = useMemo(() => {
@@ -617,16 +616,17 @@ function PoolCard() {
   const _searched = useMemo(
     () =>
       searchItems(applyFiltersDataSource, {
-        text: searchText,
+        text: debouncedSearchText,
         matchConfigs: (i) => [
           i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
           i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
           { text: i.idString, entirely: true },
           { text: toPubString(i.base?.mint), entirely: true },
           { text: toPubString(i.quote?.mint), entirely: true }
-        ]
+        ],
+        sortBetweenSamePriority: ({ item: itemA }, { item: itemB }) => gt(itemA.volume24h, itemB.volume24h)
       }),
-    [applyFiltersDataSource, searchText, timeBasis]
+    [applyFiltersDataSource, debouncedSearchText, timeBasis]
   )
 
   const searched = useDeferredValue(_searched)

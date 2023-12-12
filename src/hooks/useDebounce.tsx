@@ -1,6 +1,6 @@
 import { debounce, DebounceOptions, throttle, ThrottleOptions } from '@/functions/debounce'
 import { AnyFn } from '@/types/constants'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect'
 
 export function useDebounce<T extends AnyFn>(fn: T, options?: { debouncedOptions?: DebounceOptions }): T {
@@ -24,6 +24,15 @@ export function useDebounce<T extends AnyFn>(fn: T, options?: { debouncedOptions
   // @ts-expect-error froce
   return wrappedFn
 }
+export function useDebounceValue<T>(value: T, options?: { debouncedOptions?: DebounceOptions }): T {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+  const debouncedSetDebouncedValue = useDebounce(setDebouncedValue, options)
+  useEffect(() => {
+    debouncedSetDebouncedValue(value)
+  }, [value])
+  return debouncedValue
+}
+
 export function useThrottle<T extends AnyFn>(fn: T, options?: { throttleOption?: ThrottleOptions }): T {
   const fnCoreRef = useRef<T>()
   const cleanFnRef = useRef<() => void>()

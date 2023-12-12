@@ -54,7 +54,7 @@ import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
-import { useDebounce } from '@/hooks/useDebounce'
+import { useDebounce, useDebounceValue } from '@/hooks/useDebounce'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 import { MintLayout } from '@solana/spl-token'
 import toFraction from '@/functions/numberish/toFraction'
@@ -429,6 +429,7 @@ function PoolCard() {
   const jsonInfos = usePools((s) => s.jsonInfos)
 
   const searchText = usePools((s) => s.searchText)
+  const debouncedSearchText = useDebounceValue(searchText, { debouncedOptions: { delay: 200 } })
   const currentTab = usePools((s) => s.currentTab)
   const onlySelfPools = usePools((s) => s.onlySelfPools)
   const timeBasis = usePools((s) => s.timeBasis)
@@ -452,7 +453,7 @@ function PoolCard() {
         : jsonInfos.filter((i) =>
             currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official
           ) /* Tab*/, // Tab
-    [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
+    [onlySelfPools, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
   ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
 
   const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
@@ -460,7 +461,7 @@ function PoolCard() {
   const originalSearch = useMemo(
     () =>
       searchItems(dataSource, {
-        text: searchText,
+        text: debouncedSearchText,
         matchConfigs: (i) =>
           isHydratedPoolItemInfo(i)
             ? [
@@ -471,9 +472,10 @@ function PoolCard() {
                 { text: toPubString(i.base?.mint), entirely: true },
                 { text: toPubString(i.quote?.mint), entirely: true }
               ]
-            : [...i.name.split('-'), { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
+            : [...i.name.split('-'), { text: i.ammId, entirely: true }, { text: i.market, entirely: true }],
+        sortBetweenSamePriority: ({ item: itemA }, { item: itemB }) => gt(itemA.volume24h, itemB.volume24h)
       }),
-    [dataSource, isHydratedPoolItemInfo(dataSource[0]), searchText]
+    [dataSource, isHydratedPoolItemInfo(dataSource[0]), debouncedSearchText]
   )
 
   const searched = useDeferredValue(originalSearch)
