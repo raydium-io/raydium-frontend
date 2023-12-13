@@ -8,7 +8,7 @@ import useConnection from '@/application/connection/useConnection'
 import useWallet from './useWallet'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
-import { clearUpdateTokenAccData } from './useWalletAccountChangeListeners'
+import { clearUpdateTokenAccountData } from './useWalletAccountChangeListeners'
 
 /**
  * **only in `_app.tsx`**
@@ -35,7 +35,7 @@ export function useSyncWithSolanaWallet() {
 
   useIsomorphicLayoutEffect(() => {
     if (!useWallet.getState().inSimulateMode && useWallet.getState().owner != _publicKey) {
-      clearUpdateTokenAccData()
+      clearUpdateTokenAccountData()
       useWallet.setState({ owner: _publicKey ?? undefined })
     }
   }, [_publicKey])

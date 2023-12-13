@@ -58,6 +58,9 @@ export type WalletStore = {
   nativeTokenAccount: ITokenAccount | undefined
   /** raw: include no ATA (only use it in migrate detect) */
   allTokenAccounts: ITokenAccount[]
+
+  allTokenAccountMapByMints: Map<string /* Mint */, ITokenAccount[]>
+
   // it can consider QuantumSOL
   // QuantumSOL(default) / QuantumSOL(VersionSOL) will get undefined tokenAccount
   // QuantumSOL(VersionWSOL) will get WSOL tokenAccount
@@ -130,6 +133,7 @@ const useWallet = create<WalletStore>((set, get) => ({
   tokenAccountRawInfos: [],
   nativeTokenAccount: undefined,
   allTokenAccounts: [],
+  allTokenAccountMapByMints: new Map(),
   getTokenAccount(target) {
     if (!target) return undefined
     if (isQuantumSOL(target) && target.collapseTo !== 'wsol') {

@@ -42,7 +42,7 @@ export const updateAccountInfoData: {
   deleteAccount: new Set()
 }
 
-export const clearUpdateTokenAccData = () => {
+export const clearUpdateTokenAccountData = () => {
   updateAccountInfoData.nativeAccount = undefined
   updateAccountInfoData.deleteAccount.clear()
   updateAccountInfoData.tokenAccounts.clear()
