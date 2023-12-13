@@ -49,6 +49,7 @@ import Tooltip from './Tooltip'
 import { TxVersionWidget } from './navWidgets/TxVersionWidget'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import toPubString from '@/functions/format/toMintString'
+import { useNonATATokens } from '@/application/migrateToATA/useNonATATokens'
 
 /**
  * for easier to code and read
@@ -110,6 +111,7 @@ export default function PageLayout(props: {
       <div className="grid-area-d">
         <RPCPerformanceBanner className="w-full" />
         <NewConcentratedPoolBanner className="w-full" />
+        <NoneATABanner className="w-full" />
       </div>
       {isMobile ? (
         <>
@@ -194,6 +196,25 @@ function NewConcentratedPoolBanner({ className }: { className?: string }) {
             optimized tick spacing to allow for more granular price ranges on stable-pairs.
             <br /> RAY rewards have shifted from old pools to upgraded pools. Go to the Concentrated liquidity page and
             manually migrate liquidity to continue receiving RAY rewards.
+          </div>
+        )}
+      </FadeIn>
+    </div>
+  )
+}
+
+function NoneATABanner({ className }: { className?: string }) {
+  const nonATATokens = useNonATATokens()
+  const hasMigratableTokens = nonATATokens.size > 0
+  return (
+    <div className={className}>
+      <FadeIn>
+        {hasMigratableTokens && (
+          <div className="flex justify-center bg-[#dacc363f] text-center text-[#D8CB39] text-sm mobile:text-xs px-4 py-1">
+            <div>You have non-ATA tokens to migrate.</div>
+            <div>
+              Please <Link href="/migrate-to-ata">click here to migrate</Link> to new ATA account
+            </div>
           </div>
         )}
       </FadeIn>

@@ -1,9 +1,7 @@
 import useAppSettings from '@/application/common/useAppSettings'
 import { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import txMigrateToATA from '@/application/migrateToATA/txMigrateToATA'
-import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
-import { ITokenAccount } from '@/application/wallet/type'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
@@ -12,8 +10,10 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import PageLayout from '@/components/PageLayout'
-import toPubString from '@/functions/format/toMintString'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNonATATokens } from '../application/migrateToATA/useNonATATokens'
+import { toString } from '@/functions/numberish/toString'
+import Row from '@/components/Row'
 
 /**
  * temporary migrate-to-ata page
@@ -29,61 +29,12 @@ export default function MigrateToATAPage() {
   )
 }
 
-/** collect toke into  */
-function collectTokenAccountsToJSMapByMintKey(allTokenAccounts: ITokenAccount[]) {
-  const result = new Map<string /* mint string */, ITokenAccount[]>()
-  const tokenMintKey = (account: ITokenAccount) => toPubString(account.mint) ?? 'native'
-  for (const account of allTokenAccounts) {
-    if (!result.has(tokenMintKey(account))) {
-      result.set(tokenMintKey(account), [])
-    }
-    const jsSet = result.get(tokenMintKey(account))!
-    jsSet.push(account)
-  }
-  return result
-}
-
-/** provide data of non-ata(associated token address) */
-function useNonATATokens() {
-  const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
-  const getToken = useToken((s) => s.getToken)
-  type NonATAInfo = {
-    token: SplToken
-    tokenAccount: ITokenAccount
-    ataToken?: SplToken
-    ataTokenAccount?: ITokenAccount
-  }
-
-  const nonATA: Map<string /* token account address */, NonATAInfo> = useMemo(() => {
-    const resultMap = new Map<string, NonATAInfo>()
-    const allTokenAccountMapByMints = collectTokenAccountsToJSMapByMintKey(allTokenAccounts)
-    for (const tokenAccount of allTokenAccounts) {
-      if (!tokenAccount.isAssociated && !tokenAccount.isNative) {
-        const token = getToken(tokenAccount.mint)
-        if (!token) continue
-        const ataTokenAccount = allTokenAccountMapByMints
-          .get(toPubString(tokenAccount.mint))
-          ?.find((a) => a.isAssociated)
-        const ataToken = getToken(ataTokenAccount?.mint)
-        resultMap.set(toPubString(tokenAccount.publicKey), {
-          token,
-          tokenAccount,
-          ataToken,
-          ataTokenAccount
-        })
-      }
-    }
-    return resultMap
-  }, [allTokenAccounts])
-  return nonATA
-}
-
 function MigrateATAInputCard() {
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const walletConnected = useWallet((s) => s.connected)
   const toRealSymbol = useToken((s) => s.toRealSymbol)
   const nonATATokens = useNonATATokens()
-  const gridClassName = 'grid-cols-[.2fr,1fr,1.8fr,1.4fr]'
+  const gridClassName = 'grid-cols-[.1fr,1fr,1fr,1fr,1fr,1fr] px-3'
 
   const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
   const [migrateKeys, setMigrateKeys] = useState<string /* Account PublicKey */[]>([])
@@ -93,20 +44,25 @@ function MigrateATAInputCard() {
   }, [allTokenAccounts.length])
   const canMigrate = migrateKeys.length > 0
   return (
-    <Col className="gap-8 mx-auto w-[min(800px,100%)]">
+    <Col>
       <div>
-        <Grid className={`${gridClassName} gap-2`}>
+        <Grid className={`${gridClassName} gap-4`}>
           {/* select check box */}
           <div></div>
-          <div>token</div>
-          <div>mint</div>
-          <div>account</div>
+          <div className="text-[#abc4ff80]">Token</div>
+          <div className="text-[#abc4ff80]">Amount</div>
+          <div className="text-[#abc4ff80]">Mint</div>
+          <div className="text-[#abc4ff80]">Account</div>
+          <div className="text-[#abc4ff80]">ATA account</div>
         </Grid>
       </div>
       {nonATATokens.size > 0
-        ? [...nonATATokens.entries()].map(([address, { token, tokenAccount, ataToken, ataTokenAccount }]) => (
-            <div key={address}>
-              <Grid className={`${gridClassName} items-center`}>
+        ? [...nonATATokens.entries()].map(
+            ([address, { token, tokenAccount, ataToken, ataTokenAccount, tokenAmount }]) => (
+              <Grid
+                key={address}
+                className={`${gridClassName} gap-4 items-center py-3 odd:bg-[#abc4ff1a] text-[#abc4ff]`}
+              >
                 <div>
                   <Checkbox
                     defaultChecked={migrateKeys.includes(address)}
@@ -119,23 +75,31 @@ function MigrateATAInputCard() {
                     }}
                   ></Checkbox>
                 </div>
-                <div>
+                <Row className="items-center gap-2">
                   <CoinAvatar token={token} size="md" />
                   <div>{toRealSymbol(token)}</div>
-                </div>
-                <div>
-                  <AddressItem textClassName="text-lg text-[#fff]" showDigitCount={8} canCopy>
+                </Row>
+                <div className="text-lg text-[#fff]">{toString(tokenAmount)}</div>
+                <div className="justify-self-start">
+                  <AddressItem textClassName="text-md text-[#abc4ff]" showDigitCount={5} canCopy>
                     {tokenAccount.mint}
                   </AddressItem>
                 </div>
-                <div>
-                  <AddressItem textClassName="text-lg text-[#fff]" showDigitCount={8} canCopy>
+                <div className="justify-self-start">
+                  <AddressItem textClassName="text-md text-[#abc4ff]" showDigitCount={4} canCopy canExternalLink>
                     {tokenAccount.publicKey}
                   </AddressItem>
                 </div>
+                <div className="justify-self-start">
+                  {ataToken ? (
+                    <AddressItem textClassName="text-md text-[#abc4ff]" showDigitCount={4} canCopy canExternalLink>
+                      {ataTokenAccount?.publicKey}
+                    </AddressItem>
+                  ) : null}
+                </div>
               </Grid>
-            </div>
-          ))
+            )
+          )
         : null}
 
       <Button
@@ -153,7 +117,7 @@ function MigrateATAInputCard() {
           },
           {
             should: canMigrate,
-            fallbackProps: { children: 'select need migrate tokens' }
+            fallbackProps: { children: 'Select accounts to migrate' }
           }
         ]}
         onClick={() => {
