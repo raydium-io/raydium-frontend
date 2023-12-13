@@ -169,7 +169,9 @@ function MigrateATAInputCard() {
         onClick={() => {
           txMigrateToATA(migrateKeys, {
             onTxSuccess: () => {
-              refreshTokenAccounts()
+              setTimeout(() => {
+                refreshTokenAccounts()
+              }, 1000)
             }
           })
         }}
