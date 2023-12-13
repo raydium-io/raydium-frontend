@@ -96,7 +96,6 @@ const loadTokenAccounts = async (
     (a) => toPubString(a.publicKey) ?? 'native'
   )
   const newTokenAccounts = listToJSMap(allTokenAccounts, (a) => toPubString(a.publicKey) ?? 'native')
-  const allTokenAccountMapByMints = collectTokenAccountsToJSMapInMintKey(allTokenAccounts)
   const diffAccounts = shakeFalsyItem(
     [...newTokenAccounts].filter(([accountPub, { amount: newAmount }]) => {
       const pastAmount = pastTokenAccounts.get(accountPub)?.amount
@@ -114,8 +113,7 @@ const loadTokenAccounts = async (
       tokenAccountRawInfos,
       nativeTokenAccount,
       tokenAccounts,
-      allTokenAccounts,
-      allTokenAccountMapByMints
+      allTokenAccounts
     })
   } else {
     // try in 'finalized'
@@ -154,17 +152,4 @@ export async function getRichWalletTokenAccounts(...params: Parameters<typeof ge
     tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
     allTokenAccounts: allTokenAccounts
   }
-}
-
-function collectTokenAccountsToJSMapInMintKey(allTokenAccounts: ITokenAccount[]) {
-  const result = new Map<string /* mint string */, ITokenAccount[]>()
-  const tokenMintKey = (account: ITokenAccount) => toPubString(account.mint) ?? 'native'
-  for (const account of allTokenAccounts) {
-    if (!result.has(tokenMintKey(account))) {
-      result.set(tokenMintKey(account), [])
-    }
-    const jsSet = result.get(tokenMintKey(account))!
-    jsSet.push(account)
-  }
-  return result
 }

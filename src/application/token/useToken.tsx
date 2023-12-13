@@ -82,6 +82,9 @@ export type TokenStore = {
   // url may be 'sol'
   fromUrlString(mintlike: string): SplToken | QuantumSOLToken
 
+  // QuantumSOLVersionWSOL will be 'WSOL'
+  toRealSymbol(token: SplToken | undefined): string
+
   isLpToken(mint: PublicKeyish | undefined): boolean
 
   /** it does't contain lp tokens' price  */
@@ -180,7 +183,7 @@ export const useToken = create<TokenStore>((set, get) => ({
   getLpToken: (mint) => get().lpTokens[toPubString(mint)],
 
   toUrlMint: (token: SplToken | QuantumSOLToken | undefined) =>
-    isQuantumSOL(token) ? (isQuantumSOLVersionWSOL(token) ? String(WSOLMint) : SOLUrlMint) : String(token?.mint ?? ''),
+    isQuantumSOL(token) ? (isQuantumSOLVersionWSOL(token) ? String(WSOLMint) : SOLUrlMint) : token?.mintString ?? '',
 
   fromUrlString: (mintlike: string) =>
     mintlike === SOLUrlMint
@@ -188,6 +191,9 @@ export const useToken = create<TokenStore>((set, get) => ({
       : mintlike === String(WSOLMint)
       ? QuantumSOLVersionWSOL
       : get().tokens[mintlike],
+
+  toRealSymbol: (token: SplToken | undefined) =>
+    isQuantumSOL(token) ? (isQuantumSOLVersionWSOL(token) ? 'WSOL' : 'SOL') : token?.symbol ?? '',
 
   isLpToken: () => false,
 
