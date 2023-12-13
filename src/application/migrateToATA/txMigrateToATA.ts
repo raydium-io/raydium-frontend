@@ -1,15 +1,20 @@
 import { InnerSimpleTransaction, InstructionType, Spl } from '@raydium-io/raydium-sdk'
-import { createAssociatedTokenAccountInstruction, createCloseAccountInstruction, createTransferInstruction } from '@solana/spl-token'
+import {
+  createAssociatedTokenAccountInstruction,
+  createCloseAccountInstruction,
+  createTransferInstruction
+} from '@solana/spl-token'
 import { PublicKey } from '@solana/web3.js'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import txHandler from '../txTools/handleTx'
 import { ITokenAccount } from '../wallet/type'
 import useWallet from '../wallet/useWallet'
 
-export default function txMigrateToATA(selectedTokenAccountKeys: string[]) {
-  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { programIds } = useAppAdvancedSettings.getState()
-    const { allTokenAccounts, txVersion } = useWallet.getState()
+/**
+ * @author Rudy
+ */
+export default function txMigrateToATA(selectedTokenAccounts: string[]) {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
+    const { allTokenAccounts } = useWallet.getState()
 
     const ataAdd: { [key: string]: PublicKey } = {}
     const allAdd: { [key: string]: ITokenAccount } = {}
@@ -20,8 +25,8 @@ export default function txMigrateToATA(selectedTokenAccountKeys: string[]) {
     }
 
     const ins: InnerSimpleTransaction[] = []
-    for (const item of selectedTokenAccountKeys) {
-      const keyMint = allAdd[item]
+    for (const noneATAAccountPublicKey of selectedTokenAccounts) {
+      const keyMint = allAdd[noneATAAccountPublicKey]
       let mintAta = ataAdd[keyMint.mint!.toString()]
 
       const itemIns: InnerSimpleTransaction = {
@@ -36,33 +41,27 @@ export default function txMigrateToATA(selectedTokenAccountKeys: string[]) {
         ataAdd[keyMint.mint!.toString()] = ata
         mintAta = ata
 
-        itemIns.instructions.push(createAssociatedTokenAccountInstruction(
-          owner,
-          ata,
-          owner,
-          keyMint.mint!,
-          keyMint.programId,
-        ))
+        itemIns.instructions.push(
+          createAssociatedTokenAccountInstruction(owner, ata, owner, keyMint.mint!, keyMint.programId)
+        )
         itemIns.instructionTypes.push(InstructionType.createATA)
       }
 
-      itemIns.instructions.push(createTransferInstruction(
-        new PublicKey(item),
-        mintAta,
-        owner,
-        BigInt(keyMint.amount.toString()),
-        [],
-        keyMint.programId,
-      ))
+      itemIns.instructions.push(
+        createTransferInstruction(
+          new PublicKey(noneATAAccountPublicKey),
+          mintAta,
+          owner,
+          BigInt(keyMint.amount.toString()),
+          [],
+          keyMint.programId
+        )
+      )
       itemIns.instructionTypes.push(InstructionType.transferAmount)
 
-      itemIns.instructions.push(createCloseAccountInstruction(
-        new PublicKey(item),
-        owner,
-        owner,
-        [],
-        keyMint.programId,
-      ))
+      itemIns.instructions.push(
+        createCloseAccountInstruction(new PublicKey(noneATAAccountPublicKey), owner, owner, [], keyMint.programId)
+      )
       itemIns.instructionTypes.push(InstructionType.closeAccount)
 
       ins.push(itemIns)
@@ -73,8 +72,8 @@ export default function txMigrateToATA(selectedTokenAccountKeys: string[]) {
     }
     transactionCollector.add(ins, {
       txHistoryInfo: {
-        title: 'PDA Migrate',
-        description: `Migrate PDA from V1 to V2 and harvest`
+        title: 'Migrate to ATA',
+        description: `Migrate to ATA`
       }
     })
   })

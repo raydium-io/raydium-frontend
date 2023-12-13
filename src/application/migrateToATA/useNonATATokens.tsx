@@ -23,6 +23,7 @@ function collectTokenAccountsToJSMapByMintKey(allTokenAccounts: ITokenAccount[])
 export function useNonATATokens() {
   const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
   const getToken = useToken((s) => s.getToken)
+  const tokens = useToken((s) => s.tokens)
   type NonATAInfo = {
     token: SplToken
     tokenAmount: TokenAmount
@@ -52,6 +53,6 @@ export function useNonATATokens() {
       }
     }
     return resultMap
-  }, [allTokenAccounts])
+  }, [allTokenAccounts, tokens])
   return nonATA
 }

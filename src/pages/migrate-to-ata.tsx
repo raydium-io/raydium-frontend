@@ -124,7 +124,7 @@ function MigrateATAInputCard() {
           txMigrateToATA(migrateKeys)
         }}
       >
-        Migrate selected accounts
+        Migrate to ATA
       </Button>
     </Col>
   )
