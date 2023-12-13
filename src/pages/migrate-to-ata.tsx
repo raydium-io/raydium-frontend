@@ -14,6 +14,8 @@ import { useEffect, useState } from 'react'
 import { useNonATATokens } from '../application/migrateToATA/useNonATATokens'
 import { toString } from '@/functions/numberish/toString'
 import Row from '@/components/Row'
+import { refreshTokenAccounts } from '@/application/wallet/useTokenAccountsRefresher'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 /**
  * temporary migrate-to-ata page
@@ -39,9 +41,14 @@ function MigrateATAInputCard() {
   const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
   const [migrateKeys, setMigrateKeys] = useState<string /* Account PublicKey */[]>([])
   // reset when accounts number changed
-  useEffect(() => {
-    setMigrateKeys([])
-  }, [allTokenAccounts.length])
+  useRecordedEffect(
+    ([prevLength = 0], [currentLength]) => {
+      if (prevLength >= currentLength) {
+        setMigrateKeys([])
+      }
+    },
+    [allTokenAccounts.length]
+  )
   const canMigrate = migrateKeys.length > 0
   return (
     <Col>
@@ -61,7 +68,7 @@ function MigrateATAInputCard() {
             ([address, { token, tokenAccount, ataToken, ataTokenAccount, tokenAmount }]) => (
               <Grid
                 key={address}
-                className={`${gridClassName} gap-4 items-center py-3 odd:bg-[#abc4ff1a] text-[#abc4ff]`}
+                className={`${gridClassName} gap-4 rounded-lg items-center py-3 odd:bg-[#abc4ff1a] text-[#abc4ff]`}
               >
                 <div>
                   <Checkbox
@@ -121,7 +128,11 @@ function MigrateATAInputCard() {
           }
         ]}
         onClick={() => {
-          txMigrateToATA(migrateKeys)
+          txMigrateToATA(migrateKeys, {
+            onTxSuccess: () => {
+              refreshTokenAccounts()
+            }
+          })
         }}
       >
         Migrate to ATA

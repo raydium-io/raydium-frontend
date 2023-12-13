@@ -53,6 +53,6 @@ export function useNonATATokens() {
       }
     }
     return resultMap
-  }, [allTokenAccounts, tokens])
+  }, [allTokenAccounts.length, tokens])
   return nonATA
 }

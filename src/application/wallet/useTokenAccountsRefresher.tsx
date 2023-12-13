@@ -18,7 +18,6 @@ import { makeAbortable } from '@/functions/makeAbortable'
 import { eq } from '@/functions/numberish/compare'
 import useConcentrated from '../concentrated/useConcentrated'
 import { clearUpdateTokenAccountData } from './useWalletAccountChangeListeners'
-import { ITokenAccount } from './type'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -45,7 +44,6 @@ export default function useTokenAccountsRefresher(): void {
   // }, [connection, owner])
 
   useEffect(() => {
-    if (!connection || !owner) return
     let abort: () => void
     let stopPrevListener: () => void
     const timerId = window.setTimeout(
@@ -79,13 +77,33 @@ export default function useTokenAccountsRefresher(): void {
   ])
 }
 
+/** a utils */
+export function refreshTokenAccounts() {
+  const connection = useConnection((s) => s.connection)
+  const owner = useWallet((s) => s.owner)
+  const { abort } = makeAbortable((canContinue) => {
+    loadTokenAccounts(connection, owner, canContinue, { noSecondTry: true })
+  })
+  return abort
+}
+
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
 const loadTokenAccounts = async (
-  connection: Connection,
-  owner: PublicKey,
+  connection?: Connection,
+  owner?: PublicKey,
   canContinue: () => boolean = () => true,
   options?: { noSecondTry?: boolean }
 ) => {
+  if (!owner || !connection) {
+    useWallet.setState({
+      tokenAccountsOwner: owner,
+      tokenAccountRawInfos: [],
+      nativeTokenAccount: undefined,
+      tokenAccounts: [],
+      allTokenAccounts: []
+    })
+    return
+  }
   const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
     await getRichWalletTokenAccounts({ connection, owner })
 

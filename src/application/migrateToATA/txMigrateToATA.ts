@@ -12,7 +12,7 @@ import useWallet from '../wallet/useWallet'
 /**
  * @author Rudy
  */
-export default function txMigrateToATA(selectedTokenAccounts: string[]) {
+export default function txMigrateToATA(selectedTokenAccounts: string[], options?: { onTxSuccess?: () => void }) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
     const { allTokenAccounts } = useWallet.getState()
 
@@ -44,6 +44,7 @@ export default function txMigrateToATA(selectedTokenAccounts: string[]) {
         itemIns.instructions.push(
           createAssociatedTokenAccountInstruction(owner, ata, owner, keyMint.mint!, keyMint.programId)
         )
+
         itemIns.instructionTypes.push(InstructionType.createATA)
       }
 
@@ -57,6 +58,7 @@ export default function txMigrateToATA(selectedTokenAccounts: string[]) {
           keyMint.programId
         )
       )
+
       itemIns.instructionTypes.push(InstructionType.transferAmount)
 
       itemIns.instructions.push(
@@ -74,6 +76,9 @@ export default function txMigrateToATA(selectedTokenAccounts: string[]) {
       txHistoryInfo: {
         title: 'Migrate to ATA',
         description: `Migrate to ATA`
+      },
+      onTxSuccess() {
+        options?.onTxSuccess?.()
       }
     })
   })
