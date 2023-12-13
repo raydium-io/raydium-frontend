@@ -44,6 +44,7 @@ export async function getWalletTokenAccounts({
     const { mint, amount } = rawResult
     const associatedTokenAddress = Spl.getAssociatedTokenAccount({ mint, owner, programId: account.owner })
     accounts.push({
+      programId: account.owner,
       publicKey: pubkey,
       mint,
       isAssociated: associatedTokenAddress.equals(pubkey),

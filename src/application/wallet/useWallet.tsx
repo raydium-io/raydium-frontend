@@ -58,6 +58,7 @@ export type WalletStore = {
   nativeTokenAccount: ITokenAccount | undefined
   /** raw: include no ATA (only use it in migrate detect) */
   allTokenAccounts: ITokenAccount[]
+
   // it can consider QuantumSOL
   // QuantumSOL(default) / QuantumSOL(VersionSOL) will get undefined tokenAccount
   // QuantumSOL(VersionWSOL) will get WSOL tokenAccount

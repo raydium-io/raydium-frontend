@@ -7,6 +7,7 @@ export interface ITokenAccount {
   programId?: PublicKey
   publicKey?: PublicKey
   mint?: PublicKey
+  /** is ATA */
   isAssociated?: boolean
   amount: BN
   isNative: boolean

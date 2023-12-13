@@ -13,7 +13,7 @@ import { isFunction } from '@/functions/judgers/dateType'
  * - 2 `React.useRef()`
  */
 export function useRecordedEffect<T extends readonly any[]>(
-  effectFn: (prevDependenceList: T | undefined[]) => ((...params: any) => any) | any,
+  effectFn: (prevDependenceList: T | undefined[], currentDependenceList: T) => ((...params: any) => any) | any,
   dependenceList: readonly [...T],
   options?: {
     /**useful when item of dependenceList is object */
@@ -25,7 +25,7 @@ export function useRecordedEffect<T extends readonly any[]>(
   const compareFunction = options?.shallowShallow ? areShallowShallowEqual : areShallowEqual
   useEffect(() => {
     if (prevValue.current.length && compareFunction(prevValue.current, dependenceList)) return cleanupFn.current
-    const returnedFn = effectFn(prevValue.current)
+    const returnedFn = effectFn(prevValue.current, dependenceList as T)
     // @ts-expect-error force
     prevValue.current = dependenceList
     cleanupFn.current = returnedFn
