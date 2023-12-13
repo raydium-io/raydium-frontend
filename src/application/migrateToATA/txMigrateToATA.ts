@@ -1,4 +1,4 @@
-import { InnerSimpleTransaction, InstructionType, Spl } from '@raydium-io/raydium-sdk'
+import { InnerSimpleTransaction, InnerTransaction, InstructionType, Spl, TxVersion, splitTxAndSigners } from '@raydium-io/raydium-sdk'
 import {
   createAssociatedTokenAccountInstruction,
   createCloseAccountInstruction,
@@ -13,8 +13,8 @@ import useWallet from '../wallet/useWallet'
  * @author Rudy
  */
 export default function txMigrateToATA(selectedTokenAccounts: string[], options?: { onTxSuccess?: () => void }) {
-  return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
-    const { allTokenAccounts } = useWallet.getState()
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+    const { allTokenAccounts, } = useWallet.getState()
 
     const ataAdd: { [key: string]: PublicKey } = {}
     const allAdd: { [key: string]: ITokenAccount } = {}
@@ -24,12 +24,12 @@ export default function txMigrateToATA(selectedTokenAccounts: string[], options?
       allAdd[item.publicKey.toString()] = item
     }
 
-    const ins: InnerSimpleTransaction[] = []
+    const ins: InnerTransaction[] = []
     for (const noneATAAccountPublicKey of selectedTokenAccounts) {
       const keyMint = allAdd[noneATAAccountPublicKey]
       let mintAta = ataAdd[keyMint.mint!.toString()]
 
-      const itemIns: InnerSimpleTransaction = {
+      const itemIns: InnerTransaction = {
         instructionTypes: [],
         instructions: [],
         signers: []
@@ -48,16 +48,17 @@ export default function txMigrateToATA(selectedTokenAccounts: string[], options?
         itemIns.instructionTypes.push(InstructionType.createATA)
       }
 
-      itemIns.instructions.push(
-        createTransferInstruction(
-          new PublicKey(noneATAAccountPublicKey),
-          mintAta,
-          owner,
-          BigInt(keyMint.amount.toString()),
-          [],
-          keyMint.programId
+      if (!keyMint.amount.isZero())
+        itemIns.instructions.push(
+          createTransferInstruction(
+            new PublicKey(noneATAAccountPublicKey),
+            mintAta,
+            owner,
+            BigInt(keyMint.amount.toString()),
+            [],
+            keyMint.programId
+          )
         )
-      )
 
       itemIns.instructionTypes.push(InstructionType.transferAmount)
 
@@ -72,7 +73,12 @@ export default function txMigrateToATA(selectedTokenAccounts: string[], options?
     if (!ins.length) {
       throw new Error('No account needs to be migrate')
     }
-    transactionCollector.add(ins, {
+    transactionCollector.add(await splitTxAndSigners({
+      connection,
+      makeTxVersion: TxVersion.LEGACY,
+      payer: owner,
+      innerTransaction: ins,
+    }), {
       txHistoryInfo: {
         title: 'Migrate to ATA',
         description: `Migrate to ATA`
