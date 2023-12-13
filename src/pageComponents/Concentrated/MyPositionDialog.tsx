@@ -350,6 +350,7 @@ function MyPositionCardHeader({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isEmptyPosition = targetUserPositionAccount?.liquidity.isZero()
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
   return (
     <Row className={twMerge('justify-between gap-2 flex-wrap', className)}>
@@ -380,6 +381,7 @@ function MyPositionCardHeader({ className }: { className?: string }) {
           <Button
             className="frosted-glass-teal ghost mobile:grow"
             size={isMobile ? 'sm' : undefined}
+            isLoading={isApprovePanelShown}
             onClick={() => {
               useConcentrated.setState({
                 liquidity: targetUserPositionAccount?.liquidity,
@@ -405,6 +407,7 @@ function MyPositionCardHeader({ className }: { className?: string }) {
           <Button
             className="frosted-glass-teal ghost mobile:grow"
             size={isMobile ? 'sm' : undefined}
+            isLoading={isApprovePanelShown}
             onClick={() => {
               useConcentrated.setState({
                 isRemoveDialogOpen: true,
