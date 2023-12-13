@@ -41,6 +41,7 @@ function MigrateATAInputCard() {
 
   const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
   const [migrateKeys, setMigrateKeys] = useState<string /* Account PublicKey */[]>([])
+
   // reset when accounts number changed
   useRecordedEffect(
     ([prevLength = 0], [currentLength]) => {
@@ -51,8 +52,6 @@ function MigrateATAInputCard() {
     [allTokenAccounts.length]
   )
 
-  const isAllSelected = migrateKeys.length === nonATATokens.size
-
   const canMigrate = migrateKeys.length > 0
   return (
     <Col>
@@ -61,7 +60,7 @@ function MigrateATAInputCard() {
           {/* select check box */}
           <div>
             <Checkbox
-              checked={isAllSelected}
+              checked={nonATATokens.size >= 1 && migrateKeys.length === nonATATokens.size}
               onChange={(checked) => {
                 if (checked) {
                   setMigrateKeys([...nonATATokens.keys()])
