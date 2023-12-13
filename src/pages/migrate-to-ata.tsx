@@ -1,7 +1,7 @@
 import useAppSettings from '@/application/common/useAppSettings'
-import { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import txMigrateToATA from '@/application/migrateToATA/txMigrateToATA'
 import useToken from '@/application/token/useToken'
+import { refreshTokenAccounts } from '@/application/wallet/useTokenAccountsRefresher'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
@@ -10,12 +10,11 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import PageLayout from '@/components/PageLayout'
-import { useEffect, useState } from 'react'
-import { useNonATATokens } from '../application/migrateToATA/useNonATATokens'
-import { toString } from '@/functions/numberish/toString'
 import Row from '@/components/Row'
-import { refreshTokenAccounts } from '@/application/wallet/useTokenAccountsRefresher'
+import { toString } from '@/functions/numberish/toString'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { useState } from 'react'
+import { useNonATATokens } from '../application/migrateToATA/useNonATATokens'
 
 /**
  * temporary migrate-to-ata page
@@ -32,11 +31,13 @@ export default function MigrateToATAPage() {
 }
 
 function MigrateATAInputCard() {
+  const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const walletConnected = useWallet((s) => s.connected)
   const toRealSymbol = useToken((s) => s.toRealSymbol)
   const nonATATokens = useNonATATokens()
-  const gridClassName = 'grid-cols-[.1fr,1fr,1fr,1fr,1fr,1fr] px-3'
+  const gridClassName =
+    'grid-cols-[.1fr,1fr,1fr,1fr,1fr,1fr] mobile:grid-cols-[.1fr,2fr,2fr,2fr,2fr] gap-4 mobile:gap-2 px-3 mobile:px-2'
 
   const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
   const [migrateKeys, setMigrateKeys] = useState<string /* Account PublicKey */[]>([])
@@ -49,18 +50,32 @@ function MigrateATAInputCard() {
     },
     [allTokenAccounts.length]
   )
+
+  const isAllSelected = migrateKeys.length === nonATATokens.size
+
   const canMigrate = migrateKeys.length > 0
   return (
     <Col>
-      <div>
-        <Grid className={`${gridClassName} gap-4`}>
+      <div className="mb-2 text-lg mobile:text-sm">
+        <Grid className={`${gridClassName}`}>
           {/* select check box */}
-          <div></div>
+          <div>
+            <Checkbox
+              checked={isAllSelected}
+              onChange={(checked) => {
+                if (checked) {
+                  setMigrateKeys([...nonATATokens.keys()])
+                } else {
+                  setMigrateKeys([])
+                }
+              }}
+            />
+          </div>
           <div className="text-[#abc4ff80]">Token</div>
           <div className="text-[#abc4ff80]">Amount</div>
           <div className="text-[#abc4ff80]">Mint</div>
           <div className="text-[#abc4ff80]">Account</div>
-          <div className="text-[#abc4ff80]">ATA account</div>
+          {!isMobile && <div className="text-[#abc4ff80]">ATA account</div>}
         </Grid>
       </div>
       {nonATATokens.size > 0
@@ -68,11 +83,11 @@ function MigrateATAInputCard() {
             ([address, { token, tokenAccount, ataToken, ataTokenAccount, tokenAmount }]) => (
               <Grid
                 key={address}
-                className={`${gridClassName} gap-4 rounded-lg items-center py-3 odd:bg-[#abc4ff1a] text-[#abc4ff]`}
+                className={`${gridClassName}  rounded-lg items-center py-3 odd:bg-[#abc4ff1a] text-[#abc4ff]`}
               >
                 <div>
                   <Checkbox
-                    defaultChecked={migrateKeys.includes(address)}
+                    checked={migrateKeys.includes(address)}
                     onChange={(checked) => {
                       if (checked) {
                         setMigrateKeys((keys) => [...keys, address])
@@ -82,28 +97,52 @@ function MigrateATAInputCard() {
                     }}
                   ></Checkbox>
                 </div>
-                <Row className="items-center gap-2">
-                  <CoinAvatar token={token} size="md" />
-                  <div>{toRealSymbol(token)}</div>
+                <Row className="items-center mobile:flex-col gap-2 mobile:gap-0 mobile:items-start">
+                  <CoinAvatar token={token} size={isMobile ? 'sm' : 'md'} />
+                  <div className={isMobile ? 'text-sm' : undefined}>{toRealSymbol(token)}</div>
                 </Row>
-                <div className="text-lg text-[#fff]">{toString(tokenAmount)}</div>
+                <div className="text-lg mobile:text-base text-[#fff]">{toString(tokenAmount)}</div>
+                {
+                  <div className="justify-self-start">
+                    <AddressItem
+                      iconSize={isMobile ? 'xs' : undefined}
+                      textClassName="text-md mobile:text-xs text-[#abc4ff]"
+                      showDigitCount={isMobile ? 3 : 5}
+                      canCopy
+                      showCopyIcon={!isMobile}
+                    >
+                      {tokenAccount.mint}
+                    </AddressItem>
+                  </div>
+                }
                 <div className="justify-self-start">
-                  <AddressItem textClassName="text-md text-[#abc4ff]" showDigitCount={5} canCopy>
-                    {tokenAccount.mint}
-                  </AddressItem>
-                </div>
-                <div className="justify-self-start">
-                  <AddressItem textClassName="text-md text-[#abc4ff]" showDigitCount={4} canCopy canExternalLink>
+                  <AddressItem
+                    iconSize={isMobile ? 'xs' : undefined}
+                    textClassName="text-md mobile:text-xs text-[#abc4ff]"
+                    showDigitCount={isMobile ? 3 : 4}
+                    canCopy
+                    showCopyIcon={!isMobile}
+                    canExternalLink
+                  >
                     {tokenAccount.publicKey}
                   </AddressItem>
                 </div>
-                <div className="justify-self-start">
-                  {ataToken ? (
-                    <AddressItem textClassName="text-md text-[#abc4ff]" showDigitCount={4} canCopy canExternalLink>
-                      {ataTokenAccount?.publicKey}
-                    </AddressItem>
-                  ) : null}
-                </div>
+                {!isMobile && (
+                  <div className="justify-self-start">
+                    {ataToken ? (
+                      <AddressItem
+                        iconSize={isMobile ? 'xs' : undefined}
+                        textClassName="text-md mobile:text-xs text-[#abc4ff]"
+                        showDigitCount={isMobile ? 3 : 4}
+                        canCopy
+                        showCopyIcon={!isMobile}
+                        canExternalLink
+                      >
+                        {ataTokenAccount?.publicKey}
+                      </AddressItem>
+                    ) : null}
+                  </div>
+                )}
               </Grid>
             )
           )
@@ -111,7 +150,7 @@ function MigrateATAInputCard() {
 
       <Button
         size="lg"
-        className="w-full frosted-glass-teal mt-5"
+        className="mx-auto w-[40em] mobile:w-full frosted-glass-teal mt-5"
         isLoading={isApprovePanelShown}
         validators={[
           {
