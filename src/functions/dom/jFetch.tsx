@@ -1,11 +1,8 @@
-import { refreshWindow } from '@/application/common/forceWindowRefresh'
 import useNotification from '@/application/notification/useNotification'
-import Button from '@/components/Button'
 import { MayPromise } from '@/types/constants'
 
 import assert from '../assert'
 import { isString } from '../judgers/dateType'
-import { isInBonsaiTest, isInLocalhost } from '../judgers/isSSR'
 
 // TODO: feture: use standard server-worker instead. see (https://developers.google.com/web/fundamentals/primers/service-workers)
 type ResourceUrl = string
@@ -92,7 +89,9 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
 
       // fetch  core
       const response = (
-        key.includes('uapi.raydium.io') ? fetch(input, { ...options, headers: options?.headers }) : fetch(input, options)
+        key.includes('uapi.raydium.io')
+          ? fetch(input, { ...options, headers: options?.headers })
+          : fetch(input, options)
       )
         // add version for debug
         .finally(() => {

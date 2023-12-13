@@ -212,8 +212,8 @@ function NoneATABanner({ className }: { className?: string }) {
         {hasMigratableTokens && (
           <div className="flex justify-center bg-[#dacc363f] text-center text-[#D8CB39] text-sm mobile:text-xs px-4 py-1">
             <div>
-              You have non-ATA tokens to migrate. Please <Link href="/migrate-to-ata">click here to migrate</Link> to
-              new ATA account
+              You have non-ATA tokens to migrate. Please <Link href="/debug">click here to migrate</Link> to new ATA
+              account
             </div>
           </div>
         )}

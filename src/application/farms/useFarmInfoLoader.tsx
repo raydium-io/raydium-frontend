@@ -15,7 +15,6 @@ import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { fetchFarmAprJsonInfos, fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
