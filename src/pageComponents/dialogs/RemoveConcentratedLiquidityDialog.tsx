@@ -136,7 +136,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
         tickLower: position.tickLower,
         tickUpper: position.tickUpper,
         token2022Infos,
-        epochInfo
+        epochInfo,
+        amountAddFee: false
       })
 
       const coin1Amount = toTokenAmount(

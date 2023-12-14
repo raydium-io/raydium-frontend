@@ -70,7 +70,8 @@ export default React.memo(function ConcentratedLiquiditySlider({ isAdd = false }
         tickLower: position.tickLower,
         tickUpper: position.tickUpper,
         token2022Infos,
-        epochInfo
+        epochInfo,
+        amountAddFee: false
       })
       setUserDataToStore({
         coin1Amount: toTokenAmount(

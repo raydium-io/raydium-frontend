@@ -31,7 +31,8 @@ export async function getResultAmountByTick({
     tickUpper: Math.max(tickLower, tickUpper),
     slippage: slippage,
     token2022Infos,
-    epochInfo
+    epochInfo,
+    amountHasFee: true,
   })
   return {
     resultBaseAmount: toTokenAmount(baseAmount.token, amountA.amount),
