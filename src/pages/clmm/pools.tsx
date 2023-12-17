@@ -982,36 +982,38 @@ function PoolCardDatabaseBody({
   return !loading && (searchedItemsLength === 0 || (searchedItemsLength !== 0 && sortedItems?.length === 0)) ? (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   ) : sortedItems && sortedItems.length ? (
-    <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-      {sortedItems.map((info) => (
-        <List.Item key={info.idString}>
-          <Collapse
-            open={expandedItemIds.has(info.idString)}
-            onToggle={() =>
-              useConcentrated.setState((s) => ({ expandedItemIds: toggleSetItem(s.expandedItemIds, info.idString) }))
-            }
-          >
-            <Collapse.Face>
-              {({ isOpen }) => (
-                <PoolCardDatabaseBodyCollapseItemFace
-                  open={isOpen}
-                  info={info}
-                  isFavourite={favouriteIds?.includes(info.idString)}
-                  onUnFavorite={(ammId) => {
-                    setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
-                  }}
-                  onStartFavorite={(ammId) => {
-                    setFavouriteIds((ids) => addItem(ids ?? [], ammId))
-                  }}
-                />
-              )}
-            </Collapse.Face>
-            <Collapse.Body>
-              {({ isOpen }) => <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} open={isOpen} />}
-            </Collapse.Body>
-          </Collapse>
-        </List.Item>
-      ))}
+    <List
+      items={sortedItems}
+      getItemKey={(item) => item.idString}
+      className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */
+    >
+      {(info) => (
+        <Collapse
+          open={expandedItemIds.has(info.idString)}
+          onToggle={() =>
+            useConcentrated.setState((s) => ({ expandedItemIds: toggleSetItem(s.expandedItemIds, info.idString) }))
+          }
+        >
+          <Collapse.Face>
+            {({ isOpen }) => (
+              <PoolCardDatabaseBodyCollapseItemFace
+                open={isOpen}
+                info={info}
+                isFavourite={favouriteIds?.includes(info.idString)}
+                onUnFavorite={(ammId) => {
+                  setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
+                }}
+                onStartFavorite={(ammId) => {
+                  setFavouriteIds((ids) => addItem(ids ?? [], ammId))
+                }}
+              />
+            )}
+          </Collapse.Face>
+          <Collapse.Body>
+            {({ isOpen }) => <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} open={isOpen} />}
+          </Collapse.Body>
+        </Collapse>
+      )}
     </List>
   ) : (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">

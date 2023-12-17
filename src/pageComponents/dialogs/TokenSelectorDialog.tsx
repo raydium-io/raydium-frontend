@@ -41,6 +41,7 @@ import { searchItems } from '@/functions/searchItems'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
+import { availableParallelism } from 'os'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -255,14 +256,12 @@ function TokenSelectorDialogContent({
             <div className="text-xl font-semibold text-white">Token List Settings</div>
             <div></div>
           </Row>
-          <List className="p-2 grid mt-2 overflow-auto max-h-[70vh]">
-            {Object.entries(tokenListSettings)
-              .map(([name]) => name as SupportedTokenListSettingName)
-              .map((availableTokenListName) => (
-                <List.Item key={availableTokenListName}>
-                  <TokenSelectorDialogTokenListItem tokenListName={availableTokenListName} />
-                </List.Item>
-              ))}
+          <List
+            items={Object.entries(tokenListSettings).map(([name]) => name as SupportedTokenListSettingName)}
+            getItemKey={(item) => item}
+            className="p-2 grid mt-2 overflow-auto max-h-[70vh]"
+          >
+            {(availableTokenListName) => <TokenSelectorDialogTokenListItem tokenListName={availableTokenListName} />}
           </List>
         </div>
       ) : (

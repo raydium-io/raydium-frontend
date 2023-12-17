@@ -933,149 +933,151 @@ function UserLiquidityExhibition() {
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
       <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
-        <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
-          {exhibitionInfos.map((info, idx) => {
+        <List
+          items={exhibitionInfos}
+          getItemKey={(info) => toPubString(info.id)}
+          className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}
+        >
+          {(info) => {
             const canMigrate = migrationJsonInfo?.some((m) => m.ammId === toPubString(info.id))
             return (
-              <List.Item key={idx}>
-                <FadeIn>
-                  <Collapse className="ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl">
-                    <Collapse.Face>
-                      {({ isOpen }) => (
-                        <Row className="items-center justify-between py-4 px-6 mobile:px-4">
-                          <Row className="gap-2 items-center">
-                            <CoinAvatarPair
-                              className="justify-self-center"
-                              token1={info.baseToken}
-                              token2={info.quoteToken}
-                              size={isMobile ? 'sm' : 'md'}
-                            />
-                            <div className="text-base font-normal text-[#abc4ff]">
-                              {info.baseToken?.symbol ?? ''}/{info.quoteToken?.symbol ?? ''}
-                            </div>
-                          </Row>
-                          <Icon
-                            size="sm"
-                            className="text-[#abc4ff]"
-                            heroIconName={`${isOpen ? 'chevron-up' : 'chevron-down'}`}
+              <FadeIn>
+                <Collapse className="ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl">
+                  <Collapse.Face>
+                    {({ isOpen }) => (
+                      <Row className="items-center justify-between py-4 px-6 mobile:px-4">
+                        <Row className="gap-2 items-center">
+                          <CoinAvatarPair
+                            className="justify-self-center"
+                            token1={info.baseToken}
+                            token2={info.quoteToken}
+                            size={isMobile ? 'sm' : 'md'}
                           />
+                          <div className="text-base font-normal text-[#abc4ff]">
+                            {info.baseToken?.symbol ?? ''}/{info.quoteToken?.symbol ?? ''}
+                          </div>
                         </Row>
-                      )}
-                    </Collapse.Face>
-                    <Collapse.Body>
-                      <div className="pb-4 px-6 mobile:px-4">
-                        <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Base)</div>
-                            <div
-                              className="text-xs mobile:text-2xs font-medium text-white"
-                              title={toPubString(info.baseToken?.mint)}
-                            >
-                              {toString(info.userBasePooled) || '--'} {info.baseToken?.symbol}
-                            </div>
-                          </Row>
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Quote)</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
-                              {toString(info.userQuotePooled) || '--'} {info.quoteToken?.symbol}
-                            </div>
-                          </Row>
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your Liquidity</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
-                              {info.lpMint
-                                ? toString(div(rawBalances[String(info.lpMint)], 10 ** info.lpDecimals), {
-                                    decimalLength: `auto ${info.lpDecimals}`
-                                  })
-                                : '--'}{' '}
-                              LP
-                            </div>
-                          </Row>
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your share</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
-                              {computeSharePercentValue(info.sharePercent)}
-                            </div>
-                          </Row>
-                        </Col>
-                        <Row className="gap-4 mb-1">
+                        <Icon
+                          size="sm"
+                          className="text-[#abc4ff]"
+                          heroIconName={`${isOpen ? 'chevron-up' : 'chevron-down'}`}
+                        />
+                      </Row>
+                    )}
+                  </Collapse.Face>
+                  <Collapse.Body>
+                    <div className="pb-4 px-6 mobile:px-4">
+                      <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
+                        <Row className="justify-between">
+                          <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Base)</div>
+                          <div
+                            className="text-xs mobile:text-2xs font-medium text-white"
+                            title={toPubString(info.baseToken?.mint)}
+                          >
+                            {toString(info.userBasePooled) || '--'} {info.baseToken?.symbol}
+                          </div>
+                        </Row>
+                        <Row className="justify-between">
+                          <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Quote)</div>
+                          <div className="text-xs mobile:text-2xs font-medium text-white">
+                            {toString(info.userQuotePooled) || '--'} {info.quoteToken?.symbol}
+                          </div>
+                        </Row>
+                        <Row className="justify-between">
+                          <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your Liquidity</div>
+                          <div className="text-xs mobile:text-2xs font-medium text-white">
+                            {info.lpMint
+                              ? toString(div(rawBalances[String(info.lpMint)], 10 ** info.lpDecimals), {
+                                  decimalLength: `auto ${info.lpDecimals}`
+                                })
+                              : '--'}{' '}
+                            LP
+                          </div>
+                        </Row>
+                        <Row className="justify-between">
+                          <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your share</div>
+                          <div className="text-xs mobile:text-2xs font-medium text-white">
+                            {computeSharePercentValue(info.sharePercent)}
+                          </div>
+                        </Row>
+                      </Col>
+                      <Row className="gap-4 mb-1">
+                        <Button
+                          className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
+                          onClick={() => {
+                            useLiquidity.setState({
+                              currentJsonInfo: info.jsonInfo
+                            })
+                            scrollToInputBox()
+                          }}
+                        >
+                          {canMigrate ? 'Add' : 'Add Liquidity'}
+                        </Button>
+                        {canMigrate && (
                           <Button
                             className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
                             onClick={() => {
                               useLiquidity.setState({
                                 currentJsonInfo: info.jsonInfo
                               })
-                              scrollToInputBox()
+                              useConcentrated.setState({
+                                isMigrateToClmmDialogOpen: true
+                              })
                             }}
                           >
-                            {canMigrate ? 'Add' : 'Add Liquidity'}
+                            Migrate
                           </Button>
-                          {canMigrate && (
-                            <Button
-                              className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
-                              onClick={() => {
-                                useLiquidity.setState({
-                                  currentJsonInfo: info.jsonInfo
+                        )}
+                        <Tooltip>
+                          <Icon
+                            size="smi"
+                            iconSrc="/icons/pools-pool-entry.svg"
+                            className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect clickable`}
+                            onClick={() => {
+                              routeTo('/pools', {
+                                queryProps: objectShakeFalsy({
+                                  expandedPoolId: toPubString(info.id),
+                                  searchText: toPubString(info.id)
                                 })
-                                useConcentrated.setState({
-                                  isMigrateToClmmDialogOpen: true
-                                })
-                              }}
-                            >
-                              Migrate
-                            </Button>
-                          )}
-                          <Tooltip>
-                            <Icon
-                              size="smi"
-                              iconSrc="/icons/pools-pool-entry.svg"
-                              className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect clickable`}
-                              onClick={() => {
-                                routeTo('/pools', {
-                                  queryProps: objectShakeFalsy({
-                                    expandedPoolId: toPubString(info.id),
-                                    searchText: toPubString(info.id)
-                                  })
-                                })
-                              }}
-                            />
-                            <Tooltip.Panel>Pool</Tooltip.Panel>
-                          </Tooltip>
-                          <Tooltip>
-                            <Icon
-                              iconSrc="/icons/msic-swap-h.svg"
-                              size="smi"
-                              className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                              onClick={() => {
-                                routeTo('/swap', {
-                                  queryProps: {
-                                    coin1: info.baseToken,
-                                    coin2: info.quoteToken
-                                  }
-                                })
-                              }}
-                            />
-                            <Tooltip.Panel>Swap</Tooltip.Panel>
-                          </Tooltip>
-                          <Tooltip>
-                            <Icon
-                              size="smi"
-                              iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                              className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect`}
-                              onClick={() => {
-                                useLiquidity.setState({ currentJsonInfo: info.jsonInfo, isRemoveDialogOpen: true })
-                              }}
-                            />
-                            <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
-                          </Tooltip>
-                        </Row>
-                      </div>
-                    </Collapse.Body>
-                  </Collapse>
-                </FadeIn>
-              </List.Item>
+                              })
+                            }}
+                          />
+                          <Tooltip.Panel>Pool</Tooltip.Panel>
+                        </Tooltip>
+                        <Tooltip>
+                          <Icon
+                            iconSrc="/icons/msic-swap-h.svg"
+                            size="smi"
+                            className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                            onClick={() => {
+                              routeTo('/swap', {
+                                queryProps: {
+                                  coin1: info.baseToken,
+                                  coin2: info.quoteToken
+                                }
+                              })
+                            }}
+                          />
+                          <Tooltip.Panel>Swap</Tooltip.Panel>
+                        </Tooltip>
+                        <Tooltip>
+                          <Icon
+                            size="smi"
+                            iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                            className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect`}
+                            onClick={() => {
+                              useLiquidity.setState({ currentJsonInfo: info.jsonInfo, isRemoveDialogOpen: true })
+                            }}
+                          />
+                          <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
+                        </Tooltip>
+                      </Row>
+                    </div>
+                  </Collapse.Body>
+                </Collapse>
+              </FadeIn>
             )
-          })}
+          }}
         </List>
 
         <RemoveLiquidityDialog

@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
+import { TimeBasis } from '@/application/concentrated/useConcentrated'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo, JsonPairItemInfo } from '@/application/pools/type'
@@ -50,15 +51,13 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce, useDebounceValue } from '@/hooks/useDebounce'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
-import { MintLayout } from '@solana/spl-token'
-import toFraction from '@/functions/numberish/toFraction'
-import { TimeBasis } from '@/application/concentrated/useConcentrated'
 
 /**
  * store:
@@ -792,37 +791,39 @@ function PoolCardDatabaseBody({
   return !loading && (searchedItemsLength === 0 || (searchedItemsLength !== 0 && sortedItems?.length === 0)) ? (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   ) : sortedItems && sortedItems.length ? (
-    <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-      {sortedItems.map((info) => (
-        <List.Item key={info.lpMint}>
-          <Collapse
-            open={expandedPoolIds.has(info.ammId)}
-            onToggle={() => {
-              usePools.setState((s) => ({ expandedPoolIds: toggleSetItem(s.expandedPoolIds, info.ammId) }))
-            }}
-          >
-            <Collapse.Face>
-              {({ isOpen }) => (
-                <PoolCardDatabaseBodyCollapseItemFace
-                  open={isOpen}
-                  info={info}
-                  correspondingJsonInfo={jsonInfoMap[info.ammId]}
-                  isFavourite={favouriteIds?.includes(info.ammId)}
-                  onUnFavorite={(ammId) => {
-                    setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
-                  }}
-                  onStartFavorite={(ammId) => {
-                    setFavouriteIds((ids) => addItem(ids ?? [], ammId))
-                  }}
-                />
-              )}
-            </Collapse.Face>
-            <Collapse.Body>
-              {isHydratedPoolItemInfo(info) && <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />}
-            </Collapse.Body>
-          </Collapse>
-        </List.Item>
-      ))}
+    <List
+      items={sortedItems}
+      getItemKey={(info) => info.lpMint}
+      className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */
+    >
+      {(info) => (
+        <Collapse
+          open={expandedPoolIds.has(info.ammId)}
+          onToggle={() => {
+            usePools.setState((s) => ({ expandedPoolIds: toggleSetItem(s.expandedPoolIds, info.ammId) }))
+          }}
+        >
+          <Collapse.Face>
+            {({ isOpen }) => (
+              <PoolCardDatabaseBodyCollapseItemFace
+                open={isOpen}
+                info={info}
+                correspondingJsonInfo={jsonInfoMap[info.ammId]}
+                isFavourite={favouriteIds?.includes(info.ammId)}
+                onUnFavorite={(ammId) => {
+                  setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
+                }}
+                onStartFavorite={(ammId) => {
+                  setFavouriteIds((ids) => addItem(ids ?? [], ammId))
+                }}
+              />
+            )}
+          </Collapse.Face>
+          <Collapse.Body>
+            {isHydratedPoolItemInfo(info) && <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />}
+          </Collapse.Body>
+        </Collapse>
+      )}
     </List>
   ) : (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">

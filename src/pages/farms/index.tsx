@@ -706,38 +706,40 @@ function FarmCardDatabaseBody({
   return (
     <>
       {infos.length ? (
-        <List className="gap-3 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-          {infos.map((info: FarmPoolJsonInfo | HydratedFarmInfo) => (
-            <List.Item key={toPubString(info.id)}>
-              <Collapse
-                open={expandedItemIds.has(toPubString(info.id))}
-                onToggle={() => {
-                  useFarms.setState((s) => ({
-                    expandedItemIds: toggleSetItem(s.expandedItemIds, toPubString(info.id))
-                  }))
-                }}
-              >
-                <Collapse.Face>
-                  {({ isOpen }) => (
-                    <FarmCardDatabaseBodyCollapseItemFace
-                      open={isOpen}
-                      info={info}
-                      isFavourite={favouriteIds?.includes(toPubString(info.id))}
-                      onUnFavorite={(farmId) => {
-                        setFavouriteIds((ids) => removeItem(ids ?? [], farmId))
-                      }}
-                      onStartFavorite={(farmId) => {
-                        setFavouriteIds((ids) => addItem(ids ?? [], farmId))
-                      }}
-                    />
-                  )}
-                </Collapse.Face>
-                <Collapse.Body>
-                  {isLoading ? null : <FarmCardDatabaseBodyCollapseItemContent farmInfo={info} />}
-                </Collapse.Body>
-              </Collapse>
-            </List.Item>
-          ))}
+        <List
+          items={infos}
+          getItemKey={(info) => toPubString(info.id)}
+          className="gap-3 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */
+        >
+          {(info: FarmPoolJsonInfo | HydratedFarmInfo) => (
+            <Collapse
+              open={expandedItemIds.has(toPubString(info.id))}
+              onToggle={() => {
+                useFarms.setState((s) => ({
+                  expandedItemIds: toggleSetItem(s.expandedItemIds, toPubString(info.id))
+                }))
+              }}
+            >
+              <Collapse.Face>
+                {({ isOpen }) => (
+                  <FarmCardDatabaseBodyCollapseItemFace
+                    open={isOpen}
+                    info={info}
+                    isFavourite={favouriteIds?.includes(toPubString(info.id))}
+                    onUnFavorite={(farmId) => {
+                      setFavouriteIds((ids) => removeItem(ids ?? [], farmId))
+                    }}
+                    onStartFavorite={(farmId) => {
+                      setFavouriteIds((ids) => addItem(ids ?? [], farmId))
+                    }}
+                  />
+                )}
+              </Collapse.Face>
+              <Collapse.Body>
+                {isLoading ? null : <FarmCardDatabaseBodyCollapseItemContent farmInfo={info} />}
+              </Collapse.Body>
+            </Collapse>
+          )}
         </List>
       ) : (
         <Row className="text-center justify-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">
