@@ -10,6 +10,7 @@ import { Numberish } from '@/types/constants'
 
 import Icon from './Icon'
 import Input, { InputProps } from './Input'
+import { useDebounce } from '@/hooks/useDebounce'
 
 type TriggerBy = 'user-input' | 'increase-decrease' | 'code-input'
 
@@ -87,6 +88,9 @@ export default function DecimalInput({
   prefixClassName,
   suffix,
   valueToStringOptions,
+
+  debounceDelay = 300,
+  onUserInput,
   ...restProps
 }: DecimalInputProps) {
   const [innerValue, setInnerValue, innerValueSignal] = useSignalState(defaultValue)
@@ -95,6 +99,12 @@ export default function DecimalInput({
   }, [value])
   const regexps = getRegexp(decimalCount)
   const inputDomRef = useRef<HTMLInputElement>()
+
+  // debounced because sometimes, no need event too frequently when user want to input multi wor
+  const debouncedUserInput =
+    onUserInput && debounceDelay
+      ? useDebounce(onUserInput, { debouncedOptions: { delay: debounceDelay } })
+      : onUserInput
 
   useEffect(() => {
     const letterRegex = canNegative ? regexps.canNegativeLetter : regexps.decimalLetter
@@ -115,7 +125,7 @@ export default function DecimalInput({
   const userInput = (v: string, triggerBy: TriggerBy = 'user-input') => {
     if (isNumberish(v)) {
       setInnerValue(v)
-      restProps.onUserInput?.(v, { canSafelyCovertToNumber: canSafelyCovertToNumber(v), triggerBy })
+      debouncedUserInput?.(v, { canSafelyCovertToNumber: canSafelyCovertToNumber(v), triggerBy })
     }
   }
 

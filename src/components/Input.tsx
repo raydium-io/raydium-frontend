@@ -1,19 +1,3 @@
-import React, {
-  CSSProperties,
-  InputHTMLAttributes,
-  ReactNode,
-  RefObject,
-  startTransition,
-  useEffect,
-  useImperativeHandle,
-  useLayoutEffect,
-  useRef,
-  useState
-} from 'react'
-
-import assert from 'assert'
-import { twMerge } from 'tailwind-merge'
-
 import { getSessionItem, setSessionItem } from '@/functions/dom/jStorage'
 import { isRegExp } from '@/functions/judgers/dateType'
 import { gt } from '@/functions/numberish/compare'
@@ -21,11 +5,23 @@ import toFraction from '@/functions/numberish/toFraction'
 import mergeProps from '@/functions/react/mergeProps'
 import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import { useDebounce } from '@/hooks/useDebounce'
 import useInit from '@/hooks/useInit'
 import useToggle from '@/hooks/useToggle'
 import useUpdate from '@/hooks/useUpdate'
 import { MayArray, MayFunction } from '@/types/constants'
-
+import assert from 'assert'
+import React, {
+  CSSProperties,
+  InputHTMLAttributes,
+  ReactNode,
+  RefObject,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState
+} from 'react'
+import { twMerge } from 'tailwind-merge'
 import Row from './Row'
 
 export interface InputComponentHandler {
@@ -60,6 +56,9 @@ export interface InputProps {
 
   /** when change, affact to ui*/
   value?: string | number
+
+  /** some times, no need reback user input immediately */
+  debounceDelay?: number
 
   // /**
   //  * when unset this property, value can only effect inner when input is not no focus
@@ -175,6 +174,7 @@ export default function Input(props: InputProps) {
 
     defaultValue,
     value,
+    debounceDelay,
 
     prefix,
     prefixClassName,
@@ -195,6 +195,12 @@ export default function Input(props: InputProps) {
     onClick
   } = mergeProps(props, fallbackProps)
 
+  // debounced because sometimes, no need event too frequently when user want to input multi wor
+  const debouncedUserInput =
+    onUserInput && debounceDelay
+      ? useDebounce(onUserInput, { debouncedOptions: { delay: debounceDelay } })
+      : onUserInput
+
   const inputRef = useRef<HTMLInputElement>()
 
   // only useable for uncontrolled formkit
@@ -209,7 +215,7 @@ export default function Input(props: InputProps) {
       const sessionStoredValue = getSessionItem(id)
       if (sessionStoredValue) {
         setSelfValue(String(sessionStoredValue))
-        onUserInput?.(String(sessionStoredValue), inputRef.current!)
+        debouncedUserInput?.(String(sessionStoredValue), inputRef.current!)
       }
     })
   }
