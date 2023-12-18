@@ -3,7 +3,7 @@ import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
-import { eq } from '@/functions/numberish/compare'
+import { eq, gt, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 
@@ -66,6 +66,15 @@ export default function SetTolerance() {
               onUserInput={(value) => {
                 const n = div(parseFloat(value || '0'), 100)
                 useAppSettings.setState({ slippageTolerance: n })
+                if (lt(n, 0) || gt(n, 1)) {
+                  useAppSettings.setState({ slippageToleranceState: 'invalid' })
+                } else if (lt(n, 0.001)) {
+                  useAppSettings.setState({ slippageToleranceState: 'too small' })
+                } else if (gt(n, 0.005)) {
+                  useAppSettings.setState({ slippageToleranceState: 'too large' })
+                } else {
+                  useAppSettings.setState({ slippageToleranceState: 'valid' })
+                }
               }}
               pattern={/^\d*\.?\d*$/}
               maximum={100}

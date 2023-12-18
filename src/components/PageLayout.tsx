@@ -50,6 +50,7 @@ import Tooltip from './Tooltip'
 import MessageBoardWidget from './navWidgets/MessageBoardWidget'
 import { TxVersionWidget } from './navWidgets/TxVersionWidget'
 import WalletWidget from './navWidgets/WalletWidget'
+import SetTransactionPriority from '@/pageComponents/settings/SetTransactionPriority'
 
 /**
  * for easier to code and read
@@ -797,6 +798,9 @@ function SettingPopover() {
     <div className="py-5 px-6">
       <div>
         <SetTolerance />
+      </div>
+      <div className="mt-4">
+        <SetTransactionPriority />
       </div>
       <div className="mt-4">
         <SetExplorer />

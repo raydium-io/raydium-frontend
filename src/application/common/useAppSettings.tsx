@@ -19,6 +19,9 @@ export enum ExplorerUrl {
 export type AppSettingsStore = {
   slippageTolerance: Numberish
   slippageToleranceState: 'valid' | 'invalid' | 'too small' | 'too large'
+
+  /** if not setted, it's auto */
+  transactionPriority?: number
   themeMode: 'dark' | 'light'
 
   isBetaBubbleOn: boolean // temp for beta

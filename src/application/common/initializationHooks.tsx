@@ -62,22 +62,6 @@ function useDisclaimerDataSyncer() {
   }, [])
 }
 
-function useSlippageTolerenceValidator() {
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-
-  useEffect(() => {
-    if (lt(slippageTolerance, 0) || gt(slippageTolerance, 1)) {
-      useAppSettings.setState({ slippageToleranceState: 'invalid' })
-    } else if (lt(slippageTolerance, 0.001)) {
-      useAppSettings.setState({ slippageToleranceState: 'too small' })
-    } else if (gt(slippageTolerance, 0.005)) {
-      useAppSettings.setState({ slippageToleranceState: 'too large' })
-    } else {
-      useAppSettings.setState({ slippageToleranceState: 'valid' })
-    }
-  }, [slippageTolerance])
-}
-
 function useSlippageTolerenceSyncer() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
@@ -278,8 +262,6 @@ export function useInnerAppInitialization() {
   useRpcPerformance()
 
   useDefaultExplorerSyncer()
-
-  useSlippageTolerenceValidator()
 
   useSlippageTolerenceSyncer()
 
