@@ -5,7 +5,6 @@ import Input from '@/components/Input'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import { eq } from '@/functions/numberish/compare'
-import { toString } from '@/functions/numberish/toString'
 
 export default function SetTransactionPriority() {
   const transactionPriority = useAppSettings((s) => s.transactionPriority)
@@ -24,7 +23,7 @@ export default function SetTransactionPriority() {
           </Tooltip.Panel>
         </Tooltip>
       </Row>
-      <Grid className="gap-3 justify-between grid-cols-3">
+      <Grid className="gap-3 justify-between grid-cols-3 mobile:grid-cols-2">
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
             transactionPriority === undefined ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
@@ -38,14 +37,14 @@ export default function SetTransactionPriority() {
         </Row>
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            eq(transactionPriority, 0) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
+            transactionPriority === 0 ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
           } cursor-pointer items-center gap-2 justify-center`}
           onClick={() => {
             useAppSettings.setState({ transactionPriority: 0 })
           }}
         >
           <div className="text-xs text-[#abc4ff80]">Normal</div>
-          <div>0 SOL</div>
+          <div className="whitespace-nowrap">0 SOL</div>
         </Row>
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
@@ -56,7 +55,7 @@ export default function SetTransactionPriority() {
           }}
         >
           <div className="text-xs text-[#abc4ff80]">High</div>
-          <div>0.00005 SOL</div>
+          <div className="whitespace-nowrap">0.00005 SOL</div>
         </Row>
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
@@ -67,7 +66,7 @@ export default function SetTransactionPriority() {
           }}
         >
           <div className="text-xs text-[#abc4ff80]">Turbo</div>
-          <div>0.005 SOL</div>
+          <div className="whitespace-nowrap">0.005 SOL</div>
         </Row>
         <div
           className={`py-1 px-6 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
@@ -80,7 +79,7 @@ export default function SetTransactionPriority() {
           <Row>
             <Input
               className="flex-1"
-              value={transactionPriority != null ? toString(transactionPriority) : ''}
+              value={transactionPriority != null ? String(transactionPriority) : ''}
               onUserInput={(value) => {
                 const n = Number(value) || undefined
                 useAppSettings.setState({ transactionPriority: n })

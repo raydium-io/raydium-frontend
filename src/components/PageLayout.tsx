@@ -792,10 +792,8 @@ function SettingSidebarWidget() {
 }
 
 function SettingPopover() {
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-  const slippageToleranceState = useAppSettings((s) => s.slippageToleranceState)
   return (
-    <div className="py-5 px-6">
+    <div className="py-5 px-6 mobile:py-2 mobile:px-3">
       <div>
         <SetTolerance />
       </div>

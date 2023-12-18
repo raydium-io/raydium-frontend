@@ -93,6 +93,38 @@ function useSlippageTolerenceSyncer() {
   )
 }
 
+function useTransactionPrioritySyncer() {
+  const transactionPriority = useAppSettings((s) => s.transactionPriority)
+
+  const [localStored, setLocalStored] = useLocalStorageItem<string>('TRANSACTIONPRIORITY', {
+    validateFn: (value) => {
+      if (value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)) {
+        return false
+      }
+      return true
+    }
+  })
+  useRecordedEffect(
+    ([, prevLocalStoredSlippaged]) => {
+      const slippageHasLoaded = prevLocalStoredSlippaged == null && localStored != null
+      if (slippageHasLoaded && !eq(transactionPriority, localStored)) {
+        const n = Number(localStored)
+        useAppSettings.setState({
+          transactionPriority: n >= 0 ? n : undefined
+        })
+      } else if (transactionPriority != null) {
+        setLocalStored(String(transactionPriority))
+      } else {
+        // cold start, set default value
+        useAppSettings.setState({
+          transactionPriority: undefined
+        })
+      }
+    },
+    [transactionPriority, localStored]
+  )
+}
+
 function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
   useNotification.getState().popWelcomeDialog(
     <div>
@@ -264,6 +296,8 @@ export function useInnerAppInitialization() {
   useDefaultExplorerSyncer()
 
   useSlippageTolerenceSyncer()
+
+  useTransactionPrioritySyncer()
 
   useGlobalRefresh()
 

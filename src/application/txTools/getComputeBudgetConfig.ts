@@ -24,6 +24,7 @@ type SolanaFeeInfoJson = {
  */
 export async function getComputeBudgetConfig(): Promise<ComputeBudgetConfig | undefined> {
   const transactionPriority = useAppSettings.getState().transactionPriority
+
   if (transactionPriority != null) {
     return {
       units: 600000,
