@@ -93,7 +93,6 @@ export interface HydratedTokenJsonInfo {
 export interface RaydiumTokenListJsonFile {
   official: TokenJson[]
   unOfficial: TokenJson[]
-  unNamed: Pick<TokenJson, 'mint' | 'decimals' | 'hasFreeze'>[]
   blacklist: HexAddress[]
 }
 

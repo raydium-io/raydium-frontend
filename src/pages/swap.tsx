@@ -126,7 +126,8 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
     setHasUserTemporaryConfirmed(false)
   }, [downCoin])
 
-  const freezed = useMemo(() => downCoin && isFreezedToken(downCoin), [downCoin?.mintString])
+  const freezedAsync = useMemo(() => downCoin && isFreezedToken(downCoin), [downCoin?.mintString])
+  const isFreezed = useAsyncMemo(() => freezedAsync, [freezedAsync], freezedAsync === true)
 
   const popNotOfficialTokenConfirm = () => {
     if (notOfficialTokenConfirmPanelOn) return
@@ -148,7 +149,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
               {downCoin?.mint}
             </AddressItem>
           </Row>
-          {freezed && (
+          {isFreezed && (
             <div>
               <div className="text-center my-4 text-[#FED33A] font-bold">Freeze Authority Warning</div>
               <div className="text-center my-2  text-xs text-[#FED33A]">

@@ -27,6 +27,8 @@ export function mergeToken(
       const isCustomizedDefaultValue = valueB.length >= 12 && toPubString(newTokenB['mint'])?.startsWith(valueB)
       const needIgnore = isSystemDefaultValue || isCustomizedDefaultValue
       return needIgnore ? valueA : valueB
+    } else if (key === 'extensions' && valueA && valueB) {
+      return { ...valueA, ...valueB }
     } else {
       return valueB ?? valueA
     }
