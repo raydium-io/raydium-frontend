@@ -2,6 +2,7 @@ import jFetch from '@/functions/dom/jFetch'
 import { ComputeBudgetConfig } from '@raydium-io/raydium-sdk'
 import useAppSettings from '../common/useAppSettings'
 import { SOL } from '../token/quantumSOL'
+import { isNumber } from '@/functions/judgers/dateType'
 
 interface SolanaFeeInfo {
   min: number
@@ -25,7 +26,7 @@ type SolanaFeeInfoJson = {
 export async function getComputeBudgetConfig(): Promise<ComputeBudgetConfig | undefined> {
   const transactionPriority = useAppSettings.getState().transactionPriority
 
-  if (transactionPriority != null) {
+  if (isNumber(transactionPriority)) {
     return {
       units: 600000,
       microLamports: Math.ceil((transactionPriority * 10 ** SOL.decimals * 1000000) / 600000)

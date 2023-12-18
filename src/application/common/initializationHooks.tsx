@@ -67,7 +67,8 @@ function useSlippageTolerenceSyncer() {
 
   const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE', {
     validateFn: (value) => {
-      if (value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)) {
+      const check = value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)
+      if (check) {
         return false
       }
       return true
@@ -98,24 +99,30 @@ function useTransactionPrioritySyncer() {
 
   const [localStored, setLocalStored] = useLocalStorageItem<string>('TRANSACTIONPRIORITY', {
     validateFn: (value) => {
-      if (value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)) {
+      const check = value === undefined || !(new RegExp(`^\\d*\\.?\\d*$`).test(value) || value == 'auto')
+      if (check) {
         return false
       }
       return true
     }
   })
   useRecordedEffect(
-    ([, prevLocalStoredSlippaged]) => {
-      const slippageHasLoaded = prevLocalStoredSlippaged == null && localStored != null
-      if (slippageHasLoaded && !eq(transactionPriority, localStored)) {
-        const n = Number(localStored)
-        useAppSettings.setState({
-          transactionPriority: n >= 0 ? n : undefined
-        })
+    ([, prevLocalStoredValue]) => {
+      const hasLoaded = prevLocalStoredValue == null && localStored != null
+      if (hasLoaded && !Object.is(transactionPriority, localStored)) {
+        if (localStored === 'auto') {
+          useAppSettings.setState({
+            transactionPriority: 'auto'
+          })
+        } else {
+          const n = Number(localStored)
+          useAppSettings.setState({
+            transactionPriority: n >= 0 ? n : undefined
+          })
+        }
       } else if (transactionPriority != null) {
         setLocalStored(String(transactionPriority))
       } else {
-        // cold start, set default value
         useAppSettings.setState({
           transactionPriority: undefined
         })

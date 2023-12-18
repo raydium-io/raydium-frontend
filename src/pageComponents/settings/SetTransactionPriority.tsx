@@ -4,7 +4,7 @@ import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
-import { eq } from '@/functions/numberish/compare'
+import { isNumber } from '@/functions/judgers/dateType'
 
 export default function SetTransactionPriority() {
   const transactionPriority = useAppSettings((s) => s.transactionPriority)
@@ -26,10 +26,10 @@ export default function SetTransactionPriority() {
       <Grid className="gap-3 justify-between grid-cols-3 mobile:grid-cols-2">
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            transactionPriority === undefined ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
+            transactionPriority === 'auto' || transactionPriority == null ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
           } cursor-pointer items-center gap-2 justify-between`}
           onClick={() => {
-            useAppSettings.setState({ transactionPriority: undefined })
+            useAppSettings.setState({ transactionPriority: 'auto' })
           }}
         >
           <div className="text-xs text-[#abc4ff80]">Auto</div>
@@ -48,7 +48,7 @@ export default function SetTransactionPriority() {
         </Row>
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            eq(transactionPriority, 0.00005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
+            Object.is(transactionPriority, 0.00005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
           } cursor-pointer items-center gap-2 justify-between`}
           onClick={() => {
             useAppSettings.setState({ transactionPriority: 0.00005 })
@@ -59,7 +59,7 @@ export default function SetTransactionPriority() {
         </Row>
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            eq(transactionPriority, 0.005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
+            Object.is(transactionPriority, 0.005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
           } cursor-pointer items-center gap-2 justify-between`}
           onClick={() => {
             useAppSettings.setState({ transactionPriority: 0.005 })
@@ -70,8 +70,12 @@ export default function SetTransactionPriority() {
         </Row>
         <div
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            transactionPriority &&
-            !(eq(transactionPriority, 0) || eq(transactionPriority, 0.00005) || eq(transactionPriority, 0.005))
+            transactionPriority != 'auto' &&
+            !(
+              Object.is(transactionPriority, 0) ||
+              Object.is(transactionPriority, 0.00005) ||
+              Object.is(transactionPriority, 0.005)
+            )
               ? 'ring-1 ring-inset ring-[#39D0D8]'
               : ''
           } items-center gap-2 col-span-2`}
@@ -81,10 +85,14 @@ export default function SetTransactionPriority() {
             <Input
               className="flex-1 w-[4em]"
               inputClassName="text-right"
-              value={transactionPriority != null ? String(transactionPriority) : ''}
+              value={isNumber(transactionPriority) ? String(transactionPriority) : ''}
               onUserInput={(value) => {
-                const n = Number(value) || undefined
-                useAppSettings.setState({ transactionPriority: n })
+                if (value == '') {
+                  useAppSettings.setState({ transactionPriority: 'auto' })
+                } else {
+                  const n = Number(value)
+                  useAppSettings.setState({ transactionPriority: n })
+                }
               }}
               pattern={/^\d*\.?\d*$/}
               maximum={0.01}
