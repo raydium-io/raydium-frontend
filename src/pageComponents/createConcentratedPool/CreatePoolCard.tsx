@@ -418,7 +418,7 @@ export function CreatePoolCard() {
         </div>
 
         <div>
-          <div className="font-medium text-[#abc4ff] mb-2">Select Fee</div>
+          <div className="font-medium text-[#abc4ff] mb-2">Select Fee & Tick Spacing</div>
           <CreateFeeSwitcher />
         </div>
 

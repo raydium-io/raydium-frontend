@@ -43,7 +43,7 @@ function CreateFeeSwitcherContent({
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   return (
-    <Row className={twMerge('gap-2 item-grow', className)}>
+    <Row className={twMerge('gap-2 grid grid-cols-3 item-grow items-stretch', className)}>
       {configs?.map((config) => {
         const isCurrent = config.id === current?.id
         const isAlreadyCreated = existIds?.includes(config.id)
@@ -51,7 +51,7 @@ function CreateFeeSwitcherContent({
         return (
           <Tooltip className="grow" key={config.id} disable={!isAlreadyCreated}>
             <div
-              className={`relative grow items-stretch px-1.5 py-2 ${
+              className={`relative grow  items-stretch px-1.5 py-2 ${
                 isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff60]'
               } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-30 cursor-not-allowed'}`}
               onClick={() => {
@@ -63,9 +63,12 @@ function CreateFeeSwitcherContent({
                   <Icon heroIconName="check-circle" size="smi" />
                 </div>
               ) : null}
-              <div className="text-white font-medium text-sm mb-2">
-                {toPercentString(config.tradeFeeRate, { fixed: 4 })}
-              </div>
+              <Row className="items-center gap-2">
+                <div className="text-white font-medium text-sm mb-1">
+                  {toPercentString(config.tradeFeeRate, { fixed: 4 })}
+                </div>
+                <Row className="text-[#abc4ff80] text-xs mb-1">spacing: {config.tickSpacing}</Row>
+              </Row>
               <div className="text-[#abc4ff80] text-xs">{config.description}</div>
             </div>
             <Tooltip.Panel>Already created</Tooltip.Panel>
