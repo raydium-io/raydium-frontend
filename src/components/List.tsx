@@ -73,12 +73,8 @@ export default function List<T>({
 
   // reset if Item's length has changed
   useRecordedEffect(
-    ([prevAllItems]) => {
-      const prevAllItemKeys = new Set(prevAllItems?.map((el) => getItemKey(el)))
-      const currAllItemKeys = items.map((el) => getItemKey(el))
-      if (prevAllItems && !renderAllAtOnce && currAllItemKeys.some((key) => !prevAllItemKeys.has(key))) {
-        setItemsToRender(items.slice(0, initRenderCount).map(getItemsToRender))
-      }
+    () => {
+      setItemsToRender(items.slice(0, initRenderCount).map(getItemsToRender))
     },
     [items, renderAllAtOnce] as const
   )
