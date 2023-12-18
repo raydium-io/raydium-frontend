@@ -27,18 +27,18 @@ export default function SetTransactionPriority() {
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
             transactionPriority === undefined ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer items-center gap-2 justify-center`}
+          } cursor-pointer items-center gap-2 justify-between`}
           onClick={() => {
             useAppSettings.setState({ transactionPriority: undefined })
           }}
         >
-          <div className="text-xs text-[#abc4ff80]">Dynamic</div>
-          <div>Auto</div>
+          <div className="text-xs text-[#abc4ff80]">Auto</div>
+          <div>Dynamic</div>
         </Row>
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
             transactionPriority === 0 ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer items-center gap-2 justify-center`}
+          } cursor-pointer items-center gap-2 justify-between`}
           onClick={() => {
             useAppSettings.setState({ transactionPriority: 0 })
           }}
@@ -49,7 +49,7 @@ export default function SetTransactionPriority() {
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
             eq(transactionPriority, 0.00005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer items-center gap-2 justify-center`}
+          } cursor-pointer items-center gap-2 justify-between`}
           onClick={() => {
             useAppSettings.setState({ transactionPriority: 0.00005 })
           }}
@@ -60,7 +60,7 @@ export default function SetTransactionPriority() {
         <Row
           className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
             eq(transactionPriority, 0.005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer items-center gap-2 justify-center`}
+          } cursor-pointer items-center gap-2 justify-between`}
           onClick={() => {
             useAppSettings.setState({ transactionPriority: 0.005 })
           }}
@@ -69,16 +69,18 @@ export default function SetTransactionPriority() {
           <div className="whitespace-nowrap">0.005 SOL</div>
         </Row>
         <div
-          className={`py-1 px-6 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
+          className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
             transactionPriority &&
             !(eq(transactionPriority, 0) || eq(transactionPriority, 0.00005) || eq(transactionPriority, 0.005))
               ? 'ring-1 ring-inset ring-[#39D0D8]'
               : ''
           } items-center gap-2 col-span-2`}
         >
-          <Row>
+          <Row className="items-center gap-2">
+            <div className="text-xs text-[#abc4ff80]">Custom</div>
             <Input
-              className="flex-1"
+              className="flex-1 w-[4em]"
+              inputClassName="text-right"
               value={transactionPriority != null ? String(transactionPriority) : ''}
               onUserInput={(value) => {
                 const n = Number(value) || undefined
