@@ -62,28 +62,13 @@ function useDisclaimerDataSyncer() {
   }, [])
 }
 
-function useSlippageTolerenceValidator() {
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-
-  useEffect(() => {
-    if (lt(slippageTolerance, 0) || gt(slippageTolerance, 1)) {
-      useAppSettings.setState({ slippageToleranceState: 'invalid' })
-    } else if (lt(slippageTolerance, 0.001)) {
-      useAppSettings.setState({ slippageToleranceState: 'too small' })
-    } else if (gt(slippageTolerance, 0.005)) {
-      useAppSettings.setState({ slippageToleranceState: 'too large' })
-    } else {
-      useAppSettings.setState({ slippageToleranceState: 'valid' })
-    }
-  }, [slippageTolerance])
-}
-
 function useSlippageTolerenceSyncer() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE', {
     validateFn: (value) => {
-      if (value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)) {
+      const check = value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)
+      if (check) {
         return false
       }
       return true
@@ -106,6 +91,44 @@ function useSlippageTolerenceSyncer() {
       }
     },
     [slippageTolerance, localStoredSlippage]
+  )
+}
+
+function useTransactionPrioritySyncer() {
+  const transactionPriority = useAppSettings((s) => s.transactionPriority)
+
+  const [localStored, setLocalStored] = useLocalStorageItem<string>('TRANSACTIONPRIORITY', {
+    validateFn: (value) => {
+      const check = value === undefined || !(new RegExp(`^\\d*\\.?\\d*$`).test(value) || value == 'auto')
+      if (check) {
+        return false
+      }
+      return true
+    }
+  })
+  useRecordedEffect(
+    ([, prevLocalStoredValue]) => {
+      const hasLoaded = prevLocalStoredValue == null && localStored != null
+      if (hasLoaded && !Object.is(transactionPriority, localStored)) {
+        if (localStored === 'auto') {
+          useAppSettings.setState({
+            transactionPriority: 'auto'
+          })
+        } else {
+          const n = Number(localStored)
+          useAppSettings.setState({
+            transactionPriority: n >= 0 ? n : undefined
+          })
+        }
+      } else if (transactionPriority != null) {
+        setLocalStored(String(transactionPriority))
+      } else {
+        useAppSettings.setState({
+          transactionPriority: undefined
+        })
+      }
+    },
+    [transactionPriority, localStored]
   )
 }
 
@@ -279,9 +302,9 @@ export function useInnerAppInitialization() {
 
   useDefaultExplorerSyncer()
 
-  useSlippageTolerenceValidator()
-
   useSlippageTolerenceSyncer()
+
+  useTransactionPrioritySyncer()
 
   useGlobalRefresh()
 
