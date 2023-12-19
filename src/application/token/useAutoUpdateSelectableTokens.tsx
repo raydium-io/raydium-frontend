@@ -32,7 +32,8 @@ export default function useAutoUpdateSelectableTokens() {
     )
 
     const filteredTokens: SplToken[] = []
-    for (const token of verboseTokens.concat(filteredUserAddedTokens)) {
+    const candidateTokens = verboseTokens.concat(filteredUserAddedTokens)
+    for (const token of candidateTokens) {
       const isUserFlagged = tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(token.mintString)
       if (!isUserFlagged) {
         const isOnByTokenList = activeTokensMints.has(token.mintString)

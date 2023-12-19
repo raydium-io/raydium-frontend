@@ -115,8 +115,14 @@ function collectToken(
 async function fetchMainToken(response: RaydiumTokenListJsonFile, collector: TokenInfoCollector): Promise<void> {
   if (!response.official || !response.unOfficial || !response.blacklist) return
   const withoutNativeSolToken = deleteFetchedNativeSOLToken(response.official)
-  withoutNativeSolToken.forEach(({ mint }) => collector.officialMints.add(mint))
-  response.unOfficial.forEach(({ mint }) => collector.unOfficialMints.add(mint))
+  withoutNativeSolToken.forEach(({ mint }) => {
+    collector.officialMints.add(mint)
+    collector.unNamedMints.delete(mint)
+  })
+  response.unOfficial.forEach(({ mint }) => {
+    collector.unOfficialMints.add(mint)
+    collector.unNamedMints.delete(mint)
+  })
   collectToken(collector, withoutNativeSolToken)
   collectToken(collector, response.unOfficial)
   const blackListTokenMints = response.blacklist
@@ -150,6 +156,9 @@ async function fetchNormalLiquidityPoolToken(
           extensions: {
             version: undefined
           }
+        }
+        if (!collector.officialMints.has(pool[target.mint]) && !collector.unOfficialMints.has(pool[target.mint])) {
+          collector.unNamedMints.add(pool[target.mint])
         }
         collectToken(collector, [token], { lowPriority: true })
       }
@@ -189,6 +198,9 @@ async function fetchClmmLiquidityPoolToken(
             version: isToken2022 ? 'TOKEN2022' : undefined
           }
           // hasFreeze: verified != null ? !verified : undefined
+        }
+        if (!collector.officialMints.has(pool[target.mint]) && !collector.unOfficialMints.has(pool[target.mint])) {
+          collector.unNamedMints.add(pool[target.mint])
         }
         collectToken(collector, [token], { lowPriority: true })
       }

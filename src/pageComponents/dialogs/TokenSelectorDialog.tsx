@@ -131,6 +131,7 @@ function TokenSelectorDialogContent({
   }
 
   const allSelectableTokens = useToken((s) => s.allSelectableTokens)
+
   const sourceTokens = enableTokens || allSelectableTokens
 
   const sortedTokens = disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens
@@ -222,7 +223,7 @@ function TokenSelectorDialogContent({
       decimals,
       icon: '',
       extensions: {},
-      name: info.name ? info.name.slice(0, 16) : info.symbol.slice(0, 8),
+      name: info.name ? info.name.slice(0, 16) : info.symbol.slice(0, 16),
       userAdded: true,
       hasFreeze,
       isToken2022: onlineTokenMintInfo.is2022Token

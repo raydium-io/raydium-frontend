@@ -126,6 +126,7 @@ export type TokenStore = {
 
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME_DEPRECATED = 'Raydium Mainnet Token List'
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME = 'Raydium Token List'
+/** if token is not official or unofficial, it is unnamed */
 export const RAYDIUM_UNNAMED_TOKEN_LIST_NAME = 'UnNamed Token List'
 export const RAYDIUM_DEV_TOKEN_LIST_NAME = 'Raydium Dev Token List'
 export const SOLANA_TOKEN_LIST_NAME = 'Solana Token List'
