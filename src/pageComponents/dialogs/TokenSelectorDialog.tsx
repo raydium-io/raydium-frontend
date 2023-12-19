@@ -240,7 +240,8 @@ function TokenSelectorDialogContent({
           } else if (e.key === 'ArrowDown') {
             setSelectedTokenIdx((s) => Math.min(s + 1, searchedTokens.length - 1))
           } else if (e.key === 'Enter') {
-            selectToken(searchedTokens[selectedTokenIdx])
+            const token = searchedTokens[selectedTokenIdx]
+            token && selectToken(token)
           }
         }
       }}

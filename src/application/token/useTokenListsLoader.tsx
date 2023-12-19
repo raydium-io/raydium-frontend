@@ -351,7 +351,7 @@ export function createSplToken(
     'decimals',
     'isToken2022',
     'extensions',
-    'programIds',
+    'programId',
     'id',
     'icon',
     'userAdded',
