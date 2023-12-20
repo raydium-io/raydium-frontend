@@ -1,4 +1,5 @@
-import { clearRpcCache, clearSdkCache } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
+import { clearSDKCacheOfSwap } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
+import { clearSDKClmmPoolInfoCache } from '../common/getSDKParsedClmmPoolInfo'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import useLiquidity from '../liquidity/useLiquidity'
 import { useSwap } from '../swap/useSwap'
@@ -9,7 +10,7 @@ export default function useAutoCleanSwapInfoCache() {
   const liquidityRefresh = useLiquidity((s) => s.refreshCount)
 
   useIsomorphicLayoutEffect(() => {
-    clearSdkCache()
-    clearRpcCache()
+    clearSDKCacheOfSwap()
+    clearSDKClmmPoolInfoCache()
   }, [swapRefresh, liquidityRefresh])
 }

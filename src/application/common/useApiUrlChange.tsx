@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { clearApiCache, clearSdkCache } from '../ammV3PoolInfoAndLiquidity/ammAndLiquidity'
+import { clearApiCache, clearSDKCacheOfSwap } from '../ammV3PoolInfoAndLiquidity/ammAndLiquidity'
 import { useAppAdvancedSettings } from './useAppAdvancedSettings'
 import useLiquidity from '../liquidity/useLiquidity'
 
@@ -13,7 +13,7 @@ export function useApiUrlChange() {
   const liquidityPoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.poolInfo)
   useEffect(() => {
     clearApiCache()
-    clearSdkCache()
+    clearSDKCacheOfSwap()
     useLiquidity.setState({ apiCacheInfo: undefined })
   }, [ammPoolsUrl, liquidityPoolsUrl, programIds])
 }
