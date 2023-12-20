@@ -4,7 +4,6 @@ import {
   Context,
   Keypair,
   PublicKey,
-  SignaturePubkeyPair,
   SignatureResult,
   Transaction,
   TransactionError,
@@ -19,8 +18,7 @@ import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { isArray, isObject } from '@/functions/judgers/dateType'
 import { mergeFunction, mergeObject } from '@/functions/merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import tryCatch from '@/functions/tryCatch'
-import { MayFunction, MayPromise } from '@/types/constants'
+import { MayPromise } from '@/types/constants'
 
 import { noTailingPeriod } from '../../../functions/format/noTailingPeriod'
 import useAppSettings from '../../common/useAppSettings'
@@ -31,6 +29,7 @@ import { getRichWalletTokenAccounts } from '../../wallet/useTokenAccountsRefresh
 import useWallet, { WalletStore } from '../../wallet/useWallet'
 
 import { buildTransactionsFromSDKInnerTransactions } from './createVersionedTransaction'
+import { globalErrorHandlers } from './globalHandlers'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 
@@ -106,7 +105,7 @@ export type TxFn = (providedTools: {
 
 //#region ------------------- callbacks -------------------
 type TxSuccessCallback = (info: TxSuccessInfo & MultiTxExtraInfo) => void
-type TxErrorCallback = (info: TxErrorInfo & MultiTxExtraInfo) => void
+export type TxErrorCallback = (info: TxErrorInfo & MultiTxExtraInfo) => void
 type TxFinallyCallback = (info: TxFinalInfo & MultiTxExtraInfo) => void
 type TxSentSuccessCallback = (info: TxSentSuccessInfo & MultiTxExtraInfo) => void
 type TxSentErrorCallback = (info: TxSentErrorInfo & MultiTxExtraInfo) => void
@@ -715,10 +714,15 @@ async function dealWithSingleTxOptions({
         },
         onTxError(callbackParams) {
           console.error('tx error: ', callbackParams.error)
-          singleOption?.onTxError?.({
-            ...callbackParams,
-            ...extraTxidInfo,
-            changeHistoryInfo: (newPartialInfo) => changeHistoryInfo(newPartialInfo, 'fail')
+          const errorHandlers = singleOption?.onTxError
+            ? globalErrorHandlers.concat(singleOption?.onTxError)
+            : globalErrorHandlers
+          errorHandlers.forEach((cb) => {
+            cb({
+              ...callbackParams,
+              ...extraTxidInfo,
+              changeHistoryInfo: (newPartialInfo) => changeHistoryInfo(newPartialInfo, 'fail')
+            })
           })
         },
         onTxFinally(callbackParams) {
