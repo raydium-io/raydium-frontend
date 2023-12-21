@@ -8,20 +8,16 @@ import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 
 import assert from '@/functions/assert'
+import { createTimeoutMap } from '@/functions/createTimeoutMap'
+import jFetch from '@/functions/dom/jFetch'
 import { isPubEqual } from '@/functions/judgers/areEqual'
 import { div } from '@/functions/numberish/operations'
 import { TOKEN_2022_PROGRAM_ID, getTransferFeeConfig, unpackMint } from '@solana/spl-token'
-import useToken from './useToken'
+import base58 from 'bs58'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
-import { createTimeoutMap } from '@/functions/createTimeoutMap'
+import useToken from './useToken'
 
-const verifyWhiteList = [
-  { mint: 'Fishy64jCaa3ooqXw7BHtKvYD8BTkSyAPh6RNE3xZpcN', decimals: 6, is2022Token: false },
-  { mint: 'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof', decimals: 8, is2022Token: false },
-  { mint: '33eWALS9GkzSMS3EsKSdYCsrUiMdQDgX2QzGx4vA9wE8', decimals: 8, is2022Token: false },
-  { mint: 'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6', decimals: 6, is2022Token: false },
-  { mint: 'HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr', decimals: 6, is2022Token: false },
-] // Temporary force white list
+let onlineWhiteList: string[] | undefined = undefined
 
 export async function verifyToken(
   mintish: PublicKeyish,
@@ -36,9 +32,27 @@ export async function verifyToken(
   const { logError } = useNotification.getState()
   const isOfficialToken = tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish))
 
-  if (options?.canWhiteList && verifyWhiteList.find((i) => i.mint === toPubString(mintish)))
-    return verifyWhiteList.find((i) => i.mint === toPubString(mintish))! // Temporary force
-  const { connection } = useConnection.getState() // TEST devnet
+  // load white list if needed
+  if (!onlineWhiteList && options?.canWhiteList) {
+    const data = await jFetch('https://api.debridge.finance/api/Pairs/getForChain?chainId=7565164')
+    try {
+      onlineWhiteList = data.map((i) => {
+        try {
+          return base58.encode(Buffer.from(i.tokenAddress.slice(2), 'hex')) // witer:Rudy
+        } catch {
+          return ''
+        }
+      })
+    } catch {
+      onlineWhiteList = []
+    }
+  }
+
+  if (options?.canWhiteList && onlineWhiteList?.find((i) => i === toPubString(mintish))) {
+    return getOnlineTokenInfo(mintish, { cachedAccountInfo: options?.cachedAccountInfo })
+  }
+
+  const { connection } = useConnection.getState()
   if (!connection) return undefined
   const info = await getOnlineTokenInfo(mintish, { cachedAccountInfo: options?.cachedAccountInfo })
   if (!info) return false
