@@ -33,13 +33,15 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
       isPubEqual(marketBufferInfo.owner, programIds.OPENBOOK_MARKET),
       `market program id is not OpenBook program id`
     )
-    const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
+    const { baseMint, quoteMint, baseLotSize, quoteLotSize } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
     // assert(
     //   Object.values(routeMiddleMints).includes(String(quoteMint)),
     //   `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, ETH, USH. current: ${toPubString(
     //     quoteMint
     //   ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
     // )
+    assert(!baseLotSize.isZero(), 'Base lot size is zero')
+    assert(!quoteLotSize.isZero(), 'Quote lot size is zero')
 
     const isBaseVerifyed = await verifyToken(baseMint, { canWhiteList: true, noLog: true })
     assert(isBaseVerifyed, 'base token freeze authority enabled')
