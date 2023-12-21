@@ -6,17 +6,16 @@ import { getAllSwapableRouteInfos } from '@/application/ammV3PoolInfoAndLiquidit
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { makeAbortable } from '@/functions/makeAbortable'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useIdleEffect } from '@/hooks/useIdleEffect'
+import { useEffect } from 'react'
 import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import useLiquidity from '../liquidity/useLiquidity'
 import useWallet from '../wallet/useWallet'
 import { useSwap } from './useSwap'
-import { useEffect } from 'react'
-import { minus } from '@/functions/numberish/operations'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()

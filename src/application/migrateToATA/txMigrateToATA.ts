@@ -1,4 +1,11 @@
-import { InnerSimpleTransaction, InnerTransaction, InstructionType, Spl, TxVersion, splitTxAndSigners } from '@raydium-io/raydium-sdk'
+import {
+  InnerSimpleTransaction,
+  InnerTransaction,
+  InstructionType,
+  Spl,
+  TxVersion,
+  splitTxAndSigners
+} from '@raydium-io/raydium-sdk'
 import {
   createAssociatedTokenAccountInstruction,
   createCloseAccountInstruction,
@@ -14,7 +21,7 @@ import useWallet from '../wallet/useWallet'
  */
 export default function txMigrateToATA(selectedTokenAccounts: string[], options?: { onTxSuccess?: () => void }) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-    const { allTokenAccounts, } = useWallet.getState()
+    const { allTokenAccounts } = useWallet.getState()
 
     const ataAdd: { [key: string]: PublicKey } = {}
     const allAdd: { [key: string]: ITokenAccount } = {}
@@ -73,19 +80,22 @@ export default function txMigrateToATA(selectedTokenAccounts: string[], options?
     if (!ins.length) {
       throw new Error('No account needs to be migrate')
     }
-    transactionCollector.add(await splitTxAndSigners({
-      connection,
-      makeTxVersion: TxVersion.LEGACY,
-      payer: owner,
-      innerTransaction: ins,
-    }), {
-      txHistoryInfo: {
-        title: 'Migrate to ATA',
-        description: `Migrate to ATA`
-      },
-      onTxSuccess() {
-        options?.onTxSuccess?.()
+    transactionCollector.add(
+      await splitTxAndSigners({
+        connection,
+        makeTxVersion: TxVersion.LEGACY,
+        payer: owner,
+        innerTransaction: ins
+      }),
+      {
+        txHistoryInfo: {
+          title: 'Migrate to ATA',
+          description: `Migrate to ATA`
+        },
+        onTxSuccess() {
+          options?.onTxSuccess?.()
+        }
       }
-    })
+    )
   })
 }

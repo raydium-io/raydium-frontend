@@ -17,6 +17,8 @@ import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import { getSDKParsedClmmPoolInfo } from '../common/getSDKParsedClmmPoolInfo'
+import { useIdleEffect } from '@/hooks/useIdleEffect'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -72,12 +74,10 @@ export default function useConcentratedInfoLoader() {
     const isWaitingTokenAcc = !!owner && !tokenAccounts.length
     timerId = window.setTimeout(
       async () => {
-        const sdkParsed = await Clmm.fetchMultiplePoolInfos({
-          poolKeys: apiAmmPools,
+        const sdkParsed = await getSDKParsedClmmPoolInfo({
           connection,
-          ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
-          chainTime: (Date.now() + chainTimeOffset) / 1000,
-          batchRequest: true
+          apiClmmPoolItems: apiAmmPools,
+          ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined
         })
         if (sdkParsed) {
           useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })

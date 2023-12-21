@@ -4,12 +4,24 @@
  * @todo not burn old yet
  */
 
+import useAppSettings from '@/application/common/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
+import { deUIToken, deUITokenAmount } from '@/application/token/quantumSOL'
+import { SplToken } from '@/application/token/type'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import assert from '@/functions/assert'
+import { isDateAfter } from '@/functions/date/judges'
+import jFetch from '@/functions/dom/jFetch'
+import toPubString, { toPub } from '@/functions/format/toMintString'
+import { toPercent } from '@/functions/format/toPercent'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isArray, isObject, isPubKeyish } from '@/functions/judgers/dateType'
+import { Numberish } from '@/types/constants'
 import {
   ApiClmmPoolsItem,
   ApiPoolInfo,
   Clmm,
   ClmmPoolInfo,
-  ClmmPoolPersonalPosition,
   PoolType,
   PublicKeyish,
   ReturnTypeFetchMultipleInfo,
@@ -21,50 +33,15 @@ import {
   ApiPoolInfoItem
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
-
-import useAppSettings from '@/application/common/useAppSettings'
-import useConnection from '@/application/connection/useConnection'
-import { deUIToken, deUITokenAmount } from '@/application/token/quantumSOL'
-import { SplToken } from '@/application/token/type'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import assert from '@/functions/assert'
-import { isDateAfter } from '@/functions/date/judges'
-import jFetch from '@/functions/dom/jFetch'
-import listToMap from '@/functions/format/listToMap'
-import toPubString, { toPub } from '@/functions/format/toMintString'
-import { toPercent } from '@/functions/format/toPercent'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isArray, isObject, isPubKeyish } from '@/functions/judgers/dateType'
-import { Numberish } from '@/types/constants'
-
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
-
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
+import { getSDKParsedClmmPoolInfo } from '../common/getSDKParsedClmmPoolInfo'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { BestResultStartTimeInfo } from './type'
 import useLiquidity from '../liquidity/useLiquidity'
 
 const apiCache = {} as {
   ammV3?: ApiClmmPoolsItem[]
   liquidity?: ApiPoolInfo
-}
-
-type PairKeyString = string
-
-type TickCache = Promise<ReturnTypeFetchMultiplePoolTickArrays>
-
-// TODO: timeout-map
-const sdkCaches: Map<
-  PairKeyString,
-  {
-    mintInfos: Promise<ReturnTypeFetchMultipleMintInfos>
-    routes: ReturnType<(typeof TradeV2)['getAllRoute']>
-    tickCache: Promise<ReturnTypeFetchMultiplePoolTickArrays>
-    poolInfosCache: ReturnType<(typeof TradeV2)['fetchMultipleInfo']>
-  }
-> = new Map()
-
-export function clearSdkCache() {
-  sdkCaches.clear()
 }
 export function clearApiCache() {
   apiCache.ammV3 = undefined
@@ -82,45 +59,6 @@ async function getOldKeys() {
   const liquidityPoolsUrl = useAppAdvancedSettings.getState().apiUrls.uiPoolInfo
   const response = await jFetch<ApiPoolInfo>(liquidityPoolsUrl)
   return response
-}
-
-const parsedAmmV3PoolInfoCache = new Map<
-  string,
-  {
-    state: ClmmPoolInfo
-    positionAccount?: ClmmPoolPersonalPosition[] | undefined
-  }
->()
-
-export function clearRpcCache() {
-  parsedAmmV3PoolInfoCache.clear()
-}
-
-async function getParsedAmmV3PoolInfo({
-  connection,
-  apiAmmPools,
-  chainTimeOffset = useConnection.getState().chainTimeOffset ?? 0
-}: {
-  connection: Connection
-  apiAmmPools: ApiClmmPoolsItem[]
-  chainTimeOffset?: number
-}) {
-  const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
-  if (needRefetchApiAmmPools.length) {
-    const sdkParsed = await Clmm.fetchMultiplePoolInfos({
-      poolKeys: needRefetchApiAmmPools,
-      connection,
-      batchRequest: true,
-      chainTime: (Date.now() + chainTimeOffset) / 1000
-    })
-    Object.values(sdkParsed).forEach((sdk) => {
-      parsedAmmV3PoolInfoCache.set(toPubString(sdk.state.id), sdk)
-    })
-  }
-
-  const apiAmmPoolsArray = apiAmmPools.map(({ id }) => parsedAmmV3PoolInfoCache.get(toPubString(id))!)
-  const map = listToMap(apiAmmPoolsArray, (i) => toPubString(i.state.id))
-  return map
 }
 
 async function getApiInfos(props?: { mint1: string; mint2: string }) {
@@ -169,16 +107,27 @@ async function getApiInfos(props?: { mint1: string; mint2: string }) {
   return apiCache
 }
 
-// only read sdkCache, it won't mutate
-function getCachedPoolCacheInfos({ inputMint, outputMint }: { inputMint: PublicKeyish; outputMint: PublicKeyish }) {
-  const key = toPubString(inputMint) + toPubString(outputMint)
-  return sdkCaches.get(key)
+type PairKeyString = string
+
+// TODO: timeout-map
+const sdkCachesOfSwap: Map<
+  PairKeyString,
+  {
+    mintInfos: Promise<ReturnTypeFetchMultipleMintInfos>
+    routes: ReturnType<(typeof TradeV2)['getAllRoute']>
+    tickCache: Promise<ReturnTypeFetchMultiplePoolTickArrays>
+    poolInfosCache: ReturnType<(typeof TradeV2)['fetchMultipleInfo']>
+  }
+> = new Map()
+
+export function clearSDKCacheOfSwap() {
+  sdkCachesOfSwap.clear()
 }
 
 /**
  * have data cache
  */
-function getSDKCacheInfos({
+function getSDKCacheInfosOfSwap({
   connection,
   inputMint,
   outputMint,
@@ -194,7 +143,7 @@ function getSDKCacheInfos({
   sdkParsedAmmV3PoolInfo: Awaited<ReturnType<(typeof Clmm)['fetchMultiplePoolInfos']>>
 }) {
   const key = toPubString(inputMint) + toPubString(outputMint)
-  if (!sdkCaches.has(key)) {
+  if (!sdkCachesOfSwap.has(key)) {
     const routes = TradeV2.getAllRoute({
       inputMint,
       outputMint,
@@ -205,7 +154,7 @@ function getSDKCacheInfos({
       connection,
       mints: routes.needCheckToken.map((i) => toPub(i))
     }).catch((err) => {
-      sdkCaches.delete(key)
+      sdkCachesOfSwap.delete(key)
       throw err
     })
     const tickCache = Clmm.fetchMultiplePoolTickArrays({
@@ -213,7 +162,7 @@ function getSDKCacheInfos({
       poolKeys: routes.needTickArray,
       batchRequest: true
     }).catch((err) => {
-      sdkCaches.delete(key)
+      sdkCachesOfSwap.delete(key)
       throw err
     })
     const poolInfosCache = TradeV2.fetchMultipleInfo({
@@ -221,13 +170,13 @@ function getSDKCacheInfos({
       pools: routes.needSimulate,
       batchRequest: true
     }).catch((err) => {
-      sdkCaches.delete(key)
+      sdkCachesOfSwap.delete(key)
       throw err
     })
 
-    sdkCaches.set(key, { routes, tickCache, poolInfosCache, mintInfos })
+    sdkCachesOfSwap.set(key, { routes, tickCache, poolInfosCache, mintInfos })
   }
-  return sdkCaches.get(key)!
+  return sdkCachesOfSwap.get(key)!
 }
 
 export async function getAddLiquidityDefaultPool({
@@ -253,8 +202,8 @@ export async function getAddLiquidityDefaultPool({
     console.error('input/output is not PublicKeyish')
     return
   }
-  const sdkParsedAmmV3PoolInfo = await getParsedAmmV3PoolInfo({ connection, apiAmmPools: ammV3 })
-  const { routes, poolInfosCache } = getSDKCacheInfos({
+  const sdkParsedAmmV3PoolInfo = await getSDKParsedClmmPoolInfo({ connection, apiClmmPoolItems: ammV3 })
+  const { routes, poolInfosCache } = getSDKCacheInfosOfSwap({
     connection,
     inputMint: toPub(mint1),
     outputMint: toPub(mint2),
@@ -297,8 +246,12 @@ export async function getAllSwapableRouteInfos({
   const { chainTimeOffset } = useConnection.getState()
   const chainTime = ((chainTimeOffset ?? 0) + Date.now()) / 1000
 
-  const sdkParsedAmmV3PoolInfo = await getParsedAmmV3PoolInfo({ connection, apiAmmPools: ammV3 })
-  const { routes, poolInfosCache, tickCache, mintInfos } = getSDKCacheInfos({
+  const sdkParsedAmmV3PoolInfo = await getSDKParsedClmmPoolInfo({
+    connection,
+    apiClmmPoolItems: ammV3,
+    cacheable: true
+  })
+  const { routes, poolInfosCache, tickCache, mintInfos } = getSDKCacheInfosOfSwap({
     connection,
     inputMint: input.mint,
     outputMint: output.mint,
@@ -320,7 +273,6 @@ export async function getAllSwapableRouteInfos({
   const awaitedMintInfos = mintInfosResult.value
   if (nowEpochResult.status === 'rejected') return
   const epochInfo = nowEpochResult.value
-
   const routeList = TradeV2.getAllRouteComputeAmountOut({
     directPath: routes.directPath,
     routePathDict: routes.routePathDict,
