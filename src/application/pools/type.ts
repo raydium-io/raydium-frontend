@@ -31,6 +31,9 @@ export interface JsonPairItemInfo {
   volume24hQuote: number
   volume30d: number
   volume30dQuote: number
+
+  baseMint: HexAddress
+  quoteMint: HexAddress
 }
 
 export interface HydratedPairItemInfo {
@@ -46,6 +49,8 @@ export interface HydratedPairItemInfo {
   fee30dQuote: CurrencyAmount // usd
   liquidity: CurrencyAmount // usd
   lpMint: HexAddress
+  baseMint: HexAddress
+  quoteMint: HexAddress
   market: HexAddress
   name: string
   official: boolean

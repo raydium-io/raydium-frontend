@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from 'react'
 import useConnection from '../connection/useConnection'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import useLiquidity from './useLiquidity'
+import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 
 export default function useLiquidityUrlParser() {
   const { query, pathname, replace } = useRouter()
@@ -87,14 +88,13 @@ export default function useLiquidityUrlParser() {
 
     if (urlAmmId || urlCoin1Mint || urlCoin2Mint) {
       // from URL: according to user's ammId (or coin1 & coin2) , match liquidity pool json info
-      const matchedLiquidityJsonInfo = urlAmmId
-        ? findLiquidityInfoByAmmId(urlAmmId)
-        : urlCoin1 && urlCoin2
-        ? await getAddLiquidityDefaultPool({
-            mint1: fromUrlString(urlCoin1Mint).mint,
-            mint2: fromUrlString(urlCoin2Mint).mint
-          })
-        : undefined
+      let matchedLiquidityJsonInfo: ApiPoolInfoItem | undefined = undefined
+      if (urlAmmId) matchedLiquidityJsonInfo = findLiquidityInfoByAmmId(urlAmmId)
+      if (!matchedLiquidityJsonInfo && urlCoin1 && urlCoin2)
+        matchedLiquidityJsonInfo = await getAddLiquidityDefaultPool({
+          mint1: fromUrlString(urlCoin1Mint).mint,
+          mint2: fromUrlString(urlCoin2Mint).mint
+        })
 
       const coin1 = getToken(matchedLiquidityJsonInfo?.baseMint) ?? urlCoin1
       const coin2 = getToken(matchedLiquidityJsonInfo?.quoteMint) ?? urlCoin2

@@ -1,7 +1,5 @@
 import router from 'next/router'
 
-import { PublicKey } from '@solana/web3.js'
-
 import { ParsedUrlQuery } from 'querystring'
 
 import { addItem } from '@/functions/arrayMethods'
@@ -38,6 +36,8 @@ export type PageRouteConfigs = {
       coin2?: SplToken
       ammId?: string
       mode?: 'removeLiquidity'
+      coin1Mint?: string
+      coin2Mint?: string
     }
   }
   '/liquidity/create': {
@@ -116,6 +116,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   opts?: MayFunction<PageRouteConfigs[ToPage], [{ currentPageQuery: ParsedUrlQuery }]>
 ) {
   const options = shrinkToValue(opts, [{ currentPageQuery: router.query }])
+  /** get info from queryProp */
   innerRouteStack.push({ url: toPage })
 
   if (toPage === '/swap') {
@@ -139,7 +140,6 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   } else if (toPage === '/liquidity/add') {
     const { coin1: oldCoin1, coin2: oldCoin2 } = useLiquidity.getState()
 
-    /** get info from queryProp */
     const ammId = options?.queryProps?.ammId
     const coin1 =
       options?.queryProps?.coin1 ?? (router.pathname.includes('swap') ? useSwap.getState().coin1 : undefined)
@@ -171,7 +171,15 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       useLiquidity.setState({ coin1Amount: undefined, coin2Amount: undefined })
     }
 
-    router.push({ pathname: '/liquidity/add' })
+    const [queryCoin0, queryCoin1] = [options?.queryProps?.coin1Mint, options?.queryProps?.coin2Mint]
+
+    router.push({
+      pathname: '/liquidity/add',
+      query: {
+        ...(queryCoin0 ? { coin0: queryCoin0 } : {}),
+        ...(queryCoin1 ? { coin1: queryCoin1 } : {})
+      }
+    })
   } else if (toPage === '/farms') {
     return router.push({ pathname: '/farms' }).then(() => {
       /** jump to target page */

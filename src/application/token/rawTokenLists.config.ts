@@ -6,7 +6,7 @@ import {
   TokenListFetchConfigItem
 } from './type'
 
-export const getLiquidityMainnetListUrl = () => useAppAdvancedSettings.getState().apiUrls.poolInfo
+export const getLiquidityMainnetListUrl = () => useAppAdvancedSettings.getState().apiUrls.uiPoolInfo
 const getCustomTokenListUrl = () => '/custom-token-list.json'
 const getRaydiumMainnetTokenListUrl = () => useAppAdvancedSettings.getState().apiUrls.tokenInfo
 const getClmmPoolListUrl = () => useAppAdvancedSettings.getState().apiUrls.clmmPools

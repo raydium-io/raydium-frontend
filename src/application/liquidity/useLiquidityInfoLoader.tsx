@@ -27,6 +27,12 @@ export const parseAndSetPoolList = (response?: ApiPoolInfo, fetchTime?: number) 
   // .filter((info) => !(blacklist ?? []).includes(info.id))
   const officialIds = new Set(response?.official?.map((i) => i.id))
   const unOfficialIds = new Set(response?.unOfficial?.map((i) => i.id))
+
+  const extraPoolInfos = useLiquidity.getState().extraPooInfos
+  const readyMergePools = extraPoolInfos.filter((p) => !officialIds.has(p.id) && !unOfficialIds.has(p.id))
+  liquidityInfoList.push(...readyMergePools)
+  readyMergePools.forEach((p) => unOfficialIds.add(p.id))
+
   if (liquidityInfoList)
     useLiquidity.setState({
       ...(response ? { apiCacheInfo: { fetchTime: fetchTime || Date.now(), data: response } } : {}),
@@ -72,7 +78,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
   const { pathname } = useRouter()
   const isLiquidityPage = pathname === '/liquidity/add'
-  const poolInfoUrl = useAppAdvancedSettings((s) => s.apiUrls.poolInfo)
+  const poolInfoUrl = useAppAdvancedSettings((s) => s.apiUrls.uiPoolInfo)
 
   /** fetch json info list  */
   useTransitionedEffect(async () => {
