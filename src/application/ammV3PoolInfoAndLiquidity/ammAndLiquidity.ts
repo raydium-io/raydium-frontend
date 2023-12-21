@@ -246,7 +246,11 @@ export async function getAllSwapableRouteInfos({
   const { chainTimeOffset } = useConnection.getState()
   const chainTime = ((chainTimeOffset ?? 0) + Date.now()) / 1000
 
-  const sdkParsedAmmV3PoolInfo = await getSDKParsedClmmPoolInfo({ connection, apiClmmPoolItems: ammV3 })
+  const sdkParsedAmmV3PoolInfo = await getSDKParsedClmmPoolInfo({
+    connection,
+    apiClmmPoolItems: ammV3,
+    cacheable: true
+  })
   const { routes, poolInfosCache, tickCache, mintInfos } = getSDKCacheInfosOfSwap({
     connection,
     inputMint: input.mint,

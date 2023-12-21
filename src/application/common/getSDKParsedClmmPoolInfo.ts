@@ -19,14 +19,18 @@ export async function getSDKParsedClmmPoolInfo({
   connection,
   apiClmmPoolItems,
   ownerInfo,
+  cacheable,
   chainTimeOffset = useConnection.getState().chainTimeOffset ?? 0
 }: {
   connection: Connection
   apiClmmPoolItems: ApiClmmPoolsItem[]
   ownerInfo?: { tokenAccounts: TokenAccount[]; wallet: PublicKey }
+  cacheable?: boolean
   chainTimeOffset?: number
 }) {
-  const needRefetchApiAmmPools = apiClmmPoolItems.filter(({ id }) => !parsedClmmPoolInfoCache.has(toPubString(id)))
+  const needRefetchApiAmmPools = cacheable
+    ? apiClmmPoolItems.filter(({ id }) => !parsedClmmPoolInfoCache.has(toPubString(id)))
+    : apiClmmPoolItems
   if (needRefetchApiAmmPools.length) {
     const sdkParsedPromise = Clmm.fetchMultiplePoolInfos({
       poolKeys: needRefetchApiAmmPools,
