@@ -84,8 +84,8 @@ export default function useConcentratedInfoLoader() {
         }
       },
       // if is waiting token acc, wait longer, if it's refresh wait 500ms, if it's firs time loading set to 0
-      isWaitingTokenAcc ? 1000 : useConcentrated.getState().sdkParsedAmmPools.length > 0 ? 500 : 0,
-      +50 /* ensure token parse is after cache clear */
+      (isWaitingTokenAcc ? 1000 : useConcentrated.getState().sdkParsedAmmPools.length > 0 ? 500 : 0) +
+        50 /* ensure token parse is after cache clear */
     )
   }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), chainTimeOffset, tokenAccounts])
 
