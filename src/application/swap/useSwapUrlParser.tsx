@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
-
+import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 import { ParsedUrlQuery } from 'querystring'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -100,11 +100,15 @@ export default function useSwapUrlParser(): void {
       const { logWarning } = useNotification.getState()
       const urlCoin1 = await getUserTokenEvenNotExist(urlCoin1Mint, urlCoin1Symbol)
       const urlCoin2 = await getUserTokenEvenNotExist(urlCoin2Mint, urlCoin2Symbol)
-      const matchedLiquidityJsonInfo = urlAmmId
-        ? findLiquidityInfoByAmmId(urlAmmId)
-        : urlCoin1 && urlCoin2
-        ? await getAddLiquidityDefaultPool({ mint1: urlCoin1Mint, mint2: urlCoin2Mint })
-        : undefined
+
+      let matchedLiquidityJsonInfo: ApiPoolInfoItem | undefined = undefined
+      if (urlAmmId) matchedLiquidityJsonInfo = findLiquidityInfoByAmmId(urlAmmId)
+      if (!matchedLiquidityJsonInfo && urlCoin1 && urlCoin2)
+        matchedLiquidityJsonInfo = await getAddLiquidityDefaultPool({
+          mint1: urlCoin1Mint,
+          mint2: urlCoin2Mint
+        })
+
       if (matchedLiquidityJsonInfo) {
         const coin1 = getToken(matchedLiquidityJsonInfo?.baseMint) ?? urlCoin1
         const coin2 = getToken(matchedLiquidityJsonInfo?.quoteMint) ?? urlCoin2

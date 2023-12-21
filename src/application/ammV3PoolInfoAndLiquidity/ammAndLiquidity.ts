@@ -29,13 +29,15 @@ import {
   ReturnTypeFetchMultiplePoolTickArrays,
   ReturnTypeGetAllRouteComputeAmountOut,
   TradeV2,
-  fetchMultipleMintInfos
+  fetchMultipleMintInfos,
+  ApiPoolInfoItem
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getSDKParsedClmmPoolInfo } from '../common/getSDKParsedClmmPoolInfo'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { BestResultStartTimeInfo } from './type'
+import useLiquidity from '../liquidity/useLiquidity'
 
 const apiCache = {} as {
   ammV3?: ApiClmmPoolsItem[]
@@ -44,6 +46,7 @@ const apiCache = {} as {
 export function clearApiCache() {
   apiCache.ammV3 = undefined
   apiCache.liquidity = undefined
+  useLiquidity.setState({ extraPooInfos: [] })
 }
 
 async function getAmmV3PoolKeys() {
@@ -53,18 +56,54 @@ async function getAmmV3PoolKeys() {
 }
 
 async function getOldKeys() {
-  const liquidityPoolsUrl = useAppAdvancedSettings.getState().apiUrls.poolInfo
+  const liquidityPoolsUrl = useAppAdvancedSettings.getState().apiUrls.uiPoolInfo
   const response = await jFetch<ApiPoolInfo>(liquidityPoolsUrl)
   return response
 }
 
-async function getApiInfos() {
+async function getApiInfos(props?: { mint1: string; mint2: string }) {
   if (!apiCache.ammV3) {
     apiCache.ammV3 = await getAmmV3PoolKeys()
   }
   if (!apiCache.liquidity) {
     apiCache.liquidity = await getOldKeys()
   }
+  if (props && apiCache.liquidity) {
+    const [mint1, mint2] = props.mint1 < props.mint2 ? [props.mint1, props.mint2] : [props.mint2, props.mint1]
+    const allPools = [...apiCache.liquidity.official, ...apiCache.liquidity.unOfficial]
+    const { jsonInfos, officialIds, unOfficialIds, extraPooInfos } = useLiquidity.getState()
+
+    if (
+      !allPools.find(
+        (pool) =>
+          (pool.baseMint === mint1 && pool.quoteMint === mint2) || (pool.quoteMint === mint1 && pool.baseMint === mint2)
+      ) ||
+      !jsonInfos.find(
+        (pool) =>
+          (pool.baseMint === mint1 && pool.quoteMint === mint2) || (pool.quoteMint === mint1 && pool.baseMint === mint2)
+      )
+    ) {
+      useLiquidity.setState({ extraPoolLoading: true })
+      const liquidityPoolsUrl = useAppAdvancedSettings.getState().apiUrls.searchPool
+      const response = await jFetch<ApiPoolInfoItem[]>(liquidityPoolsUrl + `${mint1}/${mint2}`, {
+        cacheFreshTime: 1000 * 60 * 30
+      })
+      if (response && Array.isArray(response)) {
+        const newPools = response.filter((pool) => !allPools.find((p) => p.id === pool.id))
+        apiCache.liquidity.unOfficial.push(...newPools)
+
+        const readyToUpdate = response.filter((pool) => !officialIds.has(pool.id) && !unOfficialIds.has(pool.id))
+        useLiquidity.setState({
+          currentJsonInfo: response[0],
+          jsonInfos: [...jsonInfos, ...readyToUpdate],
+          unOfficialIds: new Set([...Array.from(unOfficialIds), ...readyToUpdate.map((p) => p.id)]),
+          extraPooInfos: [...extraPooInfos, ...readyToUpdate.filter((p) => !extraPooInfos.find((c) => c.id === p.id))]
+        })
+      }
+    }
+    useLiquidity.setState({ extraPoolLoading: false })
+  }
+
   return apiCache
 }
 
@@ -149,7 +188,10 @@ export async function getAddLiquidityDefaultPool({
   mint1: PublicKeyish
   mint2: PublicKeyish
 }) {
-  const { ammV3, liquidity: apiPoolList } = await getApiInfos()
+  const { ammV3, liquidity: apiPoolList } = await getApiInfos({
+    mint1: mint1.toString(),
+    mint2: mint2.toString()
+  })
   assert(isArray(ammV3), 'ammV3 api must be loaded')
   assert(apiPoolList, 'liquidity api must be loaded')
   assert(isArray(apiPoolList?.official), 'liquidity api must be loaded')
@@ -190,7 +232,10 @@ export async function getAllSwapableRouteInfos({
   output: SplToken
   inputAmount: Numberish
 }) {
-  const { ammV3, liquidity: apiPoolList } = await getApiInfos()
+  const { ammV3, liquidity: apiPoolList } = await getApiInfos({
+    mint1: input.mint.toBase58(),
+    mint2: output.mint.toBase58()
+  })
   assert(
     connection,
     "no connection provide. it will default useConnection's connection, but can still appointed by user"

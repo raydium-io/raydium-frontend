@@ -191,7 +191,7 @@ export const useToken = create<TokenStore>((set, get) => ({
       ? QuantumSOLVersionSOL
       : mintlike === String(WSOLMint)
       ? QuantumSOLVersionWSOL
-      : get().tokens[mintlike],
+      : get().tokens[mintlike] || get().getToken(mintlike),
 
   toRealSymbol: (token: SplToken | undefined) =>
     isQuantumSOL(token) ? (isQuantumSOLVersionWSOL(token) ? 'WSOL' : 'SOL') : token?.symbol ?? '',

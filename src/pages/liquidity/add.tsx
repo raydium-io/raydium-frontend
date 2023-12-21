@@ -248,6 +248,7 @@ function LiquidityCard() {
     jsonInfos,
     currentHydratedInfo,
     isSearchAmmDialogOpen,
+    extraPoolLoading,
     refreshLiquidity
   } = useLiquidity()
 
@@ -255,7 +256,7 @@ function LiquidityCard() {
   const tokensLoaded = Object.keys(tokens).length > 2 // loading tokens ...
 
   const poolsJson = useLiquidity((s) => s.jsonInfos)
-  const poolsLoaded = poolsJson.length > 0 // loading pools ...
+  const poolsLoaded = poolsJson.length > 0 && !extraPoolLoading // loading pools ...
 
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 

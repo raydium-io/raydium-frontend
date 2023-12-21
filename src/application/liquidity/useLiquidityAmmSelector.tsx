@@ -29,8 +29,8 @@ export default function useLiquidityAmmSelector() {
     const baseCoin = getToken(jsonInfos.find((i) => i.id === ammId)?.baseMint)
     const quoteCoin = getToken(jsonInfos.find((i) => i.id === ammId)?.quoteMint)
     useLiquidity.setState({
-      coin1: baseCoin,
-      coin2: quoteCoin
+      ...(baseCoin ? { coin1: baseCoin } : {}),
+      ...(quoteCoin ? { coin2: quoteCoin } : {})
     })
   }, [ammId])
 

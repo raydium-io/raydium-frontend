@@ -3,6 +3,7 @@ import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
+import useToken from '../token/useToken'
 
 import { LpToken } from '../token/type'
 
@@ -21,8 +22,8 @@ export function hydratedPairInfo(
   }
 ): HydratedPairItemInfo {
   const lp = payload.lpToken
-  const base = lp?.base
-  const quote = lp?.quote
+  const base = lp?.base || useToken.getState().getToken(pair.baseMint)
+  const quote = lp?.quote || useToken.getState().getToken(pair.quoteMint)
 
   const tokenAmountBase = () =>
     base ? toTokenAmount(base, pair.tokenAmountCoin, { alreadyDecimaled: true }) ?? null : null

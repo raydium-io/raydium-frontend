@@ -753,6 +753,7 @@ function PoolCard() {
       </Row>
     </div>
   )
+
   return (
     <CyberpunkStyleCard
       haveMinHeight
@@ -1104,7 +1105,11 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               onClick={() => {
                 routeTo('/liquidity/add', {
                   queryProps: {
-                    ammId: info.ammId
+                    ammId: info.ammId,
+                    coin1: info.base,
+                    coin2: info.quote,
+                    coin1Mint: info.baseMint,
+                    coin2Mint: info.quoteMint
                   }
                 })
               }}
@@ -1117,7 +1122,11 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 routeTo('/liquidity/add', {
                   queryProps: {
                     ammId: info.ammId,
-                    mode: 'removeLiquidity'
+                    mode: 'removeLiquidity',
+                    coin1: info.base,
+                    coin2: info.quote,
+                    coin1Mint: info.baseMint,
+                    coin2Mint: info.quoteMint
                   }
                 })
               }}
@@ -1143,7 +1152,11 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               onClick={() => {
                 routeTo('/liquidity/add', {
                   queryProps: {
-                    ammId: info.ammId
+                    ammId: info.ammId,
+                    coin1: info.base,
+                    coin2: info.quote,
+                    coin1Mint: info.baseMint,
+                    coin2Mint: info.quoteMint
                   }
                 })
               }}
@@ -1182,7 +1195,11 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                     routeTo('/liquidity/add', {
                       queryProps: {
                         ammId: info.ammId,
-                        mode: 'removeLiquidity'
+                        mode: 'removeLiquidity',
+                        coin1: info.base,
+                        coin2: info.quote,
+                        coin1Mint: info.baseMint,
+                        coin2Mint: info.quoteMint
                       }
                     })
                 }}

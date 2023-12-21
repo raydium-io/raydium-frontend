@@ -25,6 +25,9 @@ export type LiquidityStore = {
     data: ApiPoolInfo
   }
 
+  extraPoolLoading: boolean
+  extraPooInfos: ApiPoolInfoItem[]
+
   /**
    *  additionally add 'SDK parsed data' (BN, PublicKey, etc.)
    */
@@ -84,6 +87,9 @@ const useLiquidity = create<LiquidityStore>((set, get) => ({
   officialIds: new Set(),
   unOfficialIds: new Set(),
   apiCacheInfo: undefined,
+
+  extraPoolLoading: false,
+  extraPooInfos: [],
   /**
    *  additionally add 'SDK parsed data' (BN, PublicKey, etc.)
    */
