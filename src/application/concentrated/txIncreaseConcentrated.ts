@@ -1,19 +1,19 @@
 import { Clmm } from '@raydium-io/raydium-sdk'
 
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import { toString } from '@/functions/numberish/toString'
-import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import txHandler, { lookupTableCache } from '../txTools/handleTx'
-import useWallet from '../wallet/useWallet'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import toBN from '@/functions/numberish/toBN'
+import { toString } from '@/functions/numberish/toString'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import txHandler, { lookupTableCache } from '../txTools/handleTx'
+import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
 
@@ -38,10 +38,10 @@ export default async function txIncreaseConcentrated({
       caseName: 'increase',
       groupInfo: targetUserPositionAccount
         ? {
-          ammPool: targetUserPositionAccount.ammPool,
-          priceLower: targetUserPositionAccount.priceLower,
-          priceUpper: targetUserPositionAccount.priceUpper
-        }
+            ammPool: targetUserPositionAccount.ammPool,
+            priceLower: targetUserPositionAccount.priceLower,
+            priceUpper: targetUserPositionAccount.priceUpper
+          }
         : undefined,
       amount: shakeUndifindedItem([
         toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }),
@@ -87,8 +87,9 @@ export default async function txIncreaseConcentrated({
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
         title: 'Liquidity Added',
-        description: `Added ${toString(coin1SlippageAmount)} ${coin1.symbol} and ${toString(coin2SlippageAmount)} ${coin2.symbol
-          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Added ${toString(coin1SlippageAmount)} ${coin1.symbol} and ${toString(coin2SlippageAmount)} ${
+          coin2.symbol
+        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })
