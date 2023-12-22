@@ -403,7 +403,7 @@ export function createSplToken(
               return tokenIsToken2022()
             case 'extensions':
               return tokenIsToken2022() ? { ...info.extensions, version: 'TOKEN2022' } : info.extensions
-            case 'programIds':
+            case 'programId':
               return tokenIsToken2022() ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
             case 'icon':
               return customTokenIcons?.[info.mint] ?? info.icon
