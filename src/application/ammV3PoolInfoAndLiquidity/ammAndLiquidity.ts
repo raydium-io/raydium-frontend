@@ -30,7 +30,8 @@ import {
   ReturnTypeGetAllRouteComputeAmountOut,
   TradeV2,
   fetchMultipleMintInfos,
-  ApiPoolInfoItem
+  ApiPoolInfoItem,
+  Token
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
@@ -273,13 +274,16 @@ export async function getAllSwapableRouteInfos({
   const awaitedMintInfos = mintInfosResult.value
   if (nowEpochResult.status === 'rejected') return
   const epochInfo = nowEpochResult.value
+
+  const _outputToken = deUIToken(output)
+  const outputToken = _outputToken instanceof Token ? new Token(new PublicKey(_outputToken.programId), new PublicKey(_outputToken.mint), _outputToken.decimals) : _outputToken
   const routeList = TradeV2.getAllRouteComputeAmountOut({
     directPath: routes.directPath,
     routePathDict: routes.routePathDict,
     simulateCache: awaitedSimulateCache,
     tickCache: awaitedTickCache,
     inputTokenAmount: deUITokenAmount(toTokenAmount(input, inputAmount, { alreadyDecimaled: true })),
-    outputToken: deUIToken(output),
+    outputToken,
     slippage: toPercent(slippageTolerance),
     chainTime,
     epochInfo,
@@ -300,9 +304,9 @@ function getBestCalcResult(
   chainTime: number
 ):
   | {
-      bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
-      bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
-    }
+    bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
+    bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
+  }
   | undefined {
   if (!routeList.length) return undefined
   const readyRoutes = routeList.filter((i) => i.poolReady)
