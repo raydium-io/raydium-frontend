@@ -259,7 +259,7 @@ function SwapCard() {
   const tokensLoaded = Object.keys(tokens).length > 2 // loading tokens ...
 
   const poolsJson = useLiquidity((s) => s.jsonInfos)
-  const poolsLoaded = true // poolsJson.length > 0 // loading pools ... // TODO: will fix
+  const poolsLoaded = poolsJson.length > 0 // loading pools ... // TODO: will fix
 
   // -------- pool ready time --------
   const swapable = useSwap((s) => s.swapable) // Pool not ready (not open yet )
