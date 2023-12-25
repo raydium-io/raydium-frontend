@@ -122,7 +122,8 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true,
       makeTxVersion: txVersion,
-      lookupTableCache
+      lookupTableCache,
+      feeDestinationId: new PublicKey('7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5')
     })
     transactionCollector.add(innerTransactions, {
       onTxSuccess() {
