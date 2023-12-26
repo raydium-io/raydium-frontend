@@ -3,27 +3,44 @@ import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
-import useToken from '../token/useToken'
+import { TokenStore } from '../token/useToken'
 
 import { LpToken } from '../token/type'
-
+import { createSplToken } from '../token/useTokenListsLoader'
 import computeUserLedgerInfo from './infoCalculater'
 import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 import { mergeObjects } from '@/functions/mergeObjects'
 import { createCachedFunction, createCachedObject } from '../../functions/createCachedFunction'
+import toPubString from '@/functions/format/toMintString'
 
 export function hydratedPairInfo(
   pair: JsonPairItemInfo,
   payload: {
+    getToken: TokenStore['getToken']
     lpToken?: LpToken
     lpBalance?: TokenAmount
     isStable?: boolean
     isOpenBook?: boolean
   }
 ): HydratedPairItemInfo {
+  const getToken = payload.getToken
   const lp = payload.lpToken
-  const base = lp?.base || useToken.getState().getToken(pair.baseMint)
-  const quote = lp?.quote || useToken.getState().getToken(pair.quoteMint)
+  const base =
+    lp?.base ||
+    getToken(pair.baseMint) ||
+    createSplToken({
+      mint: pair.baseMint,
+      decimals: 0,
+      symbol: toPubString(pair.baseMint).substring(0, 6)
+    })
+  const quote =
+    lp?.quote ||
+    getToken(pair.quoteMint) ||
+    createSplToken({
+      mint: pair.quoteMint,
+      decimals: 0,
+      symbol: toPubString(pair.quoteMint).substring(0, 6)
+    })
 
   const tokenAmountBase = () =>
     base ? toTokenAmount(base, pair.tokenAmountCoin, { alreadyDecimaled: true }) ?? null : null
