@@ -1,6 +1,6 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Percent, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { Percent } from '@raydium-io/raydium-sdk'
 
 import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
@@ -14,7 +14,7 @@ import useLiquidityAmountCalculator from '@/application/liquidity/useLiquidityAm
 import useLiquidityInitCoinFiller from '@/application/liquidity/useLiquidityInitCoinFiller'
 import useLiquidityUrlParser from '@/application/liquidity/useLiquidityUrlParser'
 import { routeTo } from '@/application/routeTools'
-import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
+import { SOL_BASE_BALANCE, SOLDecimals } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
@@ -42,8 +42,8 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import { div, minus, mul } from '@/functions/numberish/operations'
+import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { div, getMax, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import createContextStore from '@/functions/react/createContextStore'
@@ -58,14 +58,13 @@ import useConnection from '@/application/connection/useConnection'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter } from '@/functions/date/judges'
 import parseDuration from '@/functions/date/parseDuration'
+import toPercentString from '@/functions/format/toPercentString'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
+import { MintLayout } from '@solana/spl-token'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
-import useAsyncMemo from '@/hooks/useAsyncMemo'
-import { MintLayout } from '@solana/spl-token'
-import { toPercent } from '@/functions/format/toPercent'
-import toPercentString from '@/functions/format/toPercentString'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -653,9 +652,10 @@ function useLpBurnInfo({
   if (!lpToken) return {}
   if (!allLpAmount) return {}
   const realSupplyAmount = lpMintInfo ? (MintLayout.decode(lpMintInfo?.data).supply as bigint) : undefined
-  const burnAmount = realSupplyAmount != null ? minus(allLpAmount, realSupplyAmount) : undefined
+  const _allLpAmount = getMax(realSupplyAmount ?? 0, minus(allLpAmount, 1))
+  const burnAmount = realSupplyAmount != null ? minus(_allLpAmount, realSupplyAmount) : undefined
   const burnTokenAmount = burnAmount && toTokenAmount(lpToken, burnAmount)
-  return { burnTokenAmount, burnAmountPercent: div(burnAmount, allLpAmount) }
+  return { burnTokenAmount, burnAmountPercent: div(burnAmount, _allLpAmount) }
 }
 
 function LiquidityCardInfo({ className }: { className?: string }) {
