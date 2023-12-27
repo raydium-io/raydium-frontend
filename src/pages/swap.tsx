@@ -827,7 +827,7 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
   return (
     <Col>
       <FadeIn>
-        {executionPrice && (
+        {executionPrice && !executionPrice.denominator.isZero() && (
           <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
             <div className="whitespace-nowrap">
               {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
