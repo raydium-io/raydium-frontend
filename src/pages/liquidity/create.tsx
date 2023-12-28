@@ -30,6 +30,7 @@ import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
 import { getMaxBalanceBNIfNotATA } from '../../application/token/getMaxBalanceIfNotATA'
+import Tooltip from '@/components/Tooltip'
 
 /**
  * @see https://uiwjs.github.io/#/components/date-input
@@ -179,6 +180,18 @@ function PanelContent({ close }: { close(): void }) {
         onDateChange={(selectedDate) => useCreatePool.setState({ startTime: selectedDate })}
         showTime={{ format: 'HH:mm:ss' }}
       />
+      <Row className="text-xs font-medium text-[#D6CC56] bg-[#D6CC5620] py-3 px-4 rounded-xl mb-5">
+        A creation fee of X.XX SOL is required for new pools
+        <Tooltip>
+          <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+          <Tooltip.Panel>
+            <div className="max-w-[300px] space-y-1.5">
+              Pool creation fee ensures lookup table support for optimized pool indexing, swap routing, and API
+              functionality.
+            </div>
+          </Tooltip.Panel>
+        </Tooltip>
+      </Row>
 
       <Button
         className="frosted-glass-teal w-full"

@@ -19,7 +19,7 @@ const useCreatePool = create<CreatePoolStore>((set, get) => ({
   baseDecimaledAmount: '',
   quoteDecimaledAmount: '',
   sdkAssociatedPoolKeys: undefined, // stored sdk parsed infos
-  currentStep: 1,
+  currentStep: 2, // DEV force
   setCurrentStep: (newStep) => {
     set({ currentStep: newStep })
   }

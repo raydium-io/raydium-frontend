@@ -54,7 +54,7 @@ export function useSwapAmountCalculator() {
       executionPrice: undefined,
       ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: undefined }
     })
-  }, [connection, coin1, coin2, directionReversed])
+  }, [connection, coin1?.mintString, coin2?.mintString, directionReversed])
 
   // get preflight
   useIdleEffect(async () => {
@@ -85,7 +85,7 @@ export function useSwapAmountCalculator() {
       swapable,
       selectedCalcResultPoolStartTimes: bestResultStartTimes
     })
-  }, [connection, coin1, coin2, directionReversed])
+  }, [connection, coin1?.mintString, coin2?.mintString, directionReversed])
 
   const startCalc = useDebounce(
     () => {
@@ -227,8 +227,8 @@ export function useSwapAmountCalculator() {
   // changing coin2Amount will cause another calc
   useIdleEffect(startCalc, [
     isApprovePanelShown,
-    upCoin,
-    downCoin,
+    upCoin?.mintString,
+    downCoin?.mintString,
     directionReversed,
     focusSide === 'coin1' ? toString(userCoin1Amount) : toString(userCoin2Amount),
     focusSide,

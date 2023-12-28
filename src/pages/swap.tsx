@@ -135,11 +135,15 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
     useNotification.getState().popConfirm({
       cardWidth: 'lg',
       type: 'warning',
-      title: 'Confirm Token',
+      title: 'Confirm Token Mint Address',
       description: (
-        <div className="space-y-2 text-left">
-          <p className="text-center">
-            This token doesn’t appear on the default token list. Confirm this is the token that you want to trade.
+        <div className="space-y-4  text-center">
+          <p className="text-[#FED33A] font-bold">Confirm the token mint address is correct before swapping!</p>
+          <p>
+            Many tokens have <span className="text-[#FED33A]">similar or identical</span> token tickers and icons.
+          </p>
+          <p>
+            By clicking below, you understand that you are fully responsible for confirming the token you are trading.
           </p>
 
           <Row className="justify-center items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full">
@@ -163,7 +167,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
       ),
       confirmButtonIsMainButton: true,
       cancelButtonText: 'Cancel',
-      confirmButtonText: 'Confirm',
+      confirmButtonText: 'I understand, Confirm',
       onConfirm: () => {
         setHasUserTemporaryConfirmed(true)
         setNotOfficialTokenConfirmPanelOn(false)
@@ -640,18 +644,14 @@ function SwapCard() {
   function popPriceConfirm({ priceImpact }: { priceImpact?: Numberish }) {
     useNotification.getState().popConfirm({
       type: 'error',
-      title: 'Price Impact Warning',
+      title: 'High Price Impact Warning',
       description: (
-        <div>
-          Price impact is{' '}
-          {priceImpact ? (
-            <>
-              <span className="text-[#DA2EEF]">{toPercentString(priceImpact)}</span> which is{' '}
-            </>
-          ) : (
-            ''
-          )}
-          <span className="text-[#DA2EEF]">higher than 5%.</span> Try a smaller trade!
+        <div className="space-y-2">
+          <p>
+            Price impact for this swap is{' '}
+            <span className="text-[#DA2EEF]">{priceImpact ? toPercentString(priceImpact) : 'higher than 5%'}</span>
+          </p>
+          <p>Confirming may result in a poor price for this swap!</p>
         </div>
       ),
       confirmButtonText: 'Swap Anyway',
