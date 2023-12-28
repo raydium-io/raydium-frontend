@@ -62,7 +62,20 @@ export const SESSION_STORAGE_USER_SELECTED_RPC = 'user-selected-rpc'
 export const useConnection = create<ConnectionStore>((set, get) => ({
   connection: undefined,
 
-  availableEndPoints: [],
+  availableEndPoints: [
+    {
+      url: 'https://api.mainnet-beta.solana.com',
+      weight: 99,
+      batch: true,
+      name: 'Triton'
+    },
+    {
+      url: 'https://rpc.helius.xyz/?api-key=32aa61cd-1a64-4593-ac85-89d5d889b72c',
+      weight: 1,
+      batch: true,
+      name: 'Helius'
+    }
+  ],
 
   currentEndPoint: undefined,
   autoChoosedEndPoint: undefined,
