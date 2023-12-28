@@ -3,17 +3,10 @@
   "timestamp": "2021-10-22T05:58:23.919Z",
   "tokens": [
     {
-      "symbol": "Test7M",
-      "name": "Test 7M",
-      "mint": "7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR",
+      "symbol": "TUNA",
+      "name": "Tuna",
+      "mint": "Ey5msYcZSfSGH23SxPf32injh3a5L7TsvyXSBVZzius7",
       "decimals": 9,
-      "extensions": {}
-    },
-    {
-      "symbol": "Test2n",
-      "name": "Test 2n",
-      "mint": "2nkxLptGxQCfaar541Cr87G4v6VuA6BvVWqxsHNVCYoA",
-      "decimals": 6,
       "extensions": {}
     }
   ]
