@@ -180,7 +180,7 @@ function PanelContent({ close }: { close(): void }) {
         onDateChange={(selectedDate) => useCreatePool.setState({ startTime: selectedDate })}
         showTime={{ format: 'HH:mm:ss' }}
       />
-      <Row className="text-xs font-medium text-[#D6CC56] bg-[#D6CC5620] py-3 px-4 rounded-xl mb-5">
+      {/* <Row className="text-xs font-medium text-[#D6CC56] bg-[#D6CC5620] py-3 px-4 rounded-xl mb-5">
         A creation fee of X.XX SOL is required for new pools
         <Tooltip>
           <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
@@ -191,7 +191,7 @@ function PanelContent({ close }: { close(): void }) {
             </div>
           </Tooltip.Panel>
         </Tooltip>
-      </Row>
+      </Row> */}
 
       <Button
         className="frosted-glass-teal w-full"
