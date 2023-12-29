@@ -440,3 +440,11 @@ function UserCreatedPoolsExhibitionPanel() {
     </div>
   )
 }
+
+/**
+ * used in sol cost alert
+ * @author Rudy
+ */
+function getCreatePoolSOLCost(): number {
+  return 3
+}
