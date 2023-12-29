@@ -2,7 +2,9 @@ import { useRouter } from 'next/router'
 import { ReactNode, useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
 import txCreateAndInitNewPool from '@/application/createPool/txCreateAndInitNewPool'
 import { updateCreatePoolInfo } from '@/application/createPool/updateCreatePoolInfo'
 import useCreatePool from '@/application/createPool/useCreatePool'
@@ -23,14 +25,16 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import SetpIndicator from '@/components/SetpIndicator'
+import Tooltip from '@/components/Tooltip'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useToggle from '@/hooks/useToggle'
+import { Liquidity, struct, u64 } from '@raydium-io/raydium-sdk'
 import { getMaxBalanceBNIfNotATA } from '../../application/token/getMaxBalanceIfNotATA'
-import Tooltip from '@/components/Tooltip'
 
 /**
  * @see https://uiwjs.github.io/#/components/date-input
@@ -125,6 +129,7 @@ function PanelContent({ close }: { close(): void }) {
   const haveEnoughCoinQuote = quoteAmount && quoteTokenBalance && lte(quoteAmount, quoteTokenBalance)
 
   const [priceReverse, { toggle }] = useToggle()
+  const solCost = useCreatePoolSOLCost()
 
   const step2Content = (
     <>
@@ -181,7 +186,7 @@ function PanelContent({ close }: { close(): void }) {
         showTime={{ format: 'HH:mm:ss' }}
       />
       <Row className="text-xs font-medium text-[#D6CC56] bg-[#D6CC5620] py-3 px-4 rounded-xl mb-5">
-        A creation fee of {getCreatePoolSOLCost()} SOL is required for new pools
+        A creation fee of {solCost ?? '--'} SOL is required for new pools
         <Tooltip>
           <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
           <Tooltip.Panel>
@@ -442,9 +447,24 @@ function UserCreatedPoolsExhibitionPanel() {
 }
 
 /**
+ * async hook
  * used in sol cost alert
  * @author Rudy
  */
-function getCreatePoolSOLCost(): number {
-  return 3
+function useCreatePoolSOLCost(): number | undefined {
+  const programIds = useAppAdvancedSettings((s) => s.programIds)
+  const connection = useConnection((s) => s.connection)
+  const cost = useAsyncMemo(
+    async () =>
+      struct([u64('fee')])
+        .decode(
+          (await connection?.getAccountInfo(Liquidity.getAssociatedConfigId({ programId: programIds.AmmV4 }), {
+            dataSlice: { offset: 536, length: 8 }
+          }))!.data
+        )
+        .fee.toNumber() /
+      10 ** 9,
+    [connection, programIds.AmmV4]
+  )
+  return cost
 }
