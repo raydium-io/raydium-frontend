@@ -454,17 +454,18 @@ function UserCreatedPoolsExhibitionPanel() {
 function useCreatePoolSOLCost(): number | undefined {
   const programIds = useAppAdvancedSettings((s) => s.programIds)
   const connection = useConnection((s) => s.connection)
-  const cost = useAsyncMemo(
-    async () =>
-      struct([u64('fee')])
-        .decode(
-          (await connection?.getAccountInfo(Liquidity.getAssociatedConfigId({ programId: programIds.AmmV4 }), {
-            dataSlice: { offset: 536, length: 8 }
-          }))!.data
-        )
-        .fee.toNumber() /
-      10 ** 9,
-    [connection, programIds.AmmV4]
-  )
+  const cost = useAsyncMemo(async () => {
+    const data = (
+      await connection?.getAccountInfo(Liquidity.getAssociatedConfigId({ programId: programIds.AmmV4 }), {
+        dataSlice: { offset: 536, length: 8 }
+      })
+    )?.data
+    return data
+      ? struct([u64('fee')])
+          .decode(data)
+          .fee.toNumber() /
+          10 ** 9
+      : undefined
+  }, [connection, programIds.AmmV4])
   return cost
 }
