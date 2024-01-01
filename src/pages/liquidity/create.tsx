@@ -2,7 +2,9 @@ import { useRouter } from 'next/router'
 import { ReactNode, useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
 import txCreateAndInitNewPool from '@/application/createPool/txCreateAndInitNewPool'
 import { updateCreatePoolInfo } from '@/application/createPool/updateCreatePoolInfo'
 import useCreatePool from '@/application/createPool/useCreatePool'
@@ -23,14 +25,16 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import SetpIndicator from '@/components/SetpIndicator'
+import Tooltip from '@/components/Tooltip'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useToggle from '@/hooks/useToggle'
+import { Liquidity, struct, u64 } from '@raydium-io/raydium-sdk'
 import { getMaxBalanceBNIfNotATA } from '../../application/token/getMaxBalanceIfNotATA'
-import Tooltip from '@/components/Tooltip'
 
 /**
  * @see https://uiwjs.github.io/#/components/date-input
@@ -125,6 +129,7 @@ function PanelContent({ close }: { close(): void }) {
   const haveEnoughCoinQuote = quoteAmount && quoteTokenBalance && lte(quoteAmount, quoteTokenBalance)
 
   const [priceReverse, { toggle }] = useToggle()
+  const solCost = useCreatePoolSOLCost()
 
   const step2Content = (
     <>
@@ -180,8 +185,8 @@ function PanelContent({ close }: { close(): void }) {
         onDateChange={(selectedDate) => useCreatePool.setState({ startTime: selectedDate })}
         showTime={{ format: 'HH:mm:ss' }}
       />
-      {/* <Row className="text-xs font-medium text-[#D6CC56] bg-[#D6CC5620] py-3 px-4 rounded-xl mb-5">
-        A creation fee of X.XX SOL is required for new pools
+      <Row className="text-xs font-medium text-[#D6CC56] bg-[#D6CC5620] py-3 px-4 rounded-xl mb-5">
+        A creation fee of {solCost ?? '--'} SOL is required for new pools
         <Tooltip>
           <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
           <Tooltip.Panel>
@@ -191,7 +196,7 @@ function PanelContent({ close }: { close(): void }) {
             </div>
           </Tooltip.Panel>
         </Tooltip>
-      </Row> */}
+      </Row>
 
       <Button
         className="frosted-glass-teal w-full"
@@ -439,4 +444,28 @@ function UserCreatedPoolsExhibitionPanel() {
       </Card>
     </div>
   )
+}
+
+/**
+ * async hook
+ * used in sol cost alert
+ * @author Rudy
+ */
+function useCreatePoolSOLCost(): number | undefined {
+  const programIds = useAppAdvancedSettings((s) => s.programIds)
+  const connection = useConnection((s) => s.connection)
+  const cost = useAsyncMemo(async () => {
+    const data = (
+      await connection?.getAccountInfo(Liquidity.getAssociatedConfigId({ programId: programIds.AmmV4 }), {
+        dataSlice: { offset: 536, length: 8 }
+      })
+    )?.data
+    return data
+      ? struct([u64('fee')])
+          .decode(data)
+          .fee.toNumber() /
+          10 ** 9
+      : undefined
+  }, [connection, programIds.AmmV4])
+  return cost
 }
