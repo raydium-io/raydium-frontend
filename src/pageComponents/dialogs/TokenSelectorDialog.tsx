@@ -131,6 +131,7 @@ function TokenSelectorDialogContent({
   }
 
   const allSelectableTokens = useToken((s) => s.allSelectableTokens)
+  const allTokens = useToken((s) => s.verboseTokens)
 
   const sourceTokens = enableTokens || allSelectableTokens
 
@@ -140,16 +141,18 @@ function TokenSelectorDialogContent({
   // by user's search text
   const originalSearchedTokens = useMemo(
     () =>
-      searchItems(sortedTokens, {
-        text: searchText,
-        matchConfigs: (i) => [
-          { text: i.id, entirely: true },
-          { text: i?.mintString, entirely: true },
-          !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.symbol : undefined,
-          !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.name : undefined
-        ]
-      }),
-    [searchText, sortedTokens, balances]
+      searchText
+        ? searchItems(allTokens, {
+            text: searchText,
+            matchConfigs: (i) => [
+              { text: i.id, entirely: true },
+              { text: i?.mintString, entirely: true },
+              !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.symbol : undefined,
+              !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.name : undefined
+            ]
+          })
+        : sortedTokens,
+    [searchText, sortedTokens, allTokens, balances]
   )
 
   const searchedTokens = useDeferredValue(originalSearchedTokens)
