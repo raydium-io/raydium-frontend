@@ -44,6 +44,8 @@ export type LiquidityStore = {
 
   /********************** main panel (coin pair panel) **********************/
   currentJsonInfo: ApiPoolInfoItem | undefined
+  /** flag the action is over */
+  hasFinishFinding?: boolean
   currentSdkParsedInfo: SDKParsedLiquidityInfo | undefined // auto parse info in {@link useLiquidityAuto}
   currentHydratedInfo: HydratedLiquidityInfo | undefined // auto parse info in {@link useLiquidityAuto}
 
