@@ -255,14 +255,18 @@ function LiquidityCard() {
   const tokensLoaded = Object.keys(tokens).length > 2 // loading tokens ...
 
   const poolsJson = useLiquidity((s) => s.jsonInfos)
-  const poolsLoaded = poolsJson.length > 0 && !extraPoolLoading // loading pools ...
+  const jsonPoolsLoaded = poolsJson.length > 0 && !extraPoolLoading // loading pools ...
 
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
-  const hasLoadLiquidityPools = useMemo(() => jsonInfos.length > 0, [jsonInfos])
   const hasFoundLiquidityPool = useMemo(() => Boolean(currentJsonInfo), [currentJsonInfo])
+  // finding pool ...
+  const isHydrating = useMemo(
+    () => hasFoundLiquidityPool && !currentHydratedInfo,
+    [hasFoundLiquidityPool, currentHydratedInfo]
+  )
   const hasHydratedLiquidityPool = useMemo(() => Boolean(currentHydratedInfo), [currentHydratedInfo])
 
   // TODO: card actually don't need `toggleTemporarilyConfirm()` and `togglePermanentlyConfirm()`, so use React.Context may be better
@@ -428,13 +432,13 @@ function LiquidityCard() {
             }
           },
           {
-            should: poolsLoaded,
+            should: jsonPoolsLoaded,
             fallbackProps: {
               children: 'Loading Pools ...'
             }
           },
           {
-            should: hasLoadLiquidityPools,
+            should: !isHydrating,
             fallbackProps: { children: 'Finding Pool ...' }
           },
           {
