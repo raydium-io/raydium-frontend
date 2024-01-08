@@ -27,20 +27,19 @@ import {
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
 import { RAYMint, SOLMint } from './wellknownToken.config'
-import { setMinus } from '@/functions/setMethods'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
 
   tokenJsonInfos: Record<HexAddress, TokenJson>
 
-  // has QuantumSOL
+  /* has QuantumSOL */
   tokens: Record<HexAddress, SplToken | QuantumSOLToken>
 
-  // no QuantumSOL
+  /* no QuantumSOL */
   pureTokens: Record<HexAddress, SplToken>
 
-  // QuantumSOLVersionSOL and QuantumSOLVersionWSOL
+  /* QuantumSOLVersionSOL and QuantumSOLVersionWSOL, tokens from all token list (quantumSOL + other SplToken) */
   verboseTokens: (SplToken | QuantumSOLToken)[]
 
   // QuantumSOL
@@ -267,7 +266,7 @@ export const useToken = create<TokenStore>((set, get) => ({
 
     const { pureBalances, balances } = useWallet.getState()
 
-    const notInWhiteListToken = Object.values(tokens).filter(
+    const notInWhiteListToken = tokens.filter(
       (token) => !whiteListMints.includes(token.mintString) && !isQuantumSOLVersionSOL(token)
     )
 

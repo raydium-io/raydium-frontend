@@ -17,7 +17,7 @@ export default function useAutoUpdateSelectableTokens() {
   const balances = useWallet((s) => s.balances)
 
   // only user opened token list
-  const settingsFiltedTokens = useMemo(() => {
+  const unsortedSelectableTokens = useMemo(() => {
     const activeTokenListNames = Object.entries(tokenListSettings)
       .filter(([, setting]) => setting.isOn)
       .map(([name]) => name)
@@ -31,34 +31,35 @@ export default function useAutoUpdateSelectableTokens() {
       (i) => !verboseTokensMints.includes(i.mintString)
     )
 
-    const filteredTokens: SplToken[] = []
-    const candidateTokens = verboseTokens.concat(filteredUserAddedTokens)
-    for (const token of candidateTokens) {
+    const userHoldedTokenMints = new Set(Object.keys(balances))
+
+    const filteredTokens = new Set<SplToken>()
+    const allTokens = verboseTokens.concat(filteredUserAddedTokens)
+    for (const token of allTokens) {
       const isUserFlagged = tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(token.mintString)
-      if (!isUserFlagged) {
-        const isOnByTokenList = activeTokensMints.has(token.mintString)
+      const isOnByTokenList = activeTokensMints.has(token.mintString)
+      const userHolded = userHoldedTokenMints.has(token.mintString)
 
-        if (!isOnByTokenList) continue
-      }
-
-      const userAddedToken = userAddedTokens[token.mintString]
-      if (userAddedToken) {
-        const newToken = mergeObjects(token, {
-          symbol: userAddedToken.symbol,
-          name: userAddedToken.name ?? userAddedToken.symbol
-        })
-        filteredTokens.push(newToken)
-      } else {
-        filteredTokens.push(token)
+      if (isUserFlagged || isOnByTokenList || userHolded) {
+        const userAddedToken = userAddedTokens[token.mintString]
+        if (userAddedToken) {
+          const newToken = mergeObjects(token, {
+            symbol: userAddedToken.symbol,
+            name: userAddedToken.name ?? userAddedToken.symbol
+          })
+          filteredTokens.add(newToken)
+        } else {
+          filteredTokens.add(token)
+        }
       }
     }
     return filteredTokens
-  }, [verboseTokens, userAddedTokens, tokenListSettings, userAddedTokens])
+  }, [verboseTokens, userAddedTokens, balances, tokenListSettings, userAddedTokens])
 
   // have sorted
   const sortedTokens = useMemo(
-    () => sortTokens(settingsFiltedTokens),
-    [settingsFiltedTokens, sortTokens, balances, verboseTokens.length]
+    () => sortTokens(Array.from(unsortedSelectableTokens)),
+    [unsortedSelectableTokens, sortTokens, balances, verboseTokens.length]
   )
 
   useEffect(() => {

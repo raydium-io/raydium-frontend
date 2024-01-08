@@ -68,7 +68,7 @@ type MatchInfo<T> = {
  * core of "search" feature
  */
 export function searchItems<T>(
-  items: T[],
+  items: Iterable<T>,
   {
     text,
     shouldSortResultAfterSearch = true,
@@ -78,9 +78,9 @@ export function searchItems<T>(
     priorityMergeMode
   }: SearchOptions<T> = {}
 ): T[] {
-  if (!text) return items
+  if (!text) return Array.from(items)
 
-  const allMatchedInfos = items.map((item) =>
+  const allMatchedInfos = Array.from(items).map((item) =>
     calcMatchInfo({
       item,
       searchText: text!,

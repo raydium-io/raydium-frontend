@@ -1,4 +1,4 @@
-import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -156,7 +156,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
           {isFreezed && (
             <div>
               <div className="text-center my-4 text-[#FED33A] font-bold">Freeze Authority Warning</div>
-              <div className="text-center my-2  text-xs text-[#FED33A]">
+              <div className="text-center my-2 text-xs text-[#FED33A]">
                 This token has freeze authority enabled and could
                 <br />
                 prevent you from transferring or trading the token later.

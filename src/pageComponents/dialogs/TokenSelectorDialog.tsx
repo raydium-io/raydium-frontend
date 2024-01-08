@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -41,7 +41,6 @@ import { searchItems } from '@/functions/searchItems'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
-import { availableParallelism } from 'os'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -131,18 +130,33 @@ function TokenSelectorDialogContent({
   }
 
   const allSelectableTokens = useToken((s) => s.allSelectableTokens)
-  const allTokens = useToken((s) => s.verboseTokens)
+
+  const verboseTokens = useToken((s) => s.verboseTokens)
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
 
   const sourceTokens = enableTokens || allSelectableTokens
+  const userHoldedTokenMints = useMemo(() => new Set(Object.keys(balances)), [balances])
 
-  const sortedTokens = disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens
+  // used for not search
+  const sortedTokens = useCallback(
+    () => (disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens),
+    [sourceTokens, disableTokens]
+  )
+  // used for search
+  const allTokens = useCallback(
+    () =>
+      disableTokens?.length
+        ? verboseTokens.concat(Object.values(userAddedTokens)).filter((token) => !isTokenDisabled(token))
+        : verboseTokens.concat(Object.values(userAddedTokens)),
+    [verboseTokens, userAddedTokens]
+  )
 
   const isTokenUnnamedAndNotUserCustomized = useToken((s) => s.isTokenUnnamedAndNotUserCustomized)
   // by user's search text
   const originalSearchedTokens = useMemo(
     () =>
       searchText
-        ? searchItems(allTokens, {
+        ? searchItems(allTokens(), {
             text: searchText,
             matchConfigs: (i) => [
               { text: i.id, entirely: true },
@@ -150,8 +164,14 @@ function TokenSelectorDialogContent({
               !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.symbol : undefined,
               !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.name : undefined
             ]
+          }).sort((a, b) => {
+            const aIsUserHolded = userHoldedTokenMints.has(a.mintString)
+            const bIsUserHolded = userHoldedTokenMints.has(b.mintString)
+            if (!aIsUserHolded && bIsUserHolded) return 1
+            if (aIsUserHolded && !bIsUserHolded) return -1
+            return 0
           })
-        : sortedTokens,
+        : sortedTokens(),
     [searchText, sortedTokens, allTokens, balances]
   )
 
@@ -181,7 +201,7 @@ function TokenSelectorDialogContent({
       <ListFast
         className="flex-grow flex flex-col px-4 mobile:px-2 mx-2 gap-2 overflow-auto my-2"
         sourceData={searchedTokens}
-        getKey={(token, idx) => (isQuantumSOL(token) ? token.symbol : token?.mintString) ?? idx}
+        getKey={(token) => (isQuantumSOLVersionSOL(token) ? token.symbol : token.mintString) ?? token.mintString}
         renderItem={(token, idx) => (
           <div>
             <Row
