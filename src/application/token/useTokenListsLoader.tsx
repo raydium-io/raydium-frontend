@@ -321,10 +321,6 @@ async function getTokenLists(
     useToken.getState().tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints ?? new Set<string>(),
     tokenCollector.officialMints
   )
-  tokenCollector.unNamedMints = addItems(
-    useToken.getState().tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
-    tokenCollector.unNamedMints
-  )
   tokenCollector.tokens = mergeWithOld(tokenCollector.tokens, useToken.getState().tokenJsonInfos, {
     sameKeyMergeRule: mergeToken
   })
@@ -334,7 +330,6 @@ async function getTokenLists(
     { collector: 'devMints', settings: RAYDIUM_DEV_TOKEN_LIST_NAME },
     { collector: 'officialMints', settings: RAYDIUM_MAINNET_TOKEN_LIST_NAME },
     { collector: 'unOfficialMints', settings: SOLANA_TOKEN_LIST_NAME },
-    { collector: 'unNamedMints', settings: RAYDIUM_UNNAMED_TOKEN_LIST_NAME }
   ]
 
   for (const pair of checkMapping) {
