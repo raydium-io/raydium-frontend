@@ -446,6 +446,11 @@ function UserCreatedPoolsExhibitionPanel() {
   )
 }
 
+/**
+ * async hook
+ * used in sol cost alert
+ * @author Rudy
+ */
 function useCreatePoolSOLCost(): number | undefined {
   const programIds = useAppAdvancedSettings((s) => s.programIds)
   const connection = useConnection((s) => s.connection)

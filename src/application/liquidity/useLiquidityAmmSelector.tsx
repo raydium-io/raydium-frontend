@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { use, useEffect } from 'react'
 
 import useToken from '@/application/token/useToken'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -8,6 +8,8 @@ import useLiquidity from './useLiquidity'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { getAddLiquidityDefaultPool } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
+import { clear } from 'console'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 /** coin1 coin2 ammId */
 export default function useLiquidityAmmSelector() {
@@ -38,13 +40,20 @@ export default function useLiquidityAmmSelector() {
   useAsyncEffect(async () => {
     if (!coin1 || !coin2) return
     const { ammId: oldAmmId, jsonInfos } = useLiquidity.getState()
+    useLiquidity.setState({ hasFinishFinding: false })
     const jsonMap = listToMap(jsonInfos, (i) => toPubString(i.id))
 
     const oldPoolInfo = oldAmmId ? jsonMap[oldAmmId] : undefined
 
     // current is right, no need to sync again
-    if (isMintEqual(coin1?.mint, oldPoolInfo?.baseMint) && isMintEqual(coin2?.mint, oldPoolInfo?.quoteMint)) return
-    if (isMintEqual(coin1?.mint, oldPoolInfo?.quoteMint) && isMintEqual(coin2?.mint, oldPoolInfo?.baseMint)) return
+    if (isMintEqual(coin1?.mint, oldPoolInfo?.baseMint) && isMintEqual(coin2?.mint, oldPoolInfo?.quoteMint)) {
+      useLiquidity.setState({ hasFinishFinding: true })
+      return
+    }
+    if (isMintEqual(coin1?.mint, oldPoolInfo?.quoteMint) && isMintEqual(coin2?.mint, oldPoolInfo?.baseMint)) {
+      useLiquidity.setState({ hasFinishFinding: true })
+      return
+    }
 
     const best = await getAddLiquidityDefaultPool({ mint1: coin1.mint, mint2: coin2.mint })
     if (best) {
@@ -56,13 +65,14 @@ export default function useLiquidityAmmSelector() {
     } else {
       // should clear ammId and currentJsonInfo
       useLiquidity.setState({
-        ammId: undefined
+        ammId: undefined,
+        hasFinishFinding: true
       })
     }
   }, [coin1, coin2])
 
   // update `currentJsonInfo` (to match `ammId`)
-  useEffect(() => {
+  useRecordedEffect(() => {
     if (!ammId) {
       useLiquidity.setState({ currentJsonInfo: undefined })
       return
@@ -70,10 +80,13 @@ export default function useLiquidityAmmSelector() {
     const { jsonInfos, currentJsonInfo } = useLiquidity.getState()
 
     const alreadyMatched = currentJsonInfo?.id === ammId
-    if (alreadyMatched) return
+    if (alreadyMatched) {
+      useLiquidity.setState({ hasFinishFinding: true })
+      return
+    }
 
     const matchedInfo = jsonInfos.find((i) => i.id === ammId)
-    useLiquidity.setState({ currentJsonInfo: matchedInfo })
+    useLiquidity.setState({ currentJsonInfo: matchedInfo, hasFinishFinding: true })
   }, [ammId])
 
   // update `ammId` (to match `currentJsonInfo`)

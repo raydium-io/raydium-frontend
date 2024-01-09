@@ -245,6 +245,7 @@ function LiquidityCard() {
     focusSide,
     currentJsonInfo,
     jsonInfos,
+    hasFinishFinding,
     currentHydratedInfo,
     isSearchAmmDialogOpen,
     extraPoolLoading,
@@ -255,14 +256,14 @@ function LiquidityCard() {
   const tokensLoaded = Object.keys(tokens).length > 2 // loading tokens ...
 
   const poolsJson = useLiquidity((s) => s.jsonInfos)
-  const poolsLoaded = poolsJson.length > 0 && !extraPoolLoading // loading pools ...
+  const jsonPoolsLoaded = poolsJson.length > 0 && !extraPoolLoading // loading pools ...
 
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
-  const hasLoadLiquidityPools = useMemo(() => jsonInfos.length > 0, [jsonInfos])
-  const hasFoundLiquidityPool = useMemo(() => Boolean(currentJsonInfo), [currentJsonInfo])
+  // finding pool ...
+  const isHydrating = useMemo(() => currentJsonInfo && !currentHydratedInfo, [currentJsonInfo, currentHydratedInfo])
   const hasHydratedLiquidityPool = useMemo(() => Boolean(currentHydratedInfo), [currentHydratedInfo])
 
   // TODO: card actually don't need `toggleTemporarilyConfirm()` and `togglePermanentlyConfirm()`, so use React.Context may be better
@@ -403,7 +404,7 @@ function LiquidityCard() {
         />
       </>
       {/* info panel */}
-      <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <LiquidityCardInfo className="mt-5" />}</FadeIn>
+      <FadeIn>{currentJsonInfo && coin1 && coin2 && <LiquidityCardInfo className="mt-5" />}</FadeIn>
 
       {/* confirm panel */}
       {needConfirmPanel && connected && (
@@ -428,29 +429,34 @@ function LiquidityCard() {
             }
           },
           {
-            should: poolsLoaded,
+            should: jsonPoolsLoaded,
             fallbackProps: {
               children: 'Loading Pools ...'
             }
-          },
-          {
-            should: hasLoadLiquidityPools,
-            fallbackProps: { children: 'Finding Pool ...' }
           },
           {
             should: coin1 && coin2,
             fallbackProps: { children: 'Select a token' }
           },
           {
+            should: hasFinishFinding,
+            fallbackProps: { children: 'Finding Pool ...' }
+          },
+          {
+            should: currentJsonInfo,
+            fallbackProps: { children: `Pool not found` }
+          },
+          {
+            should: !isHydrating,
+            fallbackProps: { children: 'Querying Data ...' }
+          },
+          {
             should: currentHydratedInfo ? poolIsOpen : true,
             fallbackProps: { children: remainTimeText ?? 'Calculating...' }
           },
           {
-            should: hasFoundLiquidityPool,
-            fallbackProps: { children: `Pool not found` }
-          },
-          {
-            should: coin1Amount && isMeaningfulNumber(coin1Amount) && coin2Amount && isMeaningfulNumber(coin2Amount),
+            should:
+              (coin1Amount && isMeaningfulNumber(coin1Amount)) || (coin2Amount && isMeaningfulNumber(coin2Amount)),
             fallbackProps: { children: 'Enter an amount' }
           },
           {
@@ -466,16 +472,16 @@ function LiquidityCard() {
             fallbackProps: { children: `Confirm liquidity guide` }
           },
           {
+            should: coin1Amount && isMeaningfulNumber(coin1Amount) && coin2Amount && isMeaningfulNumber(coin2Amount),
+            fallbackProps: { children: 'Calculating...' }
+          },
+          {
             should: haveEnoughCoin1,
             fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
           },
           {
             should: haveEnoughCoin2,
             fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
-          },
-          {
-            should: isMeaningfulNumber(coin1Amount) && isMeaningfulNumber(coin2Amount),
-            fallbackProps: { children: 'Enter an amount' }
           }
         ]}
         onClick={() => {
@@ -1007,7 +1013,8 @@ function UserLiquidityExhibition() {
                           className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
                           onClick={() => {
                             useLiquidity.setState({
-                              currentJsonInfo: info.jsonInfo
+                              currentJsonInfo: info.jsonInfo,
+                              hasFinishFinding: true
                             })
                             scrollToInputBox()
                           }}
@@ -1019,7 +1026,8 @@ function UserLiquidityExhibition() {
                             className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
                             onClick={() => {
                               useLiquidity.setState({
-                                currentJsonInfo: info.jsonInfo
+                                currentJsonInfo: info.jsonInfo,
+                                hasFinishFinding: true
                               })
                               useConcentrated.setState({
                                 isMigrateToClmmDialogOpen: true
@@ -1067,7 +1075,11 @@ function UserLiquidityExhibition() {
                             iconSrc="/icons/pools-remove-liquidity-entry.svg"
                             className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect`}
                             onClick={() => {
-                              useLiquidity.setState({ currentJsonInfo: info.jsonInfo, isRemoveDialogOpen: true })
+                              useLiquidity.setState({
+                                currentJsonInfo: info.jsonInfo,
+                                hasFinishFinding: true,
+                                isRemoveDialogOpen: true
+                              })
                             }}
                           />
                           <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>

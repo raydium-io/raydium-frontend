@@ -114,6 +114,7 @@ export default function useLiquidityUrlParser() {
       if (matchedLiquidityJsonInfo) {
         useLiquidity.setState({
           currentJsonInfo: matchedLiquidityJsonInfo,
+          hasFinishFinding: true,
           ammId: matchedLiquidityJsonInfo.id
         })
       } else if (urlAmmId) {

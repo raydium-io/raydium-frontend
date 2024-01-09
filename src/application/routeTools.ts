@@ -156,6 +156,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       isRemoveDialogOpen: mode === 'removeLiquidity',
 
       // clean original data
+      hasFinishFinding: false,
       currentJsonInfo: undefined, // wait for auto select
       currentSdkParsedInfo: undefined,
       currentHydratedInfo: undefined,
