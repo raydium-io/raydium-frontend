@@ -1043,7 +1043,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
         subValue={
           isHydratedFarmInfo(info) && info.stakedLpAmount
             ? `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
-            : targetAprInfo
+            : targetAprInfo && targetAprInfo.lpPrice !== 0
             ? `${formatNumber(div(targetAprInfo.tvl, targetAprInfo.lpPrice), { fractionLength: 0 })} LP`
             : '--'
         }
