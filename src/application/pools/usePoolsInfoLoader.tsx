@@ -1,4 +1,4 @@
-import { Price } from '@raydium-io/raydium-sdk'
+import { Liquidity, Price } from '@raydium-io/raydium-sdk'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo } from 'react'
 import { shallow } from 'zustand/shallow'
@@ -24,6 +24,7 @@ import useWallet from '../wallet/useWallet'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
+import { Connection, PublicKey } from '@solana/web3.js'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -56,9 +57,24 @@ export default function usePoolsInfoLoader() {
         usePools.getState().jsonInfos.length
       )
         return
+
+      const connection = new Connection('https://api.metaplex.solana.com/', 'confirmed')
+      const poolsKeys = await Liquidity.fetchAllPoolKeys2(
+        connection,
+        new PublicKey('6JoLA82ywfdUEQnwkeerETwW9tCCjbqinPHUEahzqrpM'),
+        {
+          '4': new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
+          '5': new PublicKey('27haf8L6oxUeXrHrgEgsexjSY5hbVUWEmvv9Nyxg8vQv')
+        }
+      )
+
+      // console.log('pools keys', poolsKeys)
+
       const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
         cacheFreshTime: 5 * 60 * 1000
       })
+
+      // console.log('pairJsonInfo', pairJsonInfo)
 
       if (!pairJsonInfo) return
       usePools.setState({
