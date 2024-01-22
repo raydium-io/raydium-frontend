@@ -59,14 +59,14 @@ export default function usePoolsInfoLoader() {
         return
 
       const connection = new Connection('https://api.metaplex.solana.com/', 'confirmed')
-      const poolsKeys = await Liquidity.fetchAllPoolKeys2(
-        connection,
-        new PublicKey('6JoLA82ywfdUEQnwkeerETwW9tCCjbqinPHUEahzqrpM'),
-        {
-          '4': new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
-          '5': new PublicKey('27haf8L6oxUeXrHrgEgsexjSY5hbVUWEmvv9Nyxg8vQv')
-        }
-      )
+      // const poolsKeys = await Liquidity.fetchAllPoolKeysBase(
+      //   connection,
+      //   new PublicKey('6JoLA82ywfdUEQnwkeerETwW9tCCjbqinPHUEahzqrpM'),
+      //   {
+      //     '4': new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
+      //     '5': new PublicKey('27haf8L6oxUeXrHrgEgsexjSY5hbVUWEmvv9Nyxg8vQv')
+      //   }
+      // )
 
       // console.log('pools keys', poolsKeys)
 
