@@ -89,7 +89,10 @@ export function useSwapAmountCalculator() {
 
   const startCalc = useDebounce(
     () => {
-      if (isApprovePanelShown) return // prevent update if approve panel shown
+      if (isApprovePanelShown) {
+        useSwap.setState({ isCalculating: false })
+        return // prevent update if approve panel shown
+      }
 
       // pairInfo is not enough
       if (!upCoin || !downCoin || !connection || !pathname.startsWith('/swap')) {
@@ -225,7 +228,10 @@ export function useSwapAmountCalculator() {
   // if don't check focusSideCoin, it will calc twice.
   // one for coin1Amount then it will change coin2Amount
   // changing coin2Amount will cause another calc
-  useIdleEffect(startCalc, [
+  useIdleEffect(() => {
+    useSwap.setState({ isCalculating: true })
+    startCalc()
+  }, [
     isApprovePanelShown,
     upCoin?.mintString,
     downCoin?.mintString,
