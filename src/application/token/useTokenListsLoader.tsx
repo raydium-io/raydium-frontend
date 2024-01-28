@@ -144,7 +144,7 @@ async function fetchNormalLiquidityPoolToken(
       decimal: 'quoteDecimals'
     }
   ]
-  response.unOfficial.forEach(async (pool) => {
+  response.unOfficial.concat(response.official).forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         // const verified = await verifyToken(pool[target.mint], { noLog: true }) // if clmm/liquidity is faster than token list , it will cause rpc error
@@ -329,7 +329,7 @@ async function getTokenLists(
   const checkMapping = [
     { collector: 'devMints', settings: RAYDIUM_DEV_TOKEN_LIST_NAME },
     { collector: 'officialMints', settings: RAYDIUM_MAINNET_TOKEN_LIST_NAME },
-    { collector: 'unOfficialMints', settings: SOLANA_TOKEN_LIST_NAME },
+    { collector: 'unOfficialMints', settings: SOLANA_TOKEN_LIST_NAME }
   ]
 
   for (const pair of checkMapping) {
