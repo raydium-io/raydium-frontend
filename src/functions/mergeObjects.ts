@@ -10,18 +10,11 @@ export function mergeObjectsWithConfigs<T extends object>(
   if (objs.length === 0) return {} as T
   if (objs.length === 1) return objs[0]!
 
-  let keys: Set<string | symbol> | undefined = undefined
-  let keysArray: (string | symbol)[] | undefined = undefined
+  let keys: (string | symbol)[] | undefined = undefined
 
   const getKeys = () => {
-    if (!keysArray) {
-      keysArray = getObjKeys(...objs)
-    }
-    return keysArray
-  }
-  const getSetKeys = () => {
     if (!keys) {
-      keys = new Set(getKeys())
+      keys = getObjKeys(...objs)
     }
     return keys
   }
@@ -34,7 +27,7 @@ export function mergeObjectsWithConfigs<T extends object>(
         return getValue(objs, key, transformer)
       },
       set: (target, key, value) => Reflect.set(target, key, value),
-      has: (_target, key) => getSetKeys().has(key as string),
+      has: (_target, key) => getKeys().includes(key as string),
       getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
       ownKeys: () => getKeys(),
       // for Object.keys to filter
@@ -64,18 +57,11 @@ export function mergeObjects<T extends object | undefined>(...objs: T[]): T {
   if (objs.length === 0) return {} as T
   if (objs.length === 1) return objs[0]! ?? {}
   let reversedObjs: typeof objs | undefined = undefined
-  let keys: Set<string | symbol> | undefined = undefined
-  let keysArray: (string | symbol)[] | undefined = undefined
+  let keys: (string | symbol)[] | undefined = undefined
 
   const getKeys = () => {
-    if (!keysArray) {
-      keysArray = getObjKeys(...objs)
-    }
-    return keysArray
-  }
-  const getSetKeys = () => {
     if (!keys) {
-      keys = new Set(getKeys())
+      keys = getObjKeys(...objs)
     }
     return keys
   }
@@ -96,10 +82,10 @@ export function mergeObjects<T extends object | undefined>(...objs: T[]): T {
     {},
     {
       get(target, key) {
-        if (!getSetKeys().has(key)) return undefined
+        if (!getKeys().includes(key)) return undefined
         return key in target ? target[key] : getValue(key)
       },
-      has: (_target, key) => getSetKeys().has(key),
+      has: (_target, key) => getKeys().includes(key),
       set: (_target, key, value) => Reflect.set(_target, key, value),
       getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
       ownKeys: () => getKeys(),
