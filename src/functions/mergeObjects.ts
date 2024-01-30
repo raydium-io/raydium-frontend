@@ -28,7 +28,10 @@ export function mergeObjectsWithConfigs<T extends object>(
   return new Proxy(
     {},
     {
-      get: (target, key) => (key in target ? target[key] : getValue(objs, key, transformer)),
+      get: (target, key) => {
+        if (!getKeySet().has(key)) return undefined
+        return key in target ? target[key] : getValue(objs, key, transformer)
+      },
       set: (target, key, value) => Reflect.set(target, key, value),
       has: (_target, key) => getKeySet().has(key as string),
       getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
@@ -91,7 +94,10 @@ export function mergeObjects<T extends object | undefined>(...objs: T[]): T {
   return new Proxy(
     {},
     {
-      get: (target, key) => (key in target ? target[key] : getValue(key)),
+      get: (target, key) => {
+        if (!getKeySet().has(key)) return undefined
+        return key in target ? target[key] : getValue(key)
+      },
       has: (_target, key) => getKeySet().has(key),
       set: (_target, key, value) => Reflect.set(_target, key, value),
       getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
