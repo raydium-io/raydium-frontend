@@ -11,12 +11,18 @@ export function mergeObjectsWithConfigs<T extends object>(
   if (objs.length === 1) return objs[0]!
 
   let keys: (string | symbol)[] | undefined = undefined
-
+  let keySet: Set<string | symbol> | undefined = undefined
   const getKeys = () => {
     if (!keys) {
       keys = getObjKeys(...objs)
     }
     return keys
+  }
+  const getKeySet = () => {
+    if (!keySet) {
+      keySet = new Set(getKeys())
+    }
+    return keySet
   }
 
   return new Proxy(
@@ -24,7 +30,7 @@ export function mergeObjectsWithConfigs<T extends object>(
     {
       get: (target, key) => (key in target ? target[key] : getValue(objs, key, transformer)),
       set: (target, key, value) => Reflect.set(target, key, value),
-      has: (_target, key) => getKeys().includes(key as string),
+      has: (_target, key) => getKeySet().has(key as string),
       getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
       ownKeys: () => getKeys(),
       // for Object.keys to filter
@@ -55,12 +61,19 @@ export function mergeObjects<T extends object | undefined>(...objs: T[]): T {
   if (objs.length === 1) return objs[0]! ?? {}
   let reversedObjs: typeof objs | undefined = undefined
   let keys: (string | symbol)[] | undefined = undefined
+  let keySet: Set<string | symbol> | undefined = undefined
 
   const getKeys = () => {
     if (!keys) {
       keys = getObjKeys(...objs)
     }
     return keys
+  }
+  const getKeySet = () => {
+    if (!keySet) {
+      keySet = new Set(getKeys())
+    }
+    return keySet
   }
   function getValue(key: string | symbol) {
     if (!reversedObjs) {
@@ -79,7 +92,7 @@ export function mergeObjects<T extends object | undefined>(...objs: T[]): T {
     {},
     {
       get: (target, key) => (key in target ? target[key] : getValue(key)),
-      has: (_target, key) => getKeys().includes(key),
+      has: (_target, key) => getKeySet().has(key),
       set: (_target, key, value) => Reflect.set(_target, key, value),
       getPrototypeOf: () => (objs[0] ? Object.getPrototypeOf(objs[0]) : null),
       ownKeys: () => getKeys(),
