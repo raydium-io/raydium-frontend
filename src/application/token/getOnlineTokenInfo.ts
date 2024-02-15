@@ -19,6 +19,12 @@ import useToken from './useToken'
 
 let onlineWhiteList: string[] | undefined = undefined
 
+const verifyWhiteList = [
+  { mint: 'AhhdRu5YZdjVkKR3wbnUDaymVQL2ucjMQ63sZ3LFHsch', decimals: 9, is2022Token: false },
+  { mint: 'C4Kkr9NZU3VbyedcgutU6LKmi6MKz81sx6gRmk5pX519', decimals: 9, is2022Token: false },
+  { mint: '9TPL8droGJ7jThsq4momaoz6uhTcvX2SeMqipoPmNa8R', decimals: 9, is2022Token: false },
+]
+
 export async function verifyToken(
   mintish: PublicKeyish,
   options?: {
@@ -51,6 +57,9 @@ export async function verifyToken(
   if (options?.canWhiteList && onlineWhiteList?.find((i) => i === toPubString(mintish))) {
     return getOnlineTokenInfo(mintish, { cachedAccountInfo: options?.cachedAccountInfo })
   }
+
+  if (options?.canWhiteList && verifyWhiteList.find((i) => i.mint === toPubString(mintish)))
+    return verifyWhiteList.find((i) => i.mint === toPubString(mintish))! // Temporary force
 
   const { connection } = useConnection.getState()
   if (!connection) return undefined
