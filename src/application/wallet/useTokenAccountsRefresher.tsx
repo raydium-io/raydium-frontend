@@ -17,7 +17,7 @@ import toPubString from '@/functions/format/toMintString'
 import { makeAbortable } from '@/functions/makeAbortable'
 import { eq } from '@/functions/numberish/compare'
 import useConcentrated from '../concentrated/useConcentrated'
-import { clearUpdateTokenAccountData } from './useWalletAccountChangeListeners'
+import { addWalletAccountChangeListener, removeWalletAccountChangeListener } from './useWalletAccountChangeListeners'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -31,19 +31,20 @@ export default function useTokenAccountsRefresher(): void {
   const poolRefreshCount = usePools((s) => s.refreshCount)
   const concentratedRefreshCount = useConcentrated((s) => s.refreshCount)
 
-  // useEffect(() => {
-  //   if (!connection || !owner) return
-  //   let timerId = -1
-  //   const listenerId = addWalletAccountChangeListener(() => {
-  //     clearTimeout(timerId)
-  //     timerId = window.setTimeout(() => {
-  //       loadTokenAccounts(connection, owner, undefined, { noSecondTry: true })
-  //     }, 500)
-  //   })
-  //   return () => removeWalletAccountChangeListener(listenerId)
-  // }, [connection, owner])
+  useEffect(() => {
+    if (!connection || !owner) return
+    let timerId = -1
+    const listenerId = addWalletAccountChangeListener(() => {
+      clearTimeout(timerId)
+      timerId = window.setTimeout(() => {
+        loadTokenAccounts(connection, owner, undefined, { noSecondTry: true })
+      }, 500)
+    })
+    return () => removeWalletAccountChangeListener(listenerId)
+  }, [connection, owner])
 
   useEffect(() => {
+    if (!connection || !owner) return
     let abort: () => void
     let stopPrevListener: () => void
     const timerId = window.setTimeout(
@@ -77,71 +78,60 @@ export default function useTokenAccountsRefresher(): void {
   ])
 }
 
-/** a utils */
-export function refreshTokenAccounts() {
-  const connection = useConnection((s) => s.connection)
-  const owner = useWallet((s) => s.owner)
-  const { abort } = makeAbortable((canContinue) => {
-    loadTokenAccounts(connection, owner, canContinue, { noSecondTry: true })
-  })
-  return abort
+let lastFetchTokenAccountTime = 0
+let isLoading = false
+export const resetFetchTokenAccount = () => {
+  lastFetchTokenAccountTime = 0
+  isLoading = false
 }
-
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
 const loadTokenAccounts = async (
-  connection?: Connection,
-  owner?: PublicKey,
+  connection: Connection,
+  owner: PublicKey,
   canContinue: () => boolean = () => true,
   options?: { noSecondTry?: boolean }
 ) => {
-  if (!owner || !connection) {
-    useWallet.setState({
-      tokenAccountsOwner: owner,
-      tokenAccountRawInfos: [],
-      nativeTokenAccount: undefined,
-      tokenAccounts: [],
-      allTokenAccounts: []
-    })
-    return
-  }
-  const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
-    await getRichWalletTokenAccounts({ connection, owner })
+  if (Date.now() - lastFetchTokenAccountTime < 1000 * 5 || isLoading) return
+  isLoading = true
 
-  if (!canContinue()) return
-  //#region ------------------- diff -------------------
-  const pastTokenAccounts = listToJSMap(
-    useWallet.getState().allTokenAccounts,
-    (a) => toPubString(a.publicKey) ?? 'native'
-  )
-  const newTokenAccounts = listToJSMap(allTokenAccounts, (a) => toPubString(a.publicKey) ?? 'native')
-  const diffAccounts = shakeFalsyItem(
-    [...newTokenAccounts].filter(([accountPub, { amount: newAmount }]) => {
-      const pastAmount = pastTokenAccounts.get(accountPub)?.amount
-      return !eq(newAmount, pastAmount)
-    })
-  )
-  const diffCount = diffAccounts.length
-  const hasWalletTokenAccountChanged = diffCount >= 2
-  //#endregion
+  try {
+    const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
+      await getRichWalletTokenAccounts({ connection, owner })
 
-  if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
-    clearUpdateTokenAccountData()
-    useWallet.setState({
-      tokenAccountsOwner: owner,
-      tokenAccountRawInfos,
-      nativeTokenAccount,
-      tokenAccounts,
-      allTokenAccounts
-    })
-  } else {
-    // try in 'finalized'
-    /*
+    lastFetchTokenAccountTime = Date.now()
+    isLoading = false
+
+    if (!canContinue()) return
+    //#region ------------------- diff -------------------
+    const pastTokenAccounts = listToJSMap(
+      useWallet.getState().allTokenAccounts,
+      (a) => toPubString(a.publicKey) ?? 'native'
+    )
+    const newTokenAccounts = listToJSMap(allTokenAccounts, (a) => toPubString(a.publicKey) ?? 'native')
+    const diffAccounts = shakeFalsyItem(
+      [...newTokenAccounts].filter(([accountPub, { amount: newAmount }]) => {
+        const pastAmount = pastTokenAccounts.get(accountPub)?.amount
+        return !eq(newAmount, pastAmount)
+      })
+    )
+    const diffCount = diffAccounts.length
+    const hasWalletTokenAccountChanged = diffCount >= 2
+    //#endregion
+
+    if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
+      useWallet.setState({
+        tokenAccountsOwner: owner,
+        tokenAccountRawInfos,
+        nativeTokenAccount,
+        tokenAccounts,
+        allTokenAccounts
+      })
+    } else {
+      // try in 'finalized'
       const listenerId = addWalletAccountChangeListener(
         async () => {
           const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
             await getRichWalletTokenAccounts({ connection, owner })
-          updateAccountInfoData.nativeAccount = undefined
-          updateAccountInfoData.tokenAccounts.clear()
           useWallet.setState({
             tokenAccountsOwner: owner,
             tokenAccountRawInfos,
@@ -156,8 +146,9 @@ const loadTokenAccounts = async (
         }
       )
       return { clear: () => removeWalletAccountChangeListener(listenerId) }
-      */
-    return { clear: () => {} }
+    }
+  } catch {
+    isLoading = false
   }
 }
 

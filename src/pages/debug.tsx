@@ -2,7 +2,6 @@ import useAppSettings from '@/application/common/useAppSettings'
 import txMigrateToATA from '@/application/migrateToATA/txMigrateToATA'
 import txDebugMigratePDA from '@/application/tempDebugTransactions/txAddLiquidity'
 import useToken from '@/application/token/useToken'
-import { refreshTokenAccounts } from '@/application/wallet/useTokenAccountsRefresher'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
@@ -200,13 +199,7 @@ function MigrateATAInputCard() {
           }
         ]}
         onClick={() => {
-          txMigrateToATA(migrateKeys, {
-            onTxSuccess: () => {
-              setTimeout(() => {
-                refreshTokenAccounts()
-              }, 1000)
-            }
-          })
+          txMigrateToATA(migrateKeys, {})
         }}
       >
         Migrate to ATA
