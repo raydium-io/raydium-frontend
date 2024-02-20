@@ -170,7 +170,7 @@ export function TxNotificationItemCard({
               </div>
 
               {/* SquadsX tx success msg */}
-              {wholeItemState === 'success' && adapter?.name === SquadsEmbeddedWalletAdapter.name && (
+              {wholeItemState === 'success' && adapter?.name === 'SquadsX' && (
                 <div className="font-medium text-sm whitespace-pre-wrap mobile:text-xs text-[#abc4ff80] mt-1">
                   Transaction initiated. <br />
                   You can now cast votes for this proposal on the Squads app.
