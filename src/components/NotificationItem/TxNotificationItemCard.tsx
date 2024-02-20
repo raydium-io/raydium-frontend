@@ -13,6 +13,8 @@ import LoadingCircleSmall from '../LoadingCircleSmall'
 import Row from '../Row'
 import { TxNotificationController, TxNotificationItemInfo } from './type'
 import { spawnTimeoutControllers, TimeoutController } from './utils'
+import useWallet from '@/application/wallet/useWallet'
+import SquadsEmbeddedWalletAdapter from '../SolanaWallets/SquadsMultisig'
 
 const existMs = process.env.NODE_ENV === 'development' ? 2 * 60 * 1000 : 15 * 1000 // (ms)
 
@@ -54,6 +56,7 @@ export function TxNotificationItemCard({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const explorerName = useAppSettings((s) => s.explorerName)
+  const adapter = useWallet((s) => s.adapter)
   // cache for componentRef to change it
   const [innerTxInfos, setInnerTxInfos, innerTxInfosSignal] = useSignalState(txInfos)
   const wholeItemState = innerTxInfos.every(({ state }) => state === 'success')
@@ -165,6 +168,14 @@ export function TxNotificationItemCard({
               <div className="font-medium text-sm whitespace-pre-wrap mobile:text-sm text-[#abc4ff] mt-1">
                 {innerTxInfos[0].historyInfo.description}
               </div>
+
+              {/* SquadsX tx success msg */}
+              {wholeItemState === 'success' && adapter?.name === SquadsEmbeddedWalletAdapter.name && (
+                <div className="font-medium text-sm whitespace-pre-wrap mobile:text-xs text-[#abc4ff80] mt-1">
+                  Transaction initiated. <br />
+                  You can now cast votes for this proposal on the Squads app.
+                </div>
+              )}
             </div>
           </Row>
           <Col className="gap-2 mobile:gap-2 max-h-[252px] mobile:max-h-[140px] overflow-y-auto px-2 -mx-2 ">
