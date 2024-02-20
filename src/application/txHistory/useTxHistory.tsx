@@ -16,6 +16,7 @@ export interface TxHistoryInfo {
   forceErrorTitle?: string
   block?: number
   description?: string
+  wallet?: string
   isMulti?: boolean
   /** only for multi-mode (isMulti should be true) */
   subtransactionDescription?: string

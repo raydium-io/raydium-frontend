@@ -32,6 +32,7 @@ import { buildTransactionsFromSDKInnerTransactions } from './createVersionedTran
 import { globalErrorHandlers } from './globalHandlers'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
+import toPubString from '@/functions/format/toMintString'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -489,7 +490,8 @@ async function dealWithMultiTxOptions({
         const { mutatedSingleOptions, txLoggerControllers } = recordTxNotification({
           transactions: allSignedTransactions,
           singleOptions: parseMultiOptionsInSingleOptions,
-          multiOption
+          multiOption,
+          owner: payload.owner
         })
 
         const combinedTxFn = composeWithDifferentSendMode({
@@ -510,11 +512,13 @@ async function dealWithMultiTxOptions({
 function recordTxNotification({
   transactions,
   singleOptions,
-  multiOption
+  multiOption,
+  owner
 }: {
   transactions: (Transaction | VersionedTransaction)[]
   singleOptions: SingleTxOption[]
   multiOption: MultiTxsOption
+  owner: PublicKey
 }): { mutatedSingleOptions: SingleTxOption[]; txLoggerControllers: Partial<TxNotificationController>[] } {
   // log Tx Notification
   const txInfos = singleOptions.map(({ txHistoryInfo, ...restSingleOptions }, idx) => ({
@@ -561,6 +565,7 @@ function recordTxNotification({
           useTxHistory.getState().addHistoryItem({
             status: type === 'error' ? 'fail' : type,
             txid,
+            wallet: toPubString(owner),
             time: Date.now(),
             isMulti,
             relativeTxids: passedMultiTxid,
@@ -687,7 +692,14 @@ async function dealWithSingleTxOptions({
         txLoggerController?.changeItemInfo?.(
           {
             txid,
-            historyInfo: { ...singleOption?.txHistoryInfo, ...newPartialInfo, txid, status, time: Date.now() }
+            historyInfo: {
+              ...singleOption?.txHistoryInfo,
+              ...newPartialInfo,
+              wallet: toPubString(payload.owner),
+              txid,
+              status,
+              time: Date.now()
+            }
           },
           { transaction }
         )

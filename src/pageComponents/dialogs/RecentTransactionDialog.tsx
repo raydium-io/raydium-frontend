@@ -2,6 +2,7 @@ import useAppSettings from '@/application/common/useAppSettings'
 import useTxHistory, { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
 import useWallet from '@/application/wallet/useWallet'
 import Card from '@/components/Card'
+import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import Dialog from '@/components/Dialog'
 import Drawer from '@/components/Drawer'
@@ -64,7 +65,7 @@ function SingleRecentTransactionItem({ txInfo }: { txInfo: TxHistoryInfo }) {
     <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle>
       <Row
         type="grid-x"
-        className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] rounded-lg py-4 px-4 hover:bg-[#14104180] items-center"
+        className="group gap-[min(3.5vw,24px)] grid-cols-[1.2fr,2fr,1.2fr] rounded-lg py-4 px-4 hover:bg-[#14104180] items-center"
       >
         {/* table head column: Transaction type */}
         <Row className="group-hover:underline underline-offset-1 items-center font-medium text-[#ABC4FF] text-xs gap-2">
@@ -74,7 +75,14 @@ function SingleRecentTransactionItem({ txInfo }: { txInfo: TxHistoryInfo }) {
             iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
             className={(iconSettings[txInfo.status] as any).textColor}
           />
-          <div>{txInfo.title ?? ''}</div>
+          <Col className="w-full">
+            <div>{txInfo.title ?? ''}</div>
+            {txInfo.wallet && (
+              <div className="text-[#abc4ff80]">
+                (wallet:{txInfo.wallet.slice(0, 4)}...{txInfo.wallet.slice(-4)})
+              </div>
+            )}
+          </Col>
         </Row>
         {/* table head column: Details */}
         <div className="font-medium text-[#ABC4FF] text-xs">{txInfo.description}</div>
@@ -98,7 +106,10 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
       <Collapse>
         <Collapse.Face>
           {({ isOpen }) => (
-            <Row type="grid-x" className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] py-4 px-4 items-center">
+            <Row
+              type="grid-x"
+              className="group gap-[min(3.5vw,24px)] grid-cols-[1.2fr,2fr,1.2fr] py-4 px-4 items-center"
+            >
               {/* table head column: Transaction type */}
               <Row className="items-center font-medium text-[#ABC4FF] text-xs gap-2">
                 <Icon
@@ -107,7 +118,14 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
                   iconSrc={(iconSettings[headTx.status] as any).iconSrc}
                   className={(iconSettings[headTx.status] as any).textColor}
                 />
-                <div>{headTx.title ?? ''}</div>
+                <Col className="w-full">
+                  <div>{headTx.title ?? ''}</div>
+                  {headTx.wallet && (
+                    <div className="text-[#abc4ff80]">
+                      (wallet:{headTx.wallet.slice(0, 4)}...{headTx.wallet.slice(-4)})
+                    </div>
+                  )}
+                </Col>
                 <div className="flex-none ml-0.5 grid place-items-center h-4 w-4 rounded-full bg-[#abc4ff40] text-[#abc4ff]">
                   <Icon size="xs" heroIconName={isOpen ? 'chevron-up' : 'chevron-down'} />
                 </div>
@@ -125,7 +143,7 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
               <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
                 <Row
                   type="grid-x"
-                  className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] rounded-lg py-2 px-4  items-center"
+                  className="group gap-[min(3.5vw,24px)] grid-cols-[1.2fr,2fr,1.2fr] rounded-lg py-2 px-4  items-center"
                 >
                   {/* table head column: Transaction type */}
                   <Row></Row>
@@ -137,7 +155,9 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
                       iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
                       className={(iconSettings[txInfo.status] as any).textColor}
                     />
-                    <div>{txInfo.subtransactionDescription ?? `Transaction ${idx + 1}`}</div>
+                    <Col>
+                      <div>{txInfo.subtransactionDescription ?? `Transaction ${idx + 1}`}</div>
+                    </Col>
                   </Row>
                   {/* table head column: Date and time */}
                   <div className="font-medium text-[#ABC4FF80] text-xs">{toUTC(txInfo.time)}</div>
@@ -192,7 +212,7 @@ function PanelContent({ historyItems, onClose }: { historyItems: TxHistoryInfo[]
 
       <Row
         type="grid-x"
-        className="gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] pb-3 px-8 border-b-1.5 border-[rgba(171,196,255,0.2)]"
+        className="gap-[min(3.5vw,24px)] grid-cols-[1.2fr,2fr,1.2fr] pb-3 px-8 border-b-1.5 border-[rgba(171,196,255,0.2)]"
       >
         {/* table head column: Transaction type */}
         <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Transaction type</div>
