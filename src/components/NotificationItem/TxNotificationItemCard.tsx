@@ -123,6 +123,21 @@ export function TxNotificationItemCard({
       } as TxNotificationController)
   )
 
+  const successTitle =
+    innerTxInfos[0].historyInfo.forceConfirmedTitle ??
+    (adapter?.name === 'SquadsX'
+      ? `Transaction initiated! (${innerTxInfos[0].historyInfo.title})`
+      : `${innerTxInfos[0].historyInfo.title} Confirmed!`)
+  const errorTitle =
+    innerTxInfos[0].historyInfo.forceErrorTitle ??
+    (adapter?.name === 'SquadsX'
+      ? `Transaction initiation (${innerTxInfos[0].historyInfo.title}) failed!`
+      : `${innerTxInfos[0].historyInfo.title} Error!`)
+  const description =
+    adapter?.name === 'SquadsX'
+      ? `${innerTxInfos[0].historyInfo.description}
+You can now cast votes for this proposal on the Squads app.`
+      : innerTxInfos[0].historyInfo.description
   return (
     <Card
       domRef={itemRef}
@@ -158,24 +173,16 @@ export function TxNotificationItemCard({
             <div>
               <div className="font-medium text-base mobile:p-0 mobile:text-sm text-white">
                 {wholeItemState === 'success'
-                  ? innerTxInfos[0].historyInfo.forceConfirmedTitle ?? `${innerTxInfos[0].historyInfo.title} Confirmed!`
+                  ? successTitle
                   : wholeItemState === 'error'
-                  ? innerTxInfos[0].historyInfo.forceErrorTitle ?? `${innerTxInfos[0].historyInfo.title} Error!`
+                  ? errorTitle
                   : totalTransactionLength > 1
                   ? `Confirming transactions...(${processedTransactionLength}/${totalTransactionLength})`
                   : `Confirming transaction...`}
               </div>
               <div className="font-medium text-sm whitespace-pre-wrap mobile:text-sm text-[#abc4ff] mt-1">
-                {innerTxInfos[0].historyInfo.description}
+                {description}
               </div>
-
-              {/* SquadsX tx success msg */}
-              {wholeItemState === 'success' && adapter?.name === 'SquadsX' && (
-                <div className="font-medium text-sm whitespace-pre-wrap mobile:text-xs text-[#abc4ff80] mt-1">
-                  Transaction initiated. <br />
-                  You can now cast votes for this proposal on the Squads app.
-                </div>
-              )}
             </div>
           </Row>
           <Col className="gap-2 mobile:gap-2 max-h-[252px] mobile:max-h-[140px] overflow-y-auto px-2 -mx-2 ">
