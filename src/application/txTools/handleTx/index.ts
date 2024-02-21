@@ -33,6 +33,7 @@ import { globalErrorHandlers } from './globalHandlers'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 import toPubString from '@/functions/format/toMintString'
+import { Adapter } from '@solana/wallet-adapter-base'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -205,6 +206,7 @@ export type SendTransactionPayload = {
   txVersion: TxVersion
   // only if have been shadow open
   signerkeyPair?: TxKeypairDetective
+  adapter: Adapter | undefined
 }
 
 export function isTransaction(x: any): x is Transaction {
@@ -251,7 +253,7 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
   } = collectTxOptions(options)
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
-    const { signAllTransactions, owner, txVersion } = useWallet.getState()
+    const { signAllTransactions, owner, txVersion, adapter } = useWallet.getState()
     const connection = useConnection.getState().connection
     assert(connection, 'no rpc connection')
     if (options?.forceKeyPairs?.ownerKeypair) {
@@ -288,7 +290,8 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
         connection,
         txVersion,
         signAllTransactions,
-        signerkeyPair: options?.forceKeyPairs
+        signerkeyPair: options?.forceKeyPairs,
+        adapter: adapter
       }
     })
 
@@ -491,7 +494,7 @@ async function dealWithMultiTxOptions({
           transactions: allSignedTransactions,
           singleOptions: parseMultiOptionsInSingleOptions,
           multiOption,
-          owner: payload.owner
+          adapter: payload.adapter
         })
 
         const combinedTxFn = composeWithDifferentSendMode({
@@ -513,12 +516,12 @@ function recordTxNotification({
   transactions,
   singleOptions,
   multiOption,
-  owner
+  adapter
 }: {
   transactions: (Transaction | VersionedTransaction)[]
   singleOptions: SingleTxOption[]
   multiOption: MultiTxsOption
-  owner: PublicKey
+  adapter: Adapter | undefined
 }): { mutatedSingleOptions: SingleTxOption[]; txLoggerControllers: Partial<TxNotificationController>[] } {
   // log Tx Notification
   const txInfos = singleOptions.map(({ txHistoryInfo, ...restSingleOptions }, idx) => ({
@@ -565,7 +568,7 @@ function recordTxNotification({
           useTxHistory.getState().addHistoryItem({
             status: type === 'error' ? 'fail' : type,
             txid,
-            wallet: toPubString(owner),
+            adapterName: adapter?.name,
             time: Date.now(),
             isMulti,
             relativeTxids: passedMultiTxid,
@@ -695,7 +698,7 @@ async function dealWithSingleTxOptions({
             historyInfo: {
               ...singleOption?.txHistoryInfo,
               ...newPartialInfo,
-              wallet: toPubString(payload.owner),
+              adapterName: payload.adapter?.name,
               txid,
               status,
               time: Date.now()

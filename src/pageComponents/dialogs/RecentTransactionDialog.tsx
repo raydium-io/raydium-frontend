@@ -77,11 +77,7 @@ function SingleRecentTransactionItem({ txInfo }: { txInfo: TxHistoryInfo }) {
           />
           <Col className="w-full">
             <div>{txInfo.title ?? ''}</div>
-            {txInfo.wallet && (
-              <div className="text-[#abc4ff80]">
-                (wallet:{txInfo.wallet.slice(0, 4)}...{txInfo.wallet.slice(-4)})
-              </div>
-            )}
+            {txInfo.adapterName && <div className="text-[#abc4ff80]">({txInfo.adapterName})</div>}
           </Col>
         </Row>
         {/* table head column: Details */}
@@ -120,11 +116,7 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
                 />
                 <Col className="w-full">
                   <div>{headTx.title ?? ''}</div>
-                  {headTx.wallet && (
-                    <div className="text-[#abc4ff80]">
-                      (wallet:{headTx.wallet.slice(0, 4)}...{headTx.wallet.slice(-4)})
-                    </div>
-                  )}
+                  {headTx.adapterName && <div className="text-[#abc4ff80]">({headTx.adapterName})</div>}
                 </Col>
                 <div className="flex-none ml-0.5 grid place-items-center h-4 w-4 rounded-full bg-[#abc4ff40] text-[#abc4ff]">
                   <Icon size="xs" heroIconName={isOpen ? 'chevron-up' : 'chevron-down'} />
