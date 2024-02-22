@@ -128,16 +128,21 @@ export function TxNotificationItemCard({
     (adapter?.name === 'SquadsX'
       ? `Transaction initiated! (${innerTxInfos[0].historyInfo.title})`
       : `${innerTxInfos[0].historyInfo.title} Confirmed!`)
+
   const errorTitle =
     innerTxInfos[0].historyInfo.forceErrorTitle ??
     (adapter?.name === 'SquadsX'
       ? `Transaction initiation (${innerTxInfos[0].historyInfo.title}) failed!`
       : `${innerTxInfos[0].historyInfo.title} Error!`)
-  const description =
+
+  const descriptionWhenProcessing = innerTxInfos[0].historyInfo.description
+
+  const descriptionWhenSuccess =
     adapter?.name === 'SquadsX'
       ? `${innerTxInfos[0].historyInfo.description}
 You can now cast votes for this proposal on the Squads app.`
       : innerTxInfos[0].historyInfo.description
+
   return (
     <Card
       domRef={itemRef}
@@ -168,7 +173,7 @@ You can now cast votes for this proposal on the Squads app.`
       />
       <Row className="gap-3 px-2 mobile:px-0">
         <div>
-          <Row className="gap-3 mb-5">
+          <Row className="gap-3 mb-3">
             <Icon heroIconName={colors[wholeItemState].heroIconName} className={colors[wholeItemState].text} />
             <div>
               <div className="font-medium text-base mobile:p-0 mobile:text-sm text-white">
@@ -181,7 +186,7 @@ You can now cast votes for this proposal on the Squads app.`
                   : `Confirming transaction...`}
               </div>
               <div className="font-medium text-sm whitespace-pre-wrap mobile:text-sm text-[#abc4ff] mt-1">
-                {description}
+                {wholeItemState === 'success' ? descriptionWhenSuccess : descriptionWhenProcessing}
               </div>
             </div>
           </Row>
