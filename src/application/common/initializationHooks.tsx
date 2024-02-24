@@ -77,11 +77,8 @@ function useSlippageTolerenceSyncer() {
   useRecordedEffect(
     ([, prevLocalStoredSlippaged]) => {
       const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage != null
-      if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
-        useAppSettings.setState({
-          slippageTolerance: localStoredSlippage ?? 0.003
-        })
-      } else if (slippageTolerance) {
+      // always set default value [feature in 2024-02-25 00:15]
+      if (slippageTolerance) {
         setLocalStoredSlippage(toString(slippageTolerance))
       } else {
         // cold start, set default value
@@ -89,6 +86,19 @@ function useSlippageTolerenceSyncer() {
           slippageTolerance: 0.003
         })
       }
+
+      // if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
+      //   useAppSettings.setState({
+      //     slippageTolerance: localStoredSlippage ?? 0.003
+      //   })
+      // } else if (slippageTolerance) {
+      //   setLocalStoredSlippage(toString(slippageTolerance))
+      // } else {
+      //   // cold start, set default value
+      //   useAppSettings.setState({
+      //     slippageTolerance: 0.003
+      //   })
+      // }
     },
     [slippageTolerance, localStoredSlippage]
   )
