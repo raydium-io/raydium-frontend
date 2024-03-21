@@ -95,7 +95,7 @@ export default function SetTransactionPriority() {
                 }
               }}
               pattern={/^\d*\.?\d*$/}
-              maximum={0.01}
+              maximum={1}
             />
             <div>SOL</div>
           </Row>
