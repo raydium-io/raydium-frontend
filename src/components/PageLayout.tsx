@@ -110,10 +110,10 @@ export default function PageLayout(props: {
       className={`w-full mobile:w-full h-full mobile:h-full`}
     >
       <div className="grid-area-d">
+        <BetaBanner className="w-full" />
         <RPCPerformanceBanner className="w-full" />
         <NewConcentratedPoolBanner className="w-full" />
         <NoneATABanner className="w-full" />
-        <BetaBanner className="w-full" />
       </div>
       {isMobile ? (
         <>
