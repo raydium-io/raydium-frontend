@@ -14,7 +14,7 @@ import {
   isQuantumSOLVersionWSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
-import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
+import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME, SupportedTokenListSettingName } from '@/application/token/useToken'
 import { createSplToken } from '@/application/token/useTokenListsLoader'
 import { RAYMint, USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
@@ -99,7 +99,7 @@ function TokenSelectorDialogContent({
     closePanel?.()
   })
   const selectToken = useEvent(async (splToken: SplToken) => {
-    const isOfficialToken = tokenListSettings['Raydium Token List'].mints?.has(splToken.mintString)
+    const isOfficialToken = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.has(splToken.mintString)
     // tokenListSettings['Solana Token List'][splToken.mintString]
     const canSelect =
       turnOnTokenVerification && !isOfficialToken
@@ -199,7 +199,7 @@ function TokenSelectorDialogContent({
     // "If you want to prevent a child component from re-rendering during an urgent update, you must also memoize that component with React.memo or React.useMemo:" ---- React official doc
     () => (
       <ListFast
-        className="flex-grow flex flex-col px-4 mobile:px-2 mx-2 gap-2 overflow-auto my-2"
+        className="flex flex-col flex-grow gap-2 px-4 mx-2 my-2 overflow-auto mobile:px-2"
         sourceData={searchedTokens}
         getKey={(token) => (isQuantumSOLVersionSOL(token) ? token.symbol : token.mintString) ?? token.mintString}
         renderItem={(token, idx) => (
@@ -271,8 +271,8 @@ function TokenSelectorDialogContent({
       }}
     >
       {currentTabIsTokenList ? (
-        <div className="px-8 mobile:px-6 pt-6 pb-5">
-          <Row className="justify-between items-center mb-6">
+        <div className="px-8 pt-6 pb-5 mobile:px-6">
+          <Row className="items-center justify-between mb-6">
             <Icon
               className="text-[#ABC4FF] cursor-pointer clickable clickable-mask-offset-2"
               heroIconName="chevron-left"
@@ -291,8 +291,8 @@ function TokenSelectorDialogContent({
         </div>
       ) : (
         <>
-          <div className="px-8 mobile:px-6 pt-6 pb-5">
-            <Row className="justify-between items-center mb-6">
+          <div className="px-8 pt-6 pb-5 mobile:px-6">
+            <Row className="items-center justify-between mb-6">
               <div className="text-xl font-semibold text-white">Select a token</div>
               <Icon
                 className="text-[#ABC4FF] cursor-pointer clickable clickable-mask-offset-2"
@@ -341,7 +341,7 @@ function TokenSelectorDialogContent({
           <div className="mobile:mx-6 border-t-1.5 border-[rgba(171,196,255,0.2)]"></div>
 
           <Col className="flex-1 overflow-hidden border-b-1.5 py-3 border-[rgba(171,196,255,0.2)]">
-            <Row className="px-8 mobile:px-6 justify-between">
+            <Row className="justify-between px-8 mobile:px-6">
               <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">Token</div>
               <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">
                 Balance / Address
@@ -350,7 +350,7 @@ function TokenSelectorDialogContent({
             {haveSearchResult ? (
               cachedTokenList
             ) : onlineTokenMintInfo && toPubString(WSOLMint) !== searchText ? (
-              <Col className="p-8  gap-4">
+              <Col className="gap-4 p-8">
                 <InputBox
                   label="input a symbol for this token"
                   onUserInput={(e) => {
@@ -415,8 +415,8 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
 
   const balance = getBalance(token)
   return (
-    <div className="group w-full">
-      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2">
+    <div className="w-full group">
+      <Row onClick={onClick} className="items-center justify-between w-full gap-4 p-2 group">
         <Row>
           <CoinAvatar token={token} className="mr-2" />
           <Col className="mr-2">
@@ -489,7 +489,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             </div>
           ) : null} new 🚑 no need */}
         </Row>
-        <Col className="self-stretch items-end">
+        <Col className="items-end self-stretch">
           {balance && (
             <div className="grow  text-sm text-[#ABC4FF] justify-self-end">
               {toString(balance?.toExact?.(), { decimalLength: 'auto 2' })}
@@ -511,7 +511,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
         </Col>
       </Row>
       {showUpdateInfo && (
-        <Col className="p-1  gap-4">
+        <Col className="gap-4 p-1">
           <InputBox
             value={userCustomizedTokenInfo.symbol}
             label="input a symbol for this token"
@@ -571,8 +571,8 @@ function TokenSelectorDialogTokenListItem({ tokenListName }: { tokenListName: Su
   if (!tokenList.mints?.size) return null
   if (tokenList.cannotbBeSeen) return null
   return (
-    <Row className="my-4 items-center">
-      {tokenList?.icon && <Image className="rounded-full h-8 w-8 overflow-hidden" src={tokenList.icon} />}
+    <Row className="items-center my-4">
+      {tokenList?.icon && <Image className="w-8 h-8 overflow-hidden rounded-full" src={tokenList.icon} />}
 
       <Col>
         <div className="text-base font-normal text-[#ABC4FF]">{tokenListName}</div>

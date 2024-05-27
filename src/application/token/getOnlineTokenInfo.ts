@@ -15,14 +15,14 @@ import { div } from '@/functions/numberish/operations'
 import { TOKEN_2022_PROGRAM_ID, getTransferFeeConfig, unpackMint } from '@solana/spl-token'
 import base58 from 'bs58'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
-import useToken from './useToken'
+import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from './useToken'
 
 let onlineWhiteList: string[] | undefined = undefined
 
 const verifyWhiteList = [
   { mint: 'AhhdRu5YZdjVkKR3wbnUDaymVQL2ucjMQ63sZ3LFHsch', decimals: 9, is2022Token: false },
   { mint: 'C4Kkr9NZU3VbyedcgutU6LKmi6MKz81sx6gRmk5pX519', decimals: 9, is2022Token: false },
-  { mint: '9TPL8droGJ7jThsq4momaoz6uhTcvX2SeMqipoPmNa8R', decimals: 9, is2022Token: false },
+  { mint: '9TPL8droGJ7jThsq4momaoz6uhTcvX2SeMqipoPmNa8R', decimals: 9, is2022Token: false }
 ]
 
 export async function verifyToken(
@@ -36,7 +36,7 @@ export async function verifyToken(
 ): Promise<TokenMintInfo | false | undefined> {
   const { tokenListSettings } = useToken.getState()
   const { logError } = useNotification.getState()
-  const isOfficialToken = tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish))
+  const isOfficialToken = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.has(toPubString(mintish))
 
   // load white list if needed
   if (!onlineWhiteList && options?.canWhiteList) {

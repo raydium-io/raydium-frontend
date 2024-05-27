@@ -328,7 +328,7 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   isTokenUnnamed: (tokenMint: PublicKeyish) => {
     const { tokenListSettings, blacklist } = get()
-    const officialTokenMints = tokenListSettings['Raydium Token List'].mints
+    const officialTokenMints = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints
     if (officialTokenMints?.has(toPubString(tokenMint))) return false
 
     const unofficialTokenMints = tokenListSettings['Solana Token List'].mints
@@ -341,7 +341,7 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   isTokenUnnamedAndNotUserCustomized: (tokenMint: PublicKeyish) => {
     const { tokenListSettings, blacklist } = get()
-    const officialTokenMints = tokenListSettings['Raydium Token List'].mints
+    const officialTokenMints = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints
     if (officialTokenMints?.has(toPubString(tokenMint))) return false
 
     const unofficialTokenMints = tokenListSettings['Solana Token List'].mints
